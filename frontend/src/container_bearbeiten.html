@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Container bearbeiten</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Sidebar (links) -->
+  <div class="sidebar">
+    <div class="profile" onclick="toggleMenu()">
+      👤 Mein Profil
+    </div>
+    <div class="menu-items" id="menu">
+      <a href="index.html">Dashboard</a>
+      <a href="#">Profil bearbeiten</a>
+      <a href="#">Container hinzufügen</a>
+      <a href="dicom_upload.html">DICOM upload</a>
+    </div>
+  </div>
+
+  <!-- Hauptinhalt -->
+  <div class="main-content">
+    <h1>Container bearbeiten</h1>
+
+    <div class="container-section">
+      <input type="text" id="searchInput" placeholder="Nach Name oder Status suchen..." onkeyup="filterTable()" />
+      
+      <table id="containerTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Image</th>
+            <th>Version</th>
+            <th>Erstellungsdatum</th>
+            <th>Status</th>
+            <th>Aktion</th>
+          </tr>
+        </thead>
+        <tbody id="containerBody">
+          <!-- Wird per JS befüllt -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

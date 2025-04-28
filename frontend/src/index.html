@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -7,8 +8,29 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Willkommen Team IMBlue!</h1>
-  <button id="coolButton">Klicke hier, wenn du heute gut gelaunt bist 😎</button>
+  <h1><span style="color: #FFD700;">m</span>Ray AIR</h1>
+  <div>
+    <label for="Rolle">Rolle: </label>
+     <!-- Fehlermeldung, standardmäßig verborgen -->
+     <div id="error-message" style="color: red; display: none; margin-top: 10px;">
+      ❌ Du kannst dich nur als Admin anmelden!
+    </div>
+    <select id="Rolle" name="Rolle" required="required"> 
+      <option value="" disabled selected hidden>Bitte auswählen</option>
+      <option value="admin">Admin</option> 
+      <option value="user">User</option> 
+      <option value="Provider">Provider</option> 
+    </select>
+    <label for="name">Benutzername:</label>
+    <input type="text" name="name" placeholder="Benutzername eingeben"></input>
+    <label for="password">Passwort:</label>
+    <input id="password" name="password" type="password" placeholder="Passwort eingeben" required>
+  </div>
+
+
+  <!-- Weiterleitung zur neuen Seite nach Anmeldung -->
+  <button id="submit" type="submit">Anmelden</button>
+  <button id="coolButton">Registrieren</button>
 
   <script src="script.js"></script>
 </body>
