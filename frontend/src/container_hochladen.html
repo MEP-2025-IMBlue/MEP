@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Container bearbeiten</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="upload-styles.css" /> <!-- Neue CSS-Datei für Upload -->
+</head>
+<body>
+  <!-- Sidebar (links) -->
+  <div class="sidebar">
+    <div class="profile" onclick="toggleMenu()">
+      👤 Mein Profil
+    </div>
+    <div class="menu-items" id="menu">
+      <a href="#">Profil bearbeiten</a>
+      <a href="#">Dashboard anzeigen</a>
+      <a href="container_bearbeiten.html">Container bearbeiten</a>
+      <a href="dicom_upload.html">DICOM upload</a>
+      <a href="index.html">Abmelden</a>
+    </div>
+  </div>
+
+  <header>
+    <h1>Container Upload</h1>
+    <h2>Hier können Sie Ihre Container hochladen</h2>
+  </header>
+
+  <main>
+    <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data" class="upload-form">
+      <input type="text" class="upload-input" name="container-name" placeholder="Container Name" required />
+      <input type="file" class="upload-input" name="container-file" accept=".tar,.zip" required />
+      <button type="submit" class="upload-button">Hochladen</button>
+    </form>
+    <div id="upload-status"></div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

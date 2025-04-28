@@ -88,3 +88,136 @@ document.addEventListener("DOMContentLoaded", () => {
     loadContainerTable();
   });
 });
+
+// liste der KIS
+/*
+
+document.getElementById('send-button').addEventListener('click', function() {
+  const fileInput = document.getElementById('file-input');
+  const kiList = document.getElementById('ki-list');
+
+  if (fileInput.files.length > 0) {
+    // Für jede hochgeladene Datei füge einen neuen Eintrag hinzu
+    for (let i = 0; i < fileInput.files.length; i++) {
+      const file = fileInput.files[i];
+      const option = document.createElement('option');
+      option.text = file.name;  // Anzeigename = Dateiname
+      option.value = file.name;
+      kiList.appendChild(option);
+    }
+
+    // Optional: Datei-Eingabefeld wieder leeren
+    fileInput.value = '';
+  }
+});
+*/ 
+/*
+// Drag n Drop funktion
+// Funktion zum Umgehen der Standardverhalten von Drag-and-Drop
+const dragDropArea = document.getElementById("drag-drop-area");
+const fileInput = document.getElementById("file-input");
+
+// Event Listener für das Dragging von Dateien
+dragDropArea.addEventListener("dragover", (event) => {
+  event.preventDefault(); // Verhindert das Standardverhalten, das die Datei nicht erlaubt
+  dragDropArea.classList.add("drag-over"); // Zeigt an, dass die Datei im Drop-Bereich ist
+});
+
+dragDropArea.addEventListener("dragleave", () => {
+  dragDropArea.classList.remove("drag-over"); // Entfernt die visuelle Drag-Over-Klasse
+});
+
+dragDropArea.addEventListener("drop", (event) => {
+  event.preventDefault();
+  dragDropArea.classList.remove("drag-over"); // Entfernt die visuelle Drag-Over-Klasse
+
+  // Die Datei(s) aus dem Drop-Event extrahieren
+  const file = event.dataTransfer.files[0]; // Nimmt die erste Datei im Drop
+  if (file && file.type === "application/dicom" || file.name.endsWith(".dcm")) {
+    // Setzt die Datei ins Input-Feld und löst den Upload aus
+    fileInput.files = event.dataTransfer.files;
+    handleFileUpload();
+  } else {
+    alert("Bitte eine gültige DICOM-Datei (.dicom, .dcm) hochladen.");
+  }
+});
+
+// Funktion für den Datei-Upload (behandelt sowohl Drag-and-Drop als auch manuelles Hochladen)
+fileInput.addEventListener("change", handleFileUpload);
+
+// Funktion für die Handhabung des Datei-Uploads
+function handleFileUpload() {
+  if (fileInput.files && fileInput.files[0]) {
+    const file = fileInput.files[0];
+    
+    // Hier kannst du eine Funktion aufrufen, um die DICOM-Datei zu verarbeiten
+    console.log("Datei hochgeladen: ", file.name);
+
+    // Du kannst hier die Logik zum Hinzufügen der KI-Namen oder zum Verarbeiten der DICOM-Datei einbauen
+    document.getElementById("ki-list").style.display = "block"; // Zeigt das Drop-Down an
+    const kiSelect = document.getElementById("ki-list");
+    const optionDefault = document.createElement("option");
+    optionDefault.value = "";
+    optionDefault.disabled = true;
+    optionDefault.selected = true;
+    optionDefault.text = "Bitte KI auswählen";
+    kiSelect.innerHTML = ""; // Entfernt alle aktuellen Optionen
+    kiSelect.appendChild(optionDefault);
+
+    // KIs zur Liste hinzufügen (hier statisch, kann dynamisch angepasst werden)
+    const kiNames = ["KI 1", "KI 2", "KI 3"]; // Dies kannst du dynamisch nach Bedarf anpassen
+    kiNames.forEach(function(ki) {
+      const option = document.createElement("option");
+      option.value = ki.toLowerCase();
+      option.text = ki;
+      kiSelect.appendChild(option);
+    });
+  }
+}
+*/
+
+// Funktion zur Überprüfung der Dateiendung
+function validateFileExtension(file) {
+  // Erlaubte Dateiendungen (zum Beispiel: .jpg, .png, .pdf)
+  const allowedExtensions = ['.dcm', '.dicom'];
+
+  // Holen der Dateiendung
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+
+  // Überprüfen, ob die Dateiendung erlaubt ist
+  if (!allowedExtensions.includes('.' + fileExtension)) {
+    alert('Ungültige Datei! Bitte laden Sie eine Datei mit den folgenden Endungen hoch: ' + allowedExtensions.join(', '));
+    return false;
+  }
+
+  return true;
+}
+
+// Event-Listener für das manuelle Dateiupload-Feld
+document.getElementById('file-input').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+
+  // Wenn die Datei nicht den erlaubten Endungen entspricht, verhindere den Upload
+  if (!validateFileExtension(file)) {
+    // Setze das Datei-Feld zurück (optional)
+    event.target.value = '';
+  } else {
+    // Datei ist validiert, hier kann der Upload-Prozess fortgesetzt werden
+    console.log('Datei ist gültig:', file.name);
+  }
+});
+
+// Event-Listener für das Drag-and-Drop (wenn es implementiert ist)
+document.querySelector('.drag-drop-area').addEventListener('drop', function(event) {
+  event.preventDefault();
+  const file = event.dataTransfer.files[0];
+
+  // Wenn die Datei nicht den erlaubten Endungen entspricht, verhindere den Upload
+  if (!validateFileExtension(file)) {
+    // Optional: Zeige eine Fehlermeldung oder setze das Drag-and-Drop zurück
+    console.log('Ungültige Datei!');
+  } else {
+    // Datei ist validiert, hier kann der Upload-Prozess fortgesetzt werden
+    console.log('Datei ist gültig:', file.name);
+  }
+});
