@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Container bearbeiten</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="bearbeiten_styles.css" /> <!-- Neue CSS-Datei für bearbeiten -->
 </head>
 <body>
 
@@ -26,7 +27,7 @@
   <div class="main-content">
     <h1>Container bearbeiten</h1>
 
-    <div class="container-section">
+    <div class="container-section" id="containerSection">
       <input type="text" id="searchInput" placeholder="Nach Name oder Status suchen..." onkeyup="filterTable()" />
       
       <table id="containerTable">

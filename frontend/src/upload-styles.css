@@ -1,0 +1,97 @@
+/* upload-styles.css */
+/* ================== Dashboard-spezifische Styles ================== */
+body.dashboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    padding-top: 50px; /* Für Dashboard weniger Abstand */
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .sidebar .profile {
+    cursor: pointer;
+    padding: 10px;
+    font-size: 1.2rem;
+    background-color: #444;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .sidebar .menu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+  }
+  
+  .sidebar .menu-items a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    width: 100%;
+    text-align: center;
+    background-color: #444;
+    border-bottom: 1px solid #555;
+  }
+  
+  .sidebar .menu-items a:hover {
+    background-color: #555;
+  }
+/* Hauptinhalt */
+main {
+    display: flex; /* Flexbox für den Hauptinhalt */
+    flex-direction: column; /* Vertikale Anordnung */
+    align-items: center; /* Horizontale Zentrierung */
+    justify-content: flex-end; /* Elemente am unteren Rand ausrichten */
+    height: calc(100vh - 100px); /* Höhe anpassen, um Platz für Header und Footer zu schaffen */
+    padding: 20px; /* Polsterung */
+  }
+  
+  /* Eingabefelder */
+  .upload-input {
+    width: 70%; /* Breite der Eingabefelder anpassen */
+    font-size: 0.9rem; /* Schriftgröße anpassen */
+    padding: 8px; /* Polsterung */
+    border-radius: 5px; /* Abgerundete Ecken */
+    border: 1px solid #ccc; /* Rahmen */
+    margin-bottom: 10px; /* Abstand nach unten */
+  }
+  
+  /* Button */
+  .upload-button {
+    width: 50%; /* Breite des Buttons anpassen */
+    background-color: grey; /* Hintergrundfarbe */
+    color: white; /* Textfarbe */
+    cursor: pointer; /* Zeiger ändern */
+    padding: 10px; /* Polsterung */
+    border-radius: 5px; /* Abgerundete Ecken */
+    font-size: 1rem; /* Schriftgröße */
+  }
+  
+  .upload-button:hover {
+    background-color: #555; /* Hintergrundfarbe beim Hover */
+  }
+  
+  /* Formular */
+  .upload-form {
+    display: flex; /* Flexbox für die Anordnung */
+    flex-direction: column; /* Vertikale Anordnung */
+    align-items: center; /* Horizontale Zentrierung */
+    margin-bottom: 20px; /* Abstand nach unten */
+  }
