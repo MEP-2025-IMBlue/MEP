@@ -1,0 +1,13 @@
+.error-message {
+    color: red;
+    font-size: 0.9em;
+    display: none; /* Fehler anzeigen, wenn nötig */
+  }
+  
+  input.error, select.error {
+    border: 2px solid red; /* Fehlerfeld mit rotem Rand */
+  }
+  
+  button:disabled {
+    background-color: #ccc;
+  }
