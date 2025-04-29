@@ -10,7 +10,7 @@ fake_db = []
 
 @router.get("/list-KIimages", response_model=List[KIImageMetadata])
 async def list_KIimages():
-    return fake_db
+    return {"KI-Images":fake_db}
 
 @router.get("/get-KIimage/{image_id}", response_model=KIImageMetadata)
 async def get_KIimage(image_id: int):
