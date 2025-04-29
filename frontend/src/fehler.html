@@ -1,0 +1,120 @@
+<script>
+    document.getElementById('containerForm').addEventListener('submit', validateForm);
+    document.getElementById('port').addEventListener('input', validatePort);
+    document.getElementById('path').addEventListener('input', validatePath);
+    document.getElementById('format').addEventListener('change', validateFormat);
+  
+    const allowedFormats = ["json", "dicom", "zip"];
+  
+    // Defaultwert setzen (Port = 5000)
+    document.getElementById('port').value = 5000;
+  
+    // Validierung des Formulars
+    function validateForm(event) {
+      event.preventDefault(); // Verhindert das Absenden, wenn Fehler vorhanden
+  
+      const isPortValid = validatePort();
+      const isPathValid = validatePath();
+      const isFormatValid = validateFormat();
+  
+      if (isPortValid && isPathValid && isFormatValid) {
+      // Hier könntest du den API-Aufruf tätigen
+      const formData = new FormData(document.getElementById('containerForm')); // Holt alle Formulardaten
+  
+      fetch('http://dein-api-endpunkt.com/api/containers', {
+          method: 'POST',
+          body: formData, // Die Formulardaten werden gesendet
+          headers: {
+              'Authorization': 'Bearer <dein-token>', // Hier musst du dein Token einfügen
+          }
+      })
+      .then(response => response.json()) // Antwort in JSON umwandeln
+      .then(data => {
+          // Verarbeite die Antwort des Servers
+          if (data.message === "Upload erfolgreich") {
+              alert("Container wurde erfolgreich hochgeladen!");
+              // Hier kannst du noch etwas tun, z.B. zum Dashboard weiterleiten
+          } else {
+              alert("Es gab ein Problem beim Hochladen des Containers: " + data.message);
+          }
+      })
+      .catch(error => {
+          console.error('Fehler beim API-Aufruf:', error);
+          alert('Ein Fehler ist aufgetreten. Bitte versuche es später erneut.');
+      });
+  } else {
+      alert("Bitte behebe alle Fehler im Formular.");
+  }
+  
+    }
+  
+    // Validierung des Ports
+    function validatePort() {
+      const portField = document.getElementById('port');
+      const portValue = parseInt(portField.value);
+      const portError = document.getElementById('portError');
+      
+      if (isNaN(portValue) || portValue < 1 || portValue > 65535) {
+        portField.classList.add('error');
+        portError.textContent = 'Port muss eine Zahl zwischen 1 und 65535 sein.';
+        portError.style.display = 'inline';
+        return false;
+      }
+  
+      // Überprüfe, ob der Port bereits verwendet wird (Duplikate)
+      if (usedPorts.includes(portValue)) {
+          portField.classList.add('error');
+          portError.textContent = 'Dieser Port wird bereits verwendet. Bitte einen anderen wählen.';
+          portError.style.display = 'inline';
+          return false;
+      }
+  
+      portField.classList.remove('error');
+      portError.style.display = 'none';
+      return true;
+    }
+  
+    // Validierung des Pfads
+    function validatePath() {
+      const pathField = document.getElementById('path');
+      const pathError = document.getElementById('pathError');
+      const pathValue = pathField.value;
+  
+      const pathRegex = /^\/[a-zA-Z0-9\-\/]*$/; // Pfad muss mit '/' anfangen und alphanumerisch sein
+  
+      if (!pathValue || !pathRegex.test(pathValue)) {
+        pathField.classList.add('error');
+        pathError.textContent = 'Pfad darf nicht leer sein und muss mit "/" beginnen.';
+        pathError.style.display = 'inline';
+        return false;
+      }
+  
+      pathField.classList.remove('error');
+      pathError.style.display = 'none';
+      return true;
+    }
+  
+    // Validierung des Formats
+    function validateFormat() {
+      const formatField = document.getElementById('format');
+      const formatError = document.getElementById('formatError');
+      const formatValue = formatField.value;
+  
+      if (!allowedFormats.includes(formatValue)) {
+        formatField.classList.add('error');
+        formatError.textContent = 'Nur json, dicom oder zip sind erlaubt.';
+        formatError.style.display = 'inline';
+        return false;
+      }
+  
+      formatField.classList.remove('error');
+      formatError.style.display = 'none';
+      return true;
+    }
+  
+    // Button aktivieren/deaktivieren basierend auf Validierung
+    document.getElementById('containerForm').addEventListener('input', function() {
+      const isValid = validatePort() && validatePath() && validateFormat();
+      document.getElementById('submitBtn').disabled = !isValid;
+    });
+  </script>
