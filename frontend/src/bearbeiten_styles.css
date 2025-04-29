@@ -95,3 +95,50 @@ body.dashboard {
     font-size: 1rem;
     color: black;
   }
+  @media (max-width: 768px) {
+    .sidebar {
+      position: static;
+      width: 100%;
+      height: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+    }
+  
+    .sidebar .menu-items {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  
+    .sidebar .menu-items a {
+      flex: 1 1 45%;
+      margin: 5px;
+    }
+  
+    .main-content {
+      margin-left: 0;
+      padding: 1rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .sidebar .menu-items a {
+      flex: 1 1 100%;
+    }
+  
+    .chat-input-container {
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    #file-input, #input-text, #ki-list, #send-button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  }
+  

@@ -5,7 +5,7 @@ body.dashboard {
     align-items: center;
     justify-content: flex-start;
     height: 100vh;
-    padding-top: 50px; /* Für Dashboard weniger Abstand */
+    padding-top: 60px; /* Für Dashboard weniger Abstand */
   }
   
   /* Sidebar */
@@ -114,7 +114,9 @@ body.dashboard {
   #send-button:hover {
     background-color: #555;
   }
-  /*falls drag n drop */
+  
+
+/*   /*falls drag n drop */
   /* Eingabefeld für Datei-Upload */
   #file-input {
     /* width: 150px; */ /* Kleinere Breite für das Datei-Upload-Feld */
@@ -142,4 +144,28 @@ body.dashboard {
   .drag-drop-area.drag-over {
     /* border-color: #66b2ff; */ /* Farbe der Grenze während des Drag-Over Zustands */
     /* color: #66b2ff; */ /* Textfarbe während des Drag-Over Zustands */
+  } */
+  
+@media (max-width: 768px) {
+  .upload-section {
+    padding: 1rem;
   }
+
+  #dicom-chat {
+    max-height: 300px;
+  }
+
+  .message {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #dicom-chat {
+    max-height: 250px;
+  }
+
+  .message {
+    padding: 8px;
+  }
+}

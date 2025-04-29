@@ -51,3 +51,34 @@ button:hover {
   display: none;
   margin-top: 10px;
 }
+
+@media (max-width: 768px) {
+  button, input, select {
+    font-size: 0.95rem;
+    padding: 10px;
+  }
+
+  h1, .dashboard-title {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding-top: 50px;
+  }
+
+  button, input, select {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  div {
+    padding: 0 10px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}

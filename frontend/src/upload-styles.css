@@ -1,16 +1,5 @@
-/* upload-styles.css */
-/* ================== Dashboard-spezifische Styles ================== */
-body.dashboard {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    height: 100vh;
-    padding-top: 50px; /* Für Dashboard weniger Abstand */
-  }
-  
-  /* Sidebar */
-  .sidebar {
+/* Sidebar */
+.sidebar {
     position: fixed;
     top: 0;
     left: 0;
@@ -53,45 +42,64 @@ body.dashboard {
   .sidebar .menu-items a:hover {
     background-color: #555;
   }
-/* Hauptinhalt */
+  
 main {
-    display: flex; /* Flexbox für den Hauptinhalt */
-    flex-direction: column; /* Vertikale Anordnung */
-    align-items: center; /* Horizontale Zentrierung */
-    justify-content: flex-end; /* Elemente am unteren Rand ausrichten */
-    height: calc(100vh - 100px); /* Höhe anpassen, um Platz für Header und Footer zu schaffen */
-    padding: 20px; /* Polsterung */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    gap: 20px;
+    min-height: 80vh;
   }
   
-  /* Eingabefelder */
+  .upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 400px;
+  }
+  
   .upload-input {
-    width: 70%; /* Breite der Eingabefelder anpassen */
-    font-size: 0.9rem; /* Schriftgröße anpassen */
-    padding: 8px; /* Polsterung */
-    border-radius: 5px; /* Abgerundete Ecken */
-    border: 1px solid #ccc; /* Rahmen */
-    margin-bottom: 10px; /* Abstand nach unten */
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
   }
   
-  /* Button */
   .upload-button {
-    width: 50%; /* Breite des Buttons anpassen */
-    background-color: grey; /* Hintergrundfarbe */
-    color: white; /* Textfarbe */
-    cursor: pointer; /* Zeiger ändern */
-    padding: 10px; /* Polsterung */
-    border-radius: 5px; /* Abgerundete Ecken */
-    font-size: 1rem; /* Schriftgröße */
+    background-color: grey;
+    color: white;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
   }
   
   .upload-button:hover {
-    background-color: #555; /* Hintergrundfarbe beim Hover */
+    background-color: #555;
   }
-  
-  /* Formular */
+  @media (max-width: 768px) {
   .upload-form {
-    display: flex; /* Flexbox für die Anordnung */
-    flex-direction: column; /* Vertikale Anordnung */
-    align-items: center; /* Horizontale Zentrierung */
-    margin-bottom: 20px; /* Abstand nach unten */
+    max-width: 90%;
   }
+
+  .upload-button {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 1rem;
+  }
+
+  .upload-form {
+    gap: 10px;
+  }
+
+  .upload-button {
+    padding: 10px;
+  }
+}

@@ -35,7 +35,10 @@ function toggleMenu() {
   } else {
     menu.style.display = "none"; // Verberge das Menü, wenn es sichtbar ist
   }
+  const sidebar = document.querySelector('.sidebar');
+  sidebar.classList.toggle('open');  // Klasse 'open' toggeln
 }
+
 //47.1
 // Beispiel-Daten
 const containerData = [
@@ -220,4 +223,10 @@ document.querySelector('.drag-drop-area').addEventListener('drop', function(even
     // Datei ist validiert, hier kann der Upload-Prozess fortgesetzt werden
     console.log('Datei ist gültig:', file.name);
   }
+});
+//für profil bearbeiten
+document.getElementById('editProfileForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+  // Hier kannst du die Logik zum Speichern der Änderungen hinzufügen
+  alert('Profil erfolgreich aktualisiert!');
 });
