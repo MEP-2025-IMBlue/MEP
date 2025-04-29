@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from backend.src.api.routes import router
+from backend.src.api.routes.KIImage_routes import router
 
 app = FastAPI()
 

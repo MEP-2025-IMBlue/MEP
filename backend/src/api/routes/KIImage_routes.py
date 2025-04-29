@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from backend.src.api import KIImageMetadata
+from backend.src.api.py_models import KIImageMetadata
 from typing import List
 
 #An M: was ist prefix?
