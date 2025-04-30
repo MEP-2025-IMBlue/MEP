@@ -1,13 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from backend.src.api.py_models import KIImageMetadata
-from typing import List
+from backend.src.services.image_upload.service_KIImage import *
 
 #An M: was ist prefix?
 #router = APIRouter(prefix="/images", tags=["images"])
 router = APIRouter()
 
-# Simulierte In-Memory-Datenbank
-fake_db = []
 
 @router.get("/list-KIimages", description= """
 Gibt eine Liste aller derzeit gespeicherten KI-Bilder aus der Datenbank zurück.
@@ -15,9 +13,11 @@ Gibt eine Liste aller derzeit gespeicherten KI-Bilder aus der Datenbank zurück.
 - Die Antwort enthält entweder eine Liste unter dem Schlüssel `"KI-Images"` oder eine `"message"`, dass noch keine Einträge vorhanden sind.
 """)
 async def list_KIimages():
-    if len(fake_db) == 0:
-        return {"message":"No KIImages yet!"}
-    return {"KI-Images": fake_db}
+    try:
+        list = get_all_ki_image()
+        return {"KI-Images" : list}
+    except NOKIImagesInTheList:
+        raise HTTPException(status_code=404, detail=f"Es befinden sich noch keine KI-Images.")
 
 @router.get("/get-KIimage/{image_id}", response_model=KIImageMetadata)
 async def get_KIimage(image_id: int):
@@ -50,11 +50,11 @@ Löscht ein KI-Bild mit der angegebenen `image_id` aus der Datenbank.
         404: {"description": "Kein KI-Bild mit der angegebenen ID gefunden"}
     })
 async def delete_KIimage(image_id: str):
-    for idx, KIImageMetadata in enumerate(fake_db):
-        if KIImageMetadata.image_id == image_id:
-            fake_db.pop(idx)
-            return {"message": f"Image with the id {image_id} deleted"}
-    raise HTTPException(status_code=404, detail=f"KI-Image with {image_id} not found")
+    try:
+        deleted = delete_ki_image(image_id)
+        return {"message": f"KI-Image mit der ID {deleted.image_id} wurde gelöscht."}
+    except KIImageNotFoundError:
+        raise HTTPException(status_code=404, detail=f"KI-Image mit der ID {image_id} wurde nicht gefunden.")
 
 # @router.put("/{id}", response_model=KIImageMetadata)
 # async def update_image(id: int, image: KIImageMetadata):
