@@ -4,7 +4,7 @@ from backend.src.api.routes.KIImage_routes import router
 app = FastAPI()
 
 @app.get("/")
-def read_root():
+def root():
     return {"Hello": "World"}
 
 
