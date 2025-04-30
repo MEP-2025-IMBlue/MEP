@@ -230,3 +230,25 @@ document.getElementById('editProfileForm').addEventListener('submit', function(e
   // Hier kannst du die Logik zum Speichern der Änderungen hinzufügen
   alert('Profil erfolgreich aktualisiert!');
 });
+
+// Schnittstelle
+document.getElementById("upload-form").addEventListener("submit", function (event) {
+  // Optional: eigene Validierung
+  const requiredFields = ["image_id", "image_name", "tag", "repository", "created_at", "size"];
+  let valid = true;
+
+  requiredFields.forEach(fieldId => {
+    const field = document.querySelector(`[name="${fieldId}"]`);
+    if (!field || !field.value) {
+      valid = false;
+      field.classList.add("input-error"); // z. B. roter Rahmen bei Fehler
+    } else {
+      field.classList.remove("input-error");
+    }
+  });
+
+  if (!valid) {
+    event.preventDefault();
+    alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
+  }
+});

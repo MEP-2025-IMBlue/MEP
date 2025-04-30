@@ -29,11 +29,30 @@
 
   <main>
     <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data" class="upload-form">
-      <input type="text" class="upload-input" name="container-name" placeholder="Container Name" required />
+      <input type="text" class="upload-input" name="image_id" placeholder="Image ID" required />
+      <input type="text" class="upload-input" name="image_name" placeholder="Image Name" required />
+      <input type="text" class="upload-input" name="tag" placeholder="Image Tag" required />
+      <input type="text" class="upload-input" name="repository" placeholder="Repository" required />
+      <input type="date" class="upload-input" name="created_at" placeholder="Erstellungsdatum" required />
+      <input type="number" class="upload-input" name="size" placeholder="Größe in Bytes" required />
+    
+      <select name="architecture" class="upload-input">
+        <option value="">Architektur auswählen (optional)</option>
+        <option value="amd64">amd64</option>
+        <option value="arm64">arm64</option>
+        <option value="arm/v7">arm/v7</option>
+      </select>
+    
+      <select name="os" class="upload-input">
+        <option value="">Betriebssystem auswählen (optional)</option>
+        <option value="linux">Linux</option>
+        <option value="windows">Windows</option>
+      </select>
+    
       <input type="file" class="upload-input" name="container-file" accept=".tar,.zip" required />
       <button type="submit" class="upload-button">Hochladen</button>
     </form>
-    <div id="upload-status"></div>
+    
   </main>
 
   <script src="script.js"></script>
