@@ -17,8 +17,7 @@ Gibt eine Liste aller derzeit gespeicherten KI-Bilder aus der Datenbank zurück.
     })
 async def list_KIimages():
     try:
-        list = get_all_ki_image()
-        return {"KI-Images" : list}
+        return get_all_ki_image()
     except NOKIImagesInTheList:
         raise HTTPException(status_code=404, detail=f"Es befinden sich noch keine KI-Images in der Datenbank.")
 
