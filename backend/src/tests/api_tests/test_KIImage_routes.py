@@ -6,14 +6,14 @@ from backend.src.services.image_upload.service_KIImage import fake_db
 
 client = TestClient(app)
 
-# Abschnitt 1: Hilfsfunktionen
 # ------------------------------------------------------------
+# Abschnitt: Hilfsfunktionen
 
 def setup_function():
     fake_db.clear()
 
 def add_sample_ki_image():
-    response = client.post("/add-KIimage", json={
+    response = client.post("/ki-images", json={
         "image_id": "string",
         "image_name": "string",
         "tag": "string",
@@ -36,32 +36,32 @@ def add_sample_ki_image():
     }
     return response
 
-# Abschnitt 2: Tests für GET
 # ------------------------------------------------------------
+# Abschnitt: Tests für GET
 
-def test_get_list_KIimages():
-    response_first = client.get("/list-KIimages")
-    assert response_first.status_code == 404
-    assert response_first.json() == {"detail":"Es befinden sich noch keine KI-Images in der Datenbank."}
+def test_get_ki_images_list_empty():
+    response = client.get("/ki-images")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Es befinden sich noch keine KI-Images in der Datenbank."}
 
-def test_get_list_KIimages_after_post():
+def test_get_ki_images_list_after_post():
     add_sample_ki_image()
-    response_second = client.get("/list-KIimages")
-    assert response_second.status_code == 200 
-    assert any(item["image_id"] == "string" for item in response_second.json())  # Bild mit der ID 'string' sollte in der Liste sein
+    response = client.get("/ki-images")
+    assert response.status_code == 200 
+    assert any(item["image_id"] == "string" for item in response.json())
 
-# Abschnitt 3: Tests für POST
 # ------------------------------------------------------------
+# Abschnitt: Tests für POST
 
-def test_post_KIimage1():
-    response_first = client.post("/add-KIimage", json={
+def test_post_ki_image_valid_and_duplicate():
+    response_first = client.post("/ki-images", json={
         "image_id": "string",
         "image_name": "string",
         "tag": "string",
         "repository": "path",
         "created_at": "2025-04-15T",
         "size": 16,
-        "architecture": None, # korrekte Verarbeitung von optionalen Feldern
+        "architecture": None
     })
     assert response_first.status_code == 200
     assert response_first.json() == {
@@ -74,8 +74,9 @@ def test_post_KIimage1():
         "architecture": None, 
         "os": None
     }
-    response_second = client.post("/add-KIimage", json={
-        "image_id": "string",  # dieselbe ID wie im ersten Test
+
+    response_second = client.post("/ki-images", json={
+        "image_id": "string",
         "image_name": "string", 
         "tag": "string", 
         "repository": "path", 
@@ -84,52 +85,52 @@ def test_post_KIimage1():
         "architecture": None, 
         "os": "linux"
     })
-    assert response_second.status_code == 400  # Statuscode 400 für Konflikt mit existierender ID
+    assert response_second.status_code == 400
     assert response_second.json() == {"detail": "Ein Bild mit der ID string existiert bereits."}
-    
-def test_post_KIimage2():
-    response = client.post("/add-KIimage", json={"image_id": 123}) #Weitere Eingaben fehlen + image_id erfordert einen String
+
+def test_post_ki_image_invalid_fields():
+    response = client.post("/ki-images", json={"image_id": 123})
     assert response.status_code == 422  
-    assert "detail" in response.json()  
-                        
-def test_post_KIimage3():
-    response = client.post("/add-KIimage", json={
+    assert "detail" in response.json()
+
+def test_post_ki_image_invalid_enum():
+    response = client.post("/ki-images", json={
         "image_id": "string",
         "image_name": "string",
         "tag": "string",
         "repository": "path",
         "created_at": "2025-04-15T",
         "size": 16,
-        "architecture": "invalid architecture", # korrekte Verarbeitung von ungültigen Literal Variablen (nur linux, windows erlaubt)
+        "architecture": "invalid architecture"
     })
     assert response.status_code == 422
     assert "detail" in response.json()
 
-# Abschnitt 4: Tests für DELETE
 # ------------------------------------------------------------
+# Abschnitt: Tests für DELETE
 
-def test_delete_KIimage():
+def test_delete_ki_image():
     add_sample_ki_image()
-    response_first = client.delete("/delete-KIimage/string")
-    assert response_first.status_code == 200
+    response_delete = client.delete("/ki-images/string")
+    assert response_delete.status_code == 200
 
-    response_second = client.get("/list-KIimages") #Vergewisserung, dass jetzt die DB leer ist
-    assert response_second.status_code == 404
+    response_check = client.get("/ki-images")
+    assert response_check.status_code == 404
 
-def test_delete_KIimage_wrong_id():
-    add_sample_ki_image() # Objekt hinzufügen
-    response = client.delete("/delete-KIimage/wrong_id")
+def test_delete_ki_image_invalid_id():
+    add_sample_ki_image()
+    response = client.delete("/ki-images/wrong_id")
     assert response.status_code == 404
     assert response.json() == {"detail": "KI-Image mit der ID wrong_id wurde nicht gefunden."}
     assert any(item.image_id == "string" for item in fake_db)
 
-# Abschnitt 5: Tests für PUT
 # ------------------------------------------------------------
+# Abschnitt: Tests für PUT (noch offen)
 
-# Abschnitt 6: Unzugeordnete Tests
 # ------------------------------------------------------------
+# Abschnitt: Unzugeordnete Tests
 
-def test_home () :
+def test_home():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message":"Welcome"}
+    assert response.json() == {"message": "Welcome"}
