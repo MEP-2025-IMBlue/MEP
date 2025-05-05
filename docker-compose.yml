@@ -10,33 +10,31 @@ services:
       - backend
 
   backend:
-    #image: maimuna03/mep-backend:latest
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: maimuna03/mep-backend:latest
     container_name: mep-backend
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
-      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
+      - ./backend/src:/app
     depends_on:
       - db
-    environment:
-      - DATABASE_URL=postgresql://imblue_user:secret@db:5432/imblue_db
+    env_file:
+      - ./backend/.env
 
   db:
     image: postgres:16
     container_name: mep-db
-    restart: always
-    environment:
-      POSTGRES_DB: imblue_db
-      POSTGRES_USER: imblue_user
-      POSTGRES_PASSWORD: secret
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    restart: always
+    env_file:
+      - ./database/.env
+      # POSTGRES_HOST_AUTH_METHOD: trust     #Kein Passwort nötig (nicht nötig, wenn Passwort gesetzt)
+    volumes:
+      # Speichert die PostgreSQL-Daten persistent außerhalb des Containers → Daten bleiben erhalten, auch wenn der Container neu gestartet oder gelöscht wird
+      - postgres_data:/var/lib/postgresql/data
+      # Führt einmalig beim allerersten Start das SQL-Initialisierungsskript aus (nicht mehr bei späteren Starts, wenn Daten schon da sind)
+      - ./database/schemas/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   postgres_data:
