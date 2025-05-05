@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
-from backend.src.main import app
-from backend.src.api.py_models import *
-from backend.src.api.routes import *
-from backend.src.services.image_upload.service_KIImage import fake_db
+from src.main import app
+from src.api.py_models import *
+from src.api.routes import *
+from src.services.image_upload.service_KIImage import fake_db
 
 client = TestClient(app)
 

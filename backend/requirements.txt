@@ -2,3 +2,5 @@ fastapi
 uvicorn
 httpx
 pytest
+docker
+python-multipart

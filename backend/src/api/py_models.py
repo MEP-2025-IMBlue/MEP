@@ -1,18 +1,18 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional, Literal, Dict
+
 
 # ------------------------------------------------------------
 # Abschnitt: KIImageMetadata
 
 class KIImageMetadata(BaseModel):
-    image_id: str
-    image_name: str = Field(..., title="Image Name", max_length=255)
-    tag: str = Field(..., title="Image Tag", max_length=128)
-    repository: str = Field(..., title="Repository", max_length=255)
-    created_at: str = Field(..., title="Creation Timestamp", example="2025-04-14T")
-    size: int = Field(..., title="Image Size in Bytes")
-    architecture: Optional[Literal["amd64", "arm64", "arm/v7"]] = Field(None, title="CPU Architecture")
-    os: Optional[Literal["linux", "windows"]] = Field(None, title="Operating System")
+    image_id: Optional[int] = None
+    image_name: str
+    image_tag: str
+    description: Optional[str] = None
+    image_path: Optional[str] = None  # Für Docker Hub-Images
+    local_image_name: Optional[str] = None  # Für lokale Images
+    user_id: Optional[int] = None
 
 class KIImageUpdate(BaseModel):
     image_name: Optional[str]
@@ -22,3 +22,23 @@ class KIImageUpdate(BaseModel):
     size: Optional[int]
     architecture: Optional[Literal["amd64", "arm64", "arm/v7"]] 
     os: Optional[Literal["linux", "windows"]]
+
+class ImageUpload(BaseModel):
+    name: str
+    image_tag: str
+    description: Optional[str] = None
+    user_id: Optional[int] = None
+
+# ------------------------------------------------------------
+# Abschnitt: Container
+
+class ContainerCreate(BaseModel):
+    image_path: Optional[str] = None  # Optional, default=None
+    local_image_name: Optional[str] = None  # Optional, default=None
+    container_name: str
+    env_vars: Dict[str, str]
+
+class ContainerResponse(BaseModel):
+    container_id: str
+    name: str
+    status: str
