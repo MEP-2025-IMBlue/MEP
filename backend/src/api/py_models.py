@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 
+# ------------------------------------------------------------
+# Abschnitt: KIImageMetadata
 
 class KIImageMetadata(BaseModel):
     image_id: str
@@ -11,3 +13,12 @@ class KIImageMetadata(BaseModel):
     size: int = Field(..., title="Image Size in Bytes")
     architecture: Optional[Literal["amd64", "arm64", "arm/v7"]] = Field(None, title="CPU Architecture")
     os: Optional[Literal["linux", "windows"]] = Field(None, title="Operating System")
+
+class KIImageUpdate(BaseModel):
+    image_name: Optional[str]
+    tag: Optional[str]
+    repository: Optional[str] 
+    created_at: Optional[str] 
+    size: Optional[int]
+    architecture: Optional[Literal["amd64", "arm64", "arm/v7"]] 
+    os: Optional[Literal["linux", "windows"]]

@@ -1,7 +1,11 @@
 from fastapi import FastAPI
+from backend.src.api.routes.KIImage_routes import router
 
 app = FastAPI()
 
 @app.get("/")
-def read_root():
-    return {"Hello": "World"}
+def root():
+    return {"message": "Welcome"}
+
+
+app.include_router(router)
