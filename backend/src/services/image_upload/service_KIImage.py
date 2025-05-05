@@ -19,7 +19,7 @@ def get_all_ki_images():
         raise NoKIImagesInTheList()
     return fake_db
 
-def get_ki_image_by_id(image_id: str):
+def get_ki_image_by_id(image_id: int):
     if not image_id:
         raise InvalidImageIDError()
     for ki_image in fake_db:

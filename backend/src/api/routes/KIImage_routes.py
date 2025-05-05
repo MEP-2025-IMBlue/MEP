@@ -43,7 +43,7 @@ Gibt ein einzelnes KI-Bild mit der angegebenen `image_id` zurück.
         404: {"description": "Kein KI-Bild mit der angegebenen ID gefunden"}
     }
 )
-async def get_ki_image(image_id: str):
+async def get_ki_image(image_id: int):
     try:
         return get_ki_image_by_id(image_id)
     except InvalidImageIDError:
