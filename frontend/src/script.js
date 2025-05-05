@@ -273,42 +273,42 @@ document.getElementById('editProfileForm').addEventListener('submit', function(e
 
 //Schnittstelle post 
 
-document.getElementById('upload-form').addEventListener('submit', async function (event) {
+document.getElementById('upload-form').addEventListener('submit', async function(event) {
   event.preventDefault();
 
-  const form = event.target;
-
-  // Formulareingaben in ein Objekt lesen
   const data = {
-    image_id: form.image_id.value,
-    image_name: form.image_name.value,
-    tag: form.tag.value,
-    repository: form.repository.value,
-    created_at: form.created_at.value,
-    size: parseInt(form.size.value), // Wichtig: Größe als Zahl
-    architecture: form.architecture.value || null,
-    os: form.os.value || null
+    image_id: document.getElementById('image_id').value,
+    image_name: document.getElementById('image_name').value,
+    tag: document.getElementById('tag').value,
+    repository: document.getElementById('repository').value,
+    created_at: document.getElementById('created_at').value,
+    size: parseInt(document.getElementById('size').value),
+    architecture: document.getElementById('architecture').value || null,
+    os: document.getElementById('os').value || null
   };
 
   try {
-    const response = await fetch('http://127.0.0.1:8000/add-KIimage', {
-      method: 'POST',
+    const response = await fetch("http://localhost:8000/ki-images", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json' // JSON senden!
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
     });
 
-    if (!response.ok) throw new Error(`Fehler: ${response.status}`);
-    
-    const result = await response.json();
-    alert('Upload erfolgreich!');
-    console.log(result);
-  } catch (err) {
-    alert('Fehler beim Hochladen: ' + err.message);
-    console.error(err);
+    if (response.ok) {
+      const result = await response.json();
+      alert("KI-Image erfolgreich hochgeladen:\n" + JSON.stringify(result, null, 2));
+    } else {
+      const error = await response.json();
+      alert("Fehler beim Hochladen:\n" + error.detail);
+    }
+  } catch (error) {
+    console.error("Fehler beim Senden der Anfrage:", error);
+    alert("Verbindungsfehler. Stelle sicher, dass der Server läuft.");
   }
 });
+
 
 
 /* Schnittstelle get
