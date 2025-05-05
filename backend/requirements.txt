@@ -7,4 +7,4 @@ python-multipart
 sqlalchemy
 psycopg2  # PostgreSQL-Adapter für Python
 pydantic
-python-dotenv #um .env-Daten lesen zu können
+python-dotenv  # um .env-Daten lesen zu können
