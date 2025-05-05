@@ -231,8 +231,69 @@ document.getElementById('editProfileForm').addEventListener('submit', function(e
   alert('Profil erfolgreich aktualisiert!');
 });
 
-// Schnittstelle
-document.getElementById("upload-form").addEventListener("submit", function (event) {
+// Schnittstelle post
+document.getElementById("upload-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+
+  const payload = {
+    image_id: parseInt(formData.get("image_id")),
+    name: formData.get("image_name"),
+    image_tag: formData.get("tag"),
+    description: formData.get("repository"),
+    image_path: "",  // optional
+    user_id: "",     // optional
+    created_at: formData.get("created_at"),
+    size: parseInt(formData.get("size")),
+    architecture: formData.get("architecture") || null,
+    os: formData.get("os") || null
+  };
+
+  try {
+    const response = await fetch("/add-KIimage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      alert("Upload erfolgreich!");
+      console.log(result);
+    } else {
+      alert("Fehler: " + result.detail);
+    }
+  } catch (err) {
+    console.error("Upload fehlgeschlagen:", err);
+  }
+});
+
+// Schnittstelle get
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const response = await fetch("http://localhost:8000/get-KIimages"); // Port ggf. anpassen
+    if (!response.ok) throw new Error("Fehler beim Abrufen der Daten");
+
+    const data = await response.json();
+
+    const listContainer = document.getElementById("ki-list-display");
+    listContainer.innerHTML = ""; // Leeren
+
+    data.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "ki-entry";
+      div.textContent = `Name: ${item.name}, Tag: ${item.tag}, Größe: ${item.size} Bytes`;
+      listContainer.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Fehler beim Laden der Daten:", err);
+  }
+});
+
+/*document.getElementById("upload-form").addEventListener("submit", function (event) {
   // Optional: eigene Validierung
   const requiredFields = ["image_id", "image_name", "tag", "repository", "created_at", "size"];
   let valid = true;
@@ -251,4 +312,4 @@ document.getElementById("upload-form").addEventListener("submit", function (even
     event.preventDefault();
     alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
   }
-});
+}); */
