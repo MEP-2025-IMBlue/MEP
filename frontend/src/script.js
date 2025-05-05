@@ -232,7 +232,7 @@ document.getElementById('editProfileForm').addEventListener('submit', function(e
 });
 
 // Schnittstelle post
-document.getElementById("upload-form").addEventListener("submit", async function (e) {
+/*document.getElementById("upload-form").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const formData = new FormData(this);
@@ -269,12 +269,52 @@ document.getElementById("upload-form").addEventListener("submit", async function
   } catch (err) {
     console.error("Upload fehlgeschlagen:", err);
   }
+});*/
+
+//Schnittstelle post 
+
+document.getElementById('upload-form').addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const form = event.target;
+
+  // Formulareingaben in ein Objekt lesen
+  const data = {
+    image_id: form.image_id.value,
+    image_name: form.image_name.value,
+    tag: form.tag.value,
+    repository: form.repository.value,
+    created_at: form.created_at.value,
+    size: parseInt(form.size.value), // Wichtig: Größe als Zahl
+    architecture: form.architecture.value || null,
+    os: form.os.value || null
+  };
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/add-KIimage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json' // JSON senden!
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) throw new Error(`Fehler: ${response.status}`);
+    
+    const result = await response.json();
+    alert('Upload erfolgreich!');
+    console.log(result);
+  } catch (err) {
+    alert('Fehler beim Hochladen: ' + err.message);
+    console.error(err);
+  }
 });
 
-// Schnittstelle get
+
+/* Schnittstelle get
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const response = await fetch("http://localhost:8000/get-KIimages"); // Port ggf. anpassen
+    const response = await fetch("http://127.0.0.1:8000/frontend/src/container_hochladen.html"); // Port ggf. anpassen
     if (!response.ok) throw new Error("Fehler beim Abrufen der Daten");
 
     const data = await response.json();
@@ -293,7 +333,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-/*document.getElementById("upload-form").addEventListener("submit", function (event) {
+document.getElementById('upload-form').addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/frontend/src/container_hochladen.html', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) throw new Error(`Fehler: ${response.status}`);
+    
+    const result = await response.json();
+    alert('Upload erfolgreich!');
+    console.log(result);
+  } catch (err) {
+    alert('Fehler beim Hochladen: ' + err.message);
+    console.error(err);
+  }
+});
+
+
+document.getElementById("upload-form").addEventListener("submit", function (event) {
   // Optional: eigene Validierung
   const requiredFields = ["image_id", "image_name", "tag", "repository", "created_at", "size"];
   let valid = true;
