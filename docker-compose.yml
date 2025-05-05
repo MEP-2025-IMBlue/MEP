@@ -10,12 +10,17 @@ services:
       - backend
 
   backend:
-    image: maimuna03/mep-backend:latest
+    #image: maimuna03/mep-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    
     container_name: mep-backend
     ports:
       - "8000:8000"
     volumes:
       - ./backend/src:/app
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
     depends_on:
       - db
     environment:
@@ -36,3 +41,4 @@ services:
 
 volumes:
   postgres_data:
+
