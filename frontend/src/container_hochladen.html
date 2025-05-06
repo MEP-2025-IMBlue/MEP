@@ -29,12 +29,15 @@
 
   <main>
     <form id="upload-form" class="upload-form">
-      <input type="text" class="upload-input" name="image_id" placeholder="Image ID" required />
-      <input type="text" class="upload-input" name="image_name" placeholder="Image Name" required />
-      <input type="text" class="upload-input" name="tag" placeholder="Image Tag" required />
-      <input type="text" class="upload-input" name="repository" placeholder="Repository" required />
-      <input type="date" class="upload-input" name="created_at" placeholder="Erstellungsdatum" required />
-      <input type="number" class="upload-input" name="size" placeholder="Größe in Bytes" required />
+      <input type="number" name="image_id" placeholder="Image ID" required />
+      <input type="text" name="image_name" placeholder="Image Name" required />
+      <input type="text" name="image_tag" placeholder="Image Tag" required />
+      <input type="text" name="description" placeholder="Beschreibung (optional)" />
+    
+      <!-- Optional -->
+      <input type="text" name="image_path" placeholder="Image Path (optional)" />
+      <input type="text" name="local_image_name" placeholder="Local Image Name (optional)" />
+      <input type="number" name="provider_id" placeholder="Provider ID (optional)" />
     
       <select name="architecture" class="upload-input">
         <option value="">Architektur auswählen (optional)</option>
@@ -56,9 +59,6 @@
 
     </form>
     
-    <!-- GET-->
-    <!-- <div id="ki-list-display" class="ki-display-area"></div> -->
-
   </main>
 
   <script src="script.js"></script>

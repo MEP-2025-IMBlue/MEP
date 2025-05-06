@@ -1,3 +1,144 @@
+console.log("📦 script.js wurde geladen!");
+
+// -------------------------------
+// Upload-Formular POST /ki-images
+// -------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🔁 DOM ist geladen, Registrierung startet.");
+  const form = document.getElementById("upload-form");
+  console.log("Formular gefunden?", form);  // ← ergibt null = Fehler
+
+  if (!form) {
+    console.error("❌ Formular mit ID 'upload-form' wurde nicht gefunden.");
+    return;
+  }
+
+  form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    console.log("Formular wurde abgesendet!");
+
+  const data = {
+    image_id: parseInt(form.image_id.value),
+    image_name: form.image_name.value,
+    image_tag: form.image_tag.value,
+    description: form.description.value || null,
+    image_path: form.image_path?.value || null,
+    local_image_name: form.local_image_name?.value || null,
+    provider_id: form.provider_id?.value ? parseInt(form.provider_id.value) : null
+  };
+
+  const requiredFields = ["image_id", "image_name", "image_tag"];
+  let valid = true;
+
+  requiredFields.forEach(fieldId => {
+    const field = form[fieldId];
+    if (!field || !field.value) {
+      valid = false;
+      field.classList.add("input-error");
+    } else {
+      field.classList.remove("input-error");
+    }
+  });
+
+  if (!valid) {
+    alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:8000/ki-images", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      alert("Erfolgreich hochgeladen: " + result.image_id);
+      loadKIImages();
+    } else {
+      const responseText = await response.text();  
+      console.error("❗ Server-Fehlerantwort:", responseText);
+      alert("Fehler: " + responseText); // optional sichtbar für User
+    }
+  } catch (err) {
+    alert("Verbindungsfehler: " + err.message);
+  }
+});
+  // Tabelle laden
+  document.getElementById("load-button")?.addEventListener("click", loadKIImages);
+});
+
+// -------------------------------
+// GET /ki-images mit DELETE-Button
+// -------------------------------
+async function loadKIImages() {
+  const display = document.getElementById("ki-list-display");
+  display.innerHTML = "Lade...";
+
+  try {
+    const response = await fetch("http://localhost:8000/ki-images");
+
+    if (!response.ok) {
+      const error = await response.json();
+      display.innerHTML = `<p style="color:red;">Fehler: ${error.detail}</p>`;
+      return;
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      display.innerHTML = "<p>Keine KI-Images gefunden.</p>";
+      return;
+    }
+
+    let html = "<table border='1'><tr><th>ID</th><th>Name</th><th>Tag</th><th>Beschreibung</th><th>Aktion</th></tr>";
+
+    for (const image of data) {
+      html += `<tr>
+        <td>${image.image_id}</td>
+        <td>${image.image_name}</td>
+        <td>${image.image_tag}</td>
+        <td>${image.description || ""}</td>
+        <td><button type="button" onclick="deleteKIImage('${image.image_id}')">🗑️ Löschen</button></td>
+      </tr>`;
+    }
+
+    html += "</table>";
+    display.innerHTML = html;
+
+  } catch (err) {
+    display.innerHTML = `<p style="color:red;">Verbindungsfehler: ${err.message}</p>`;
+  }
+}
+
+// -------------------------------
+// DELETE /ki-images/{image_id}
+// -------------------------------
+async function deleteKIImage(imageId) {
+  if (!confirm(`Bist du sicher, dass du das KI-Image mit ID "${imageId}" löschen willst?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8000/ki-images/${imageId}`, {
+      method: "DELETE"
+    });
+
+    if (response.ok) {
+      alert("Bild erfolgreich gelöscht!");
+      loadKIImages(); // Tabelle neu laden
+    } else {
+      const error = await response.json();
+      alert("Fehler: " + error.detail);
+    }
+  } catch (err) {
+    alert("Verbindungsfehler: " + err.message);
+  }
+}
+
+
+
 document.getElementById("submit").addEventListener("click", function (event) {
   event.preventDefault(); // Wichtig, verhindert Standardverhalten wie Form-Submit
 
@@ -264,145 +405,6 @@ function toggleMenu() {
   sidebar.classList.toggle('open');
 }
   */
-
-// -------------------------------
-// Upload-Formular POST /ki-images
-// -------------------------------
-document.getElementById("upload-form").addEventListener("submit", async function(e) {
-  e.preventDefault();
-
-  const form = e.target;
-
-  const data = {
-    image_id: form.image_id.value,
-    image_name: form.image_name.value,
-    tag: form.tag.value,
-    repository: form.repository.value,
-    created_at: form.created_at.value,
-    size: parseInt(form.size.value),
-    architecture: form.architecture.value || null,
-    os: form.os.value || null
-  };
-
-  // Pflichtfelder validieren
-  const requiredFields = ["image_id", "image_name", "tag", "repository", "created_at", "size"];
-  let valid = true;
-
-  requiredFields.forEach(fieldId => {
-    const field = form[fieldId];
-    if (!field || !field.value) {
-      valid = false;
-      field.classList.add("input-error");
-    } else {
-      field.classList.remove("input-error");
-    }
-  });
-
-  if (!valid) {
-    alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
-    return;
-  }
-
-  try {
-    const response = await fetch("http://localhost:8000/ki-images", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      alert("Erfolgreich hochgeladen: " + result.image_id);
-    } else {
-      const error = await response.json();
-      alert("Fehler: " + error.detail);
-    }
-  } catch (err) {
-    alert("Verbindungsfehler: " + err.message);
-  }
-});
-
-// -------------------------------
-// GET /ki-images – Anzeige im Frontend
-// -------------------------------
-async function loadKIImages() {
-  const display = document.getElementById("ki-list-display");
-  display.innerHTML = "Lade...";
-
-  try {
-    const response = await fetch("http://localhost:8000/ki-images");
-
-    if (!response.ok) {
-      const error = await response.json();
-      display.innerHTML = `<p style="color:red;">Fehler: ${error.detail}</p>`;
-      return;
-    }
-
-    const data = await response.json();
-
-    if (!data || data.length === 0) {
-      display.innerHTML = "<p>Keine KI-Images gefunden.</p>";
-      return;
-    }
-
-    let html = "<table border='1'><tr><th>ID</th><th>Name</th><th>Tag</th><th>Repo</th><th>Größe</th></tr>";
-
-    for (const image of data) {
-      html += `<tr>
-        <td>${image.image_id}</td>
-        <td>${image.image_name}</td>
-        <td>${image.tag}</td>
-        <td>${image.repository}</td>
-        <td>${image.size}</td>
-      </tr>`;
-    }
-
-    html += "</table>";
-    display.innerHTML = html;
-
-  } catch (err) {
-    display.innerHTML = `<p style="color:red;">Verbindungsfehler: ${err.message}</p>`;
-  }
-}
-
-// -------------------------------
-// DELETE /ki-images – Anzeige im Frontend
-// -------------------------------
-async function deleteKIImage(imageId) {
-  if (!confirm(`Bist du sicher, dass du das KI-Image mit ID "${imageId}" löschen willst?`)) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`http://localhost:8000/ki-images/${imageId}`, {
-      method: "DELETE"
-    });
-
-    if (response.ok) {
-      alert("Bild erfolgreich gelöscht!");
-      loadKIImages(); // Liste neu laden
-    } else {
-      const error = await response.json();
-      alert("Fehler: " + error.detail);
-    }
-
-    let html = "<table border='1'><tr><th>ID</th><th>Name</th><th>Tag</th><th>Repo</th><th>Größe</th><th>Aktion</th></tr>";
-
-    for (const image of data) {
-      html += `<tr>
-        <td>${image.image_id}</td>
-        <td>${image.image_name}</td>
-        <td>${image.tag}</td>
-        <td>${image.repository}</td>
-        <td>${image.size}</td>
-        <td><button onclick="deleteKIImage('${image.image_id}')">🗑️ Löschen</button></td>
-      </tr>`;
-    }
-
-  } catch (err) {
-    alert("Verbindungsfehler: " + err.message);
-  }
-}
 
 
 /*
