@@ -28,7 +28,7 @@
   </header>
 
   <main>
-    <form id="upload-form" method="POST" class="upload-form">
+    <form id="upload-form" class="upload-form">
       <input type="text" class="upload-input" name="image_id" placeholder="Image ID" required />
       <input type="text" class="upload-input" name="image_name" placeholder="Image Name" required />
       <input type="text" class="upload-input" name="tag" placeholder="Image Tag" required />
@@ -51,6 +51,9 @@
     
       <!-- <input type="file" class="upload-input" name="container-file" accept=".tar,.zip" required /> -->
       <button type="submit" class="upload-button">Hochladen</button>
+      <div id="ki-list-display" class="ki-display-area"></div>
+      <button onclick="loadKIImages()">Alle KI-Images anzeigen</button>
+
     </form>
     
     <!-- GET-->

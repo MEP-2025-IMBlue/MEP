@@ -231,54 +231,48 @@ document.getElementById('editProfileForm').addEventListener('submit', function(e
   alert('Profil erfolgreich aktualisiert!');
 });
 
-// Schnittstelle post
-/*document.getElementById("upload-form").addEventListener("submit", async function (e) {
-  e.preventDefault();
+/*
+// -------------------------------
+// Admin-Rolle prüfen und weiterleiten
+// -------------------------------
+document.getElementById("submit").addEventListener("click", function (event) {
+  event.preventDefault();
+  const rolle = document.getElementById("Rolle").value;
+  const errorMessage = document.getElementById("error-message");
 
-  const formData = new FormData(this);
-
-  const payload = {
-    image_id: parseInt(formData.get("image_id")),
-    name: formData.get("image_name"),
-    image_tag: formData.get("tag"),
-    description: formData.get("repository"),
-    image_path: "",  // optional
-    user_id: "",     // optional
-    created_at: formData.get("created_at"),
-    size: parseInt(formData.get("size")),
-    architecture: formData.get("architecture") || null,
-    os: formData.get("os") || null
-  };
-
-  try {
-    const response = await fetch("/add-KIimage", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json();
-    if (response.ok) {
-      alert("Upload erfolgreich!");
-      console.log(result);
-    } else {
-      alert("Fehler: " + result.detail);
-    }
-  } catch (err) {
-    console.error("Upload fehlgeschlagen:", err);
+  if (rolle !== "admin") {
+    errorMessage.style.display = "inline";
+  } else {
+    errorMessage.style.display = "none";
+    window.location.href = "dicom_upload.html";
   }
-});*/
+});
 
-//Schnittstelle post 
+// -------------------------------
+// Menü-Button (Sidebar)
+// -------------------------------
+function toggleMenu() {
+  const menu = document.getElementById("menu");
+  const sidebar = document.querySelector('.sidebar');
 
+  if (menu.style.display === "none" || menu.style.display === "") {
+    menu.style.display = "flex";
+  } else {
+    menu.style.display = "none";
+  }
+
+  sidebar.classList.toggle('open');
+}
+  */
+
+// -------------------------------
+// Upload-Formular POST /ki-images
+// -------------------------------
 document.getElementById("upload-form").addEventListener("submit", async function(e) {
   e.preventDefault();
 
   const form = e.target;
 
-  // Werte extrahieren
   const data = {
     image_id: form.image_id.value,
     image_name: form.image_name.value,
@@ -290,12 +284,29 @@ document.getElementById("upload-form").addEventListener("submit", async function
     os: form.os.value || null
   };
 
+  // Pflichtfelder validieren
+  const requiredFields = ["image_id", "image_name", "tag", "repository", "created_at", "size"];
+  let valid = true;
+
+  requiredFields.forEach(fieldId => {
+    const field = form[fieldId];
+    if (!field || !field.value) {
+      valid = false;
+      field.classList.add("input-error");
+    } else {
+      field.classList.remove("input-error");
+    }
+  });
+
+  if (!valid) {
+    alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
+    return;
+  }
+
   try {
     const response = await fetch("http://localhost:8000/ki-images", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
 
@@ -311,73 +322,115 @@ document.getElementById("upload-form").addEventListener("submit", async function
   }
 });
 
+// -------------------------------
+// GET /ki-images – Anzeige im Frontend
+// -------------------------------
+async function loadKIImages() {
+  const display = document.getElementById("ki-list-display");
+  display.innerHTML = "Lade...";
 
-
-
-
-/* Schnittstelle get
-document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const response = await fetch("http://127.0.0.1:8000/frontend/src/container_hochladen.html"); // Port ggf. anpassen
-    if (!response.ok) throw new Error("Fehler beim Abrufen der Daten");
+    const response = await fetch("http://localhost:8000/ki-images");
+
+    if (!response.ok) {
+      const error = await response.json();
+      display.innerHTML = `<p style="color:red;">Fehler: ${error.detail}</p>`;
+      return;
+    }
 
     const data = await response.json();
 
-    const listContainer = document.getElementById("ki-list-display");
-    listContainer.innerHTML = ""; // Leeren
+    if (!data || data.length === 0) {
+      display.innerHTML = "<p>Keine KI-Images gefunden.</p>";
+      return;
+    }
 
-    data.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "ki-entry";
-      div.textContent = `Name: ${item.name}, Tag: ${item.tag}, Größe: ${item.size} Bytes`;
-      listContainer.appendChild(div);
-    });
+    let html = "<table border='1'><tr><th>ID</th><th>Name</th><th>Tag</th><th>Repo</th><th>Größe</th></tr>";
+
+    for (const image of data) {
+      html += `<tr>
+        <td>${image.image_id}</td>
+        <td>${image.image_name}</td>
+        <td>${image.tag}</td>
+        <td>${image.repository}</td>
+        <td>${image.size}</td>
+      </tr>`;
+    }
+
+    html += "</table>";
+    display.innerHTML = html;
+
   } catch (err) {
-    console.error("Fehler beim Laden der Daten:", err);
+    display.innerHTML = `<p style="color:red;">Verbindungsfehler: ${err.message}</p>`;
   }
-});
+}
 
-document.getElementById('upload-form').addEventListener('submit', async function (event) {
-  event.preventDefault();
-
-  const form = event.target;
-  const formData = new FormData(form);
+// -------------------------------
+// DELETE /ki-images – Anzeige im Frontend
+// -------------------------------
+async function deleteKIImage(imageId) {
+  if (!confirm(`Bist du sicher, dass du das KI-Image mit ID "${imageId}" löschen willst?`)) {
+    return;
+  }
 
   try {
-    const response = await fetch('http://127.0.0.1:8000/frontend/src/container_hochladen.html', {
-      method: 'POST',
-      body: formData
+    const response = await fetch(`http://localhost:8000/ki-images/${imageId}`, {
+      method: "DELETE"
     });
 
-    if (!response.ok) throw new Error(`Fehler: ${response.status}`);
-    
-    const result = await response.json();
-    alert('Upload erfolgreich!');
-    console.log(result);
+    if (response.ok) {
+      alert("Bild erfolgreich gelöscht!");
+      loadKIImages(); // Liste neu laden
+    } else {
+      const error = await response.json();
+      alert("Fehler: " + error.detail);
+    }
+
+    let html = "<table border='1'><tr><th>ID</th><th>Name</th><th>Tag</th><th>Repo</th><th>Größe</th><th>Aktion</th></tr>";
+
+    for (const image of data) {
+      html += `<tr>
+        <td>${image.image_id}</td>
+        <td>${image.image_name}</td>
+        <td>${image.tag}</td>
+        <td>${image.repository}</td>
+        <td>${image.size}</td>
+        <td><button onclick="deleteKIImage('${image.image_id}')">🗑️ Löschen</button></td>
+      </tr>`;
+    }
+
   } catch (err) {
-    alert('Fehler beim Hochladen: ' + err.message);
-    console.error(err);
+    alert("Verbindungsfehler: " + err.message);
+  }
+}
+
+
+/*
+// -------------------------------
+// Dateiendung validieren (.dcm, .dicom)
+// -------------------------------
+function validateFileExtension(file) {
+  const allowedExtensions = ['.dcm', '.dicom'];
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+  return allowedExtensions.includes('.' + fileExtension);
+}
+
+document.getElementById('file-input').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+
+  if (!validateFileExtension(file)) {
+    alert('Ungültige Datei! Erlaubt: .dcm, .dicom');
+    event.target.value = '';
+  } else {
+    console.log('Datei ist gültig:', file.name);
   }
 });
 
-
-document.getElementById("upload-form").addEventListener("submit", function (event) {
-  // Optional: eigene Validierung
-  const requiredFields = ["image_id", "image_name", "tag", "repository", "created_at", "size"];
-  let valid = true;
-
-  requiredFields.forEach(fieldId => {
-    const field = document.querySelector(`[name="${fieldId}"]`);
-    if (!field || !field.value) {
-      valid = false;
-      field.classList.add("input-error"); // z. B. roter Rahmen bei Fehler
-    } else {
-      field.classList.remove("input-error");
-    }
-  });
-
-  if (!valid) {
-    event.preventDefault();
-    alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
-  }
-}); */
+// -------------------------------
+// Profil bearbeiten Bestätigung
+// -------------------------------
+document.getElementById('editProfileForm')?.addEventListener('submit', function(event) {
+  event.preventDefault();
+  alert('Profil erfolgreich aktualisiert!');
+});
+*/
