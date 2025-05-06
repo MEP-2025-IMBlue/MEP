@@ -273,18 +273,21 @@ document.getElementById('editProfileForm').addEventListener('submit', function(e
 
 //Schnittstelle post 
 
-document.getElementById('upload-form').addEventListener('submit', async function(event) {
-  event.preventDefault();
+document.getElementById("upload-form").addEventListener("submit", async function(e) {
+  e.preventDefault();
 
+  const form = e.target;
+
+  // Werte extrahieren
   const data = {
-    image_id: document.getElementById('image_id').value,
-    image_name: document.getElementById('image_name').value,
-    tag: document.getElementById('tag').value,
-    repository: document.getElementById('repository').value,
-    created_at: document.getElementById('created_at').value,
-    size: parseInt(document.getElementById('size').value),
-    architecture: document.getElementById('architecture').value || null,
-    os: document.getElementById('os').value || null
+    image_id: form.image_id.value,
+    image_name: form.image_name.value,
+    tag: form.tag.value,
+    repository: form.repository.value,
+    created_at: form.created_at.value,
+    size: parseInt(form.size.value),
+    architecture: form.architecture.value || null,
+    os: form.os.value || null
   };
 
   try {
@@ -298,16 +301,17 @@ document.getElementById('upload-form').addEventListener('submit', async function
 
     if (response.ok) {
       const result = await response.json();
-      alert("KI-Image erfolgreich hochgeladen:\n" + JSON.stringify(result, null, 2));
+      alert("Erfolgreich hochgeladen: " + result.image_id);
     } else {
       const error = await response.json();
-      alert("Fehler beim Hochladen:\n" + error.detail);
+      alert("Fehler: " + error.detail);
     }
-  } catch (error) {
-    console.error("Fehler beim Senden der Anfrage:", error);
-    alert("Verbindungsfehler. Stelle sicher, dass der Server läuft.");
+  } catch (err) {
+    alert("Verbindungsfehler: " + err.message);
   }
 });
+
+
 
 
 
