@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
 from src.api.py_models import *
 from src.services.image_upload.service_KIImage import *
-from src.db.database import get_db
+from src.db.database.database import get_db
 from src.db.crud import crud
 import logging
 import json
