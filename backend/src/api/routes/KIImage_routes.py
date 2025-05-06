@@ -32,7 +32,7 @@ async def list_ki_images(db: Session = Depends(get_db)):
     ki_images = crud.get_all_ki_images(db)
     if not ki_images:
         raise HTTPException(status_code=404, detail="Es befinden sich noch keine KI-Images in der Datenbank.")
-    return {"KI-Images": ki_images}
+    return ki_images
 
 
 @router.get("/ki-images/{image_id}", response_model=KIImageMetadata, description="""
