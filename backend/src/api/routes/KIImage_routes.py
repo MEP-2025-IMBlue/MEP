@@ -147,7 +147,7 @@ Durchsucht die Datenbank nach einem Eintrag mit passender ID.
         200: {"description": "Bild erfolgreich gelöscht"},
         404: {"description": "Kein KI-Bild mit der angegebenen ID gefunden"}
     })
-async def delete_ki_image_route(image_id: str):
+async def delete_ki_image_route(image_id: int):
     try:
         deleted = delete_ki_image(image_id)
         return {"message": f"KI-Image mit der ID {deleted.image_id} wurde gelöscht."}
