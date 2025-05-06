@@ -3,136 +3,172 @@ console.log("📦 script.js wurde geladen!");
 // -------------------------------
 // Upload-Formular POST /ki-images
 // -------------------------------
+// Warten, bis der gesamte HTML-Inhalt geladen ist, bevor JavaScript startet
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🔁 DOM ist geladen, Registrierung startet.");
-  const form = document.getElementById("upload-form");
-  console.log("Formular gefunden?", form);  // ← ergibt null = Fehler
+  console.log("🔁 DOM ist geladen, Registrierung startet."); // Testausgabe zur Bestätigung
 
+  // Suche das Formular anhand seiner ID
+  const form = document.getElementById("upload-form");
+  console.log("Formular gefunden?", form);  // Debug-Ausgabe zur Sicherheit
+
+  // Falls das Formular nicht existiert, Fehlermeldung in Konsole und Abbruch
   if (!form) {
     console.error("❌ Formular mit ID 'upload-form' wurde nicht gefunden.");
     return;
   }
 
+  // Registrierung des Submit-Events für das Formular
   form.addEventListener("submit", async function(e) {
-    e.preventDefault();
+    e.preventDefault(); // Seite soll sich NICHT neu laden
     console.log("Formular wurde abgesendet!");
 
-  const data = {
-    image_id: parseInt(form.image_id.value),
-    image_name: form.image_name.value,
-    image_tag: form.image_tag.value,
-    description: form.description.value || null,
-    image_path: form.image_path?.value || null,
-    local_image_name: form.local_image_name?.value || null,
-    provider_id: form.provider_id?.value ? parseInt(form.provider_id.value) : null
-  };
+    // Erstellen des Datenobjekts für den POST-Request
+    const data = {
+      image_id: parseInt(form.image_id.value), // Achtung: nur nötig, wenn ID manuell vergeben wird
+      image_name: form.image_name.value,
+      image_tag: form.image_tag.value,
+      description: form.description.value || null,
+      image_path: form.image_path?.value || null,
+      local_image_name: form.local_image_name?.value || null,
+      provider_id: form.provider_id?.value ? parseInt(form.provider_id.value) : null
+    };
 
-  const requiredFields = ["image_id", "image_name", "image_tag"];
-  let valid = true;
+    // Validierung der Pflichtfelder vor dem Senden
+    const requiredFields = ["image_id", "image_name", "image_tag"];
+    let valid = true;
 
-  requiredFields.forEach(fieldId => {
-    const field = form[fieldId];
-    if (!field || !field.value) {
-      valid = false;
-      field.classList.add("input-error");
-    } else {
-      field.classList.remove("input-error");
+    requiredFields.forEach(fieldId => {
+      const field = form[fieldId];
+      if (!field || !field.value) {
+        valid = false;
+        field.classList.add("input-error"); // CSS-Klasse für Fehleranzeige
+      } else {
+        field.classList.remove("input-error");
+      }
+    });
+
+    // Wenn Pflichtfelder fehlen: abbrechen und Meldung zeigen
+    if (!valid) {
+      alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
+      return;
+    }
+
+    // Senden der Daten per fetch() an das Backend
+    try {
+      const response = await fetch("http://localhost:8000/ki-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      // Wenn Antwort erfolgreich (Status 200/201)
+      if (response.ok) {
+        const result = await response.json();
+        alert("Erfolgreich hochgeladen: " + result.image_id);
+        loadKIImages(); // Tabelle neu laden
+      } else {
+        // Fehlerhafte Antwort (z. B. 400 Bad Request)
+        const responseText = await response.text();  
+        console.error("❗ Server-Fehlerantwort:", responseText);
+        alert("Fehler: " + responseText);
+      }
+    } catch (err) {
+      // Netzwerkfehler oder Server nicht erreichbar
+      alert("Verbindungsfehler: " + err.message);
     }
   });
 
-  if (!valid) {
-    alert("Bitte füllen Sie alle Pflichtfelder korrekt aus.");
-    return;
-  }
-
-  try {
-    const response = await fetch("http://localhost:8000/ki-images", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      alert("Erfolgreich hochgeladen: " + result.image_id);
-      loadKIImages();
-    } else {
-      const responseText = await response.text();  
-      console.error("❗ Server-Fehlerantwort:", responseText);
-      alert("Fehler: " + responseText); // optional sichtbar für User
-    }
-  } catch (err) {
-    alert("Verbindungsfehler: " + err.message);
-  }
-});
-  // Tabelle laden
+  // Button zum Nachladen der KI-Image-Tabelle, z. B. nach Upload oder externem Trigger
   document.getElementById("load-button")?.addEventListener("click", loadKIImages);
 });
 
 // -------------------------------
 // GET /ki-images mit DELETE-Button
 // -------------------------------
+// Funktion zum Abrufen aller KI-Images vom Backend und Anzeigen in einer Tabelle
 async function loadKIImages() {
+  // Ziel-Element im DOM, in dem die Tabelle dargestellt werden soll
   const display = document.getElementById("ki-list-display");
+
+  // Kurzinfo anzeigen, während geladen wird
   display.innerHTML = "Lade...";
 
   try {
+    // API-Aufruf an FastAPI-Backend: alle KI-Images abrufen
     const response = await fetch("http://localhost:8000/ki-images");
 
+    // Wenn der Server eine Fehlermeldung zurückgibt (z. B. 404, 500)
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json();  // Fehlerinhalt auslesen
       display.innerHTML = `<p style="color:red;">Fehler: ${error.detail}</p>`;
-      return;
+      return;  // abbrechen
     }
 
+    // Antwort als JSON-Daten extrahieren
     const data = await response.json();
 
+    // Wenn keine Daten vorhanden sind
     if (!data || data.length === 0) {
       display.innerHTML = "<p>Keine KI-Images gefunden.</p>";
       return;
     }
 
+    // HTML-Tabelle vorbereiten (Kopfzeile mit Spalten)
     let html = "<table border='1'><tr><th>ID</th><th>Name</th><th>Tag</th><th>Beschreibung</th><th>Aktion</th></tr>";
 
+    // Für jedes Image eine Tabellenzeile erstellen
     for (const image of data) {
       html += `<tr>
         <td>${image.image_id}</td>
         <td>${image.image_name}</td>
         <td>${image.image_tag}</td>
         <td>${image.description || ""}</td>
-        <td><button type="button" onclick="deleteKIImage('${image.image_id}')">🗑️ Löschen</button></td>
+        <td>
+          <button type="button" onclick="deleteKIImage('${image.image_id}')">
+            🗑️ Löschen
+          </button>
+        </td>
       </tr>`;
     }
 
+    // Tabelle abschließen und ins HTML einfügen
     html += "</table>";
     display.innerHTML = html;
 
   } catch (err) {
+    // Bei Netzwerk- oder Serverfehlern
     display.innerHTML = `<p style="color:red;">Verbindungsfehler: ${err.message}</p>`;
   }
 }
 
+
 // -------------------------------
 // DELETE /ki-images/{image_id}
 // -------------------------------
+// Funktion zum Löschen eines KI-Images anhand seiner ID
 async function deleteKIImage(imageId) {
+  // Sicherheitsabfrage: Nutzer muss bestätigen, dass er wirklich löschen will
   if (!confirm(`Bist du sicher, dass du das KI-Image mit ID "${imageId}" löschen willst?`)) {
-    return;
+    return; // Abbrechen, wenn "Abbrechen" geklickt wurde
   }
 
   try {
+    // Sende DELETE-Request an das Backend mit entsprechender ID
     const response = await fetch(`http://localhost:8000/ki-images/${imageId}`, {
       method: "DELETE"
     });
 
+    // Wenn der Löschvorgang erfolgreich war (z. B. 200 OK oder 204 No Content)
     if (response.ok) {
       alert("Bild erfolgreich gelöscht!");
-      loadKIImages(); // Tabelle neu laden
+      loadKIImages(); // Aktualisiere die Tabelle durch erneuten GET
     } else {
-      const error = await response.json();
-      alert("Fehler: " + error.detail);
+      // Backend hat Fehler zurückgegeben (z. B. 404 Not Found)
+      const error = await response.json(); // Fehlerinhalt als JSON holen
+      alert("Fehler: " + error.detail);   // Nutzer informieren
     }
   } catch (err) {
+    // Netzwerk- oder Verbindungsfehler (Server nicht erreichbar etc.)
     alert("Verbindungsfehler: " + err.message);
   }
 }
