@@ -1,4 +1,4 @@
-from src.api.py_models import KIImageMetadata
+from backend.src.api.py_models.py_models import KIImageMetadata
 from typing import List
 
 # Simulierte In-Memory-Datenbank

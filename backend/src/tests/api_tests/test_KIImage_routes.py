@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from src.main import app
-from src.api.py_models import *
+from backend.src.api.py_models.py_models import *
 from src.api.routes import *
 from src.services.image_upload.service_KIImage import fake_db
 
