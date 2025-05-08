@@ -10,5 +10,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Nur den Inhalt von src/ ins Container-Verzeichnis kopieren
 COPY src/ .
 
-# Starte FastAPI mit Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Starte FastAPI mit Uvicorn und berücksichtige den Pfad zu main.py
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
