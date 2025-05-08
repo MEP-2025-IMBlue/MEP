@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>mRay Dashboard</title>
+  <link rel="stylesheet" href="../styles/dashboard.css"/>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">mRay AIR</div>
+    <div class="nav-links">
+      <a class="active" href="#">Dashboard</a>
+      <a href="container_upload.html">Container hochladen</a>
+      <a href="dicom_upload.html">DICOM hochladen</a>
+      <a href="#">Profile</a>
+    </div>
+    <div class="logout">
+        <a href="login.html">Logout</a>
+      </div>
+      
+  </nav>
+
+  <main>
+    <h1 class="section-title">Containers</h1>
+    <div class="dashboard-container">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Image ID</th>
+              <th>Name</th>
+              <th>Tag</th>
+              <th>Repository</th>
+              <th>Created</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="highlight">abc1234</td>
+              <td>image1</td>
+              <td>v1.0</td>
+              <td>api</td>
+              <td>2024-04-24</td>
+              <td class="action-links">
+                <span class="edit">✏ bearbeiten</span> |
+                <span class="delete">🗑 löschen</span> |
+                <span class="test">🧪 testen</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="highlight">def3678</td>
+              <td>image2</td>
+              <td>v1.1</td>
+              <td>ml</td>
+              <td>2024-02-23</td>
+              <td class="action-links">
+                <span class="edit">✏ bearbeiten</span> |
+                <span class="delete">🗑 löschen</span> |
+                <span class="test">🧪 testen</span>
+              </td>
+            </tr>
+            <!-- Weitere Container hier -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="details-card">
+        <h2>Container Details</h2>
+        <p><strong>image1</strong></p>
+        <p>2024-04-24 10:30 AM</p>
+        <p><span class="status-dot active"></span> Active</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>© mRay</footer>
+</body>
+</html>

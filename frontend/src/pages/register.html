@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrieren – mRay AIR</title>
+  <link rel="stylesheet" href="../styles/login.css" />
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <span class="logo-text">MRAY</span>
+      <div class="logo-icon">🧠</div>
+      <span class="logo-text">AIR</span>
+    </div>
+
+    <h1 class="login-title">Registrieren</h1>
+
+    <form class="login-form" id="register-form">
+      <input type="email" id="email" placeholder="E-Mail" required />
+      <input type="text" id="name" placeholder="Name" required />
+      <input type="text" id="username" placeholder="Benutzername" required />
+      <input type="password" id="password" placeholder="Passwort" required />
+      <input type="password" id="confirm-password" placeholder="Passwort wiederholen" required />
+      <button type="submit">Registrieren</button>
+      <a href="login.html" class="register-btn">Zurück zum Login</a>
+      <div id="register-message" class="register-message"></div>
+    </form>
+
+    <footer>© mRay</footer>
+  </div>
+
+  <script src="register.js"></script>
+
+</body>
+</html>

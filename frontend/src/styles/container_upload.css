@@ -1,0 +1,117 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #0a0a0a;
+    color: #fff;
+  }
+  
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2a2a2a;
+    padding: 1rem 2rem;
+  }
+  
+  .logo {
+    color: #ffd700;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 1rem;
+  }
+  
+  .nav-links a.active {
+    color: #ffd700;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 2px;
+  }
+  
+  .logout {
+    color: #fff;
+  }
+  
+  .section-title {
+    margin: 2rem;
+    font-size: 2rem;
+  }
+  
+  .form-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 2rem 3rem;
+  }
+  
+  .upload-form {
+    background-color: #111;
+    padding: 2rem;
+    border-radius: 10px;
+    border-left: 4px solid #ffd700;
+    max-width: 600px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .upload-form label {
+    font-weight: bold;
+    color: #ffef6d;
+  }
+  
+  .upload-form input {
+    padding: 0.5rem;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background-color: #1a1a1a;
+    color: #fff;
+  }
+  
+  .upload-form button {
+    background-color: #ffd700;
+    color: #000;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .upload-form button:hover {
+    background-color: #ffcc00;
+  }
+  
+  footer {
+    text-align: center;
+    color: #777;
+    padding: 1rem;
+  }
+
+  .upload-form input[type="file"] {
+    padding: 0.5rem;
+    background-color: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: #fff;
+  }
+  .upload-status {
+    margin-top: 1rem;
+    font-weight: bold;
+    font-size: 0.95rem;
+  }
+  .logout a {
+    color: #ffd700; /* Gelb */
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .logout a:hover {
+    color: #ffcc00; /* etwas helleres Gelb beim Hover */
+  }
+  
+  

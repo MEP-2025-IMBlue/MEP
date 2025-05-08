@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DICOM Upload – mRay AIR</title>
+  <link rel="stylesheet" href="../styles/dicom_upload.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">mRay AIR</div>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="container_upload.html">Container hochladen</a>
+      <a href="#" class="active">DICOM hochladen</a>
+      <a href="#">Profile</a>
+    </div>
+    <div class="logout">
+        <a href="login.html">Logout</a>
+      </div>
+      
+  </nav>
+
+  <main>
+    <h1 class="section-title">DICOM-Datei hochladen</h1>
+
+    <div class="form-container">
+      <form id="dicom-form">
+        <label for="dicom_file">DICOM Datei auswählen</label>
+        <input type="file" id="dicom_file" name="dicom_file" accept=".dcm" required />
+        <button type="submit">Hochladen</button>
+        <div id="dicom-status" class="upload-status"></div>
+      </form>
+    </div>
+
+    <!-- Nur sichtbar nach erfolgreichem Upload -->
+    <h2 class="section-subtitle hidden" id="ki-title">Vorgeschlagene KI-Systeme</h2>
+    <div class="ki-list hidden" id="ki-list"></div>
+
+    <div id="ai-result" class="ai-result hidden">
+      <h2>Antwort der KI</h2>
+      <pre id="result-content">{"diagnose": "Keine Auffälligkeiten festgestellt."}</pre>
+    </div>
+  </main>
+
+  <footer>© mRay</footer>
+
+  <script src="dicom_upload.js"></script>
+</body>
+</html>
