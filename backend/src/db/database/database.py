@@ -1,9 +1,3 @@
-"""
-database.py
--------------
-Diese Datei stellt die Verbindung zur Datenbank her und definiert die SessionFactory für SQLAlchemy.
-Pfad: backend/src/database/database.py
-"""
 import os
 from dotenv import load_dotenv  # Lädt Umgebungsvariablen aus einer .env-Datei
 from sqlalchemy import create_engine
@@ -16,7 +10,8 @@ load_dotenv(dotenv_path="./backend/.env")
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Erstelle die SQLAlchemy Engine für die Verbindung zur Datenbank
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"host": "db"})
+# Kein zusätzlicher "host"-Parameter notwendig, da Supabase das bereits bereitstellt
+engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 
 # Erstelle eine SessionFactory (SessionLocal), um Sessions mit der DB zu erzeugen
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -31,4 +26,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
