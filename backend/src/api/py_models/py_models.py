@@ -73,5 +73,7 @@ class ContainerCreate(BaseModel):
 # ========================================
 # TODO: Struktur, Felder und Rückgabeformat finalisieren
 class ContainerResponse(BaseModel):
-    container_id: int
-    status: str
+    container_id: str #VON INT AUF STR GEÄNDERT
+    name: str
+    status: str #STATUS HINZUGEFÜGT
+
