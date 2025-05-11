@@ -16,7 +16,7 @@ class ContainerService:
     def __init__(self):
         self.client = docker.from_env()
 
-    def start_user_container(self, db: Session, user_id: int, image_id: int, optional_container_name: str = None) -> ContainerResponse:
+    def start_user_container(self, db: Session, user_id: int, image_id: int) -> ContainerResponse:
         """Startet einen pro-User-Container; startet existierenden oder erstellt neuen."""
         try:
             # Hole Image aus DB
@@ -25,7 +25,7 @@ class ContainerService:
 
             # Container-Name definieren
             base_name = ki_image.image_name.replace("/", "_")
-            container_name = optional_container_name or f"user_{user_id}_{base_name}_{ki_image.image_tag}"
+            container_name = f"user_{user_id}_{base_name}_{ki_image.image_tag}"
 
             logger.info(f"Trying to start container: {container_name}")
 
@@ -44,8 +44,13 @@ class ContainerService:
                 container = self.client.containers.run(
                     image=image_full_name,
                     name=container_name,
+                    command="tail -f /dev/null", # eventuell nochmal relevant
                     detach=True
                 )
+                #container.start()
+                container.reload()
+                logger.info(f"Started existing container {container_name}")
+
 
             return ContainerResponse(
                 container_id=container.id,

@@ -30,7 +30,6 @@ container_service = ContainerService()
 async def start_user_container(
     user_id: int = Form(...),
     image_id: int = Form(...),
-    container_name: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     try:
@@ -38,7 +37,6 @@ async def start_user_container(
             db=db,
             user_id=user_id,
             image_id=image_id,
-            optional_container_name=container_name
         )
         return container_response
     except docker.errors.ImageNotFound:
@@ -47,20 +45,6 @@ async def start_user_container(
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.exception("Unexpected error during container start")
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
-
-# ========================================
-# Einzelnen Container abrufen (per Name)
-# ========================================
-@router.get("/containers/by-name/{container_name}", response_model=ContainerResponse)
-async def get_container_by_name(container_name: str):
-    try:
-        container_data = container_service.get_container_status(container_name)
-        return ContainerResponse(**container_data)
-    except Exception as e:
-        if "not found" in str(e).lower():
-            raise HTTPException(status_code=404, detail="Container not found")
-        logger.exception("Unexpected error during get_container_by_name")
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
     
 # ========================================
