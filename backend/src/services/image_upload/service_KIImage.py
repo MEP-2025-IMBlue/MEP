@@ -51,7 +51,7 @@ import logging
 logger = logging.getLogger(__name__)
 docker_client = docker.from_env()
 
-def import_local_image(file_bytes: bytes, image_name: Optional[str] = None, image_tag: Optional[str] = None) -> dict:
+def import_local_image(file_bytes: bytes) -> dict:
     if not file_bytes:
         raise ValueError("File is required for local import")
     
@@ -63,19 +63,15 @@ def import_local_image(file_bytes: bytes, image_name: Optional[str] = None, imag
     with open(temp_file_path, "rb") as f:
         images = docker_client.images.load(f.read())
         imported_image = images[0]
-    
-    # User hat image_name/image_tag angegeben → überschreiben
-    if image_name and image_tag:
-        imported_image.tag(f"{image_name}:{image_tag}")
+
+    repo_tags = imported_image.attrs.get("RepoTags", [])
+    if repo_tags:
+        full_name = repo_tags[0]
+        parts = full_name.split(":")
+        image_name = parts[0]
+        image_tag = parts[1] if len(parts) > 1 else "latest"
     else:
-        repo_tags = imported_image.attrs.get("RepoTags", [])
-        if repo_tags:
-            full_name = repo_tags[0]
-            parts = full_name.split(":")
-            image_name = parts[0]
-            image_tag = parts[1] if len(parts) > 1 else "latest"
-        else:
-            raise ValueError("Could not determine image name and tag from tar file")
+        raise ValueError("Could not determine image name and tag from tar file")
     
     os.unlink(temp_file_path)
     
@@ -89,18 +85,23 @@ def import_local_image(file_bytes: bytes, image_name: Optional[str] = None, imag
     }
     return image_data
 
-def import_hub_repositorie_image(image_name: str, image_tag: str) -> dict:
-    if not image_name or not image_tag:
-        raise ValueError("image_name and image_tag required for Hub Repositorie import")
+def import_hub_repositorie_image(image_reference: str) -> dict:
+    if not image_reference:
+        raise ValueError("image_reference required for Hub Repository import")
     
-    docker_client.images.pull(f"{image_name}:{image_tag}")
+    #docker_client.images.pull(f"{image_name}:{image_tag}")
+    docker_client.images.pull(f"{image_reference}")
+
+    #Wurde hinzugefügt, da Datenbank noch separat nach Image_Name und Image_Tag frägt
+    if ":" in image_reference:
+        image_name, image_tag = image_reference.rsplit(":", 1)
     
     image_data = {
         "image_name": image_name,
         "image_tag": image_tag,
-        "image_description": None,
-        "image_path": None,
-        "image_local_name": f"{image_name}:{image_tag}",
+        "image_description": None, #Optional
+        "image_path": None, #Braucht man nicht mehr
+        "image_local_name": f"{image_reference}", #Name ändern in image_reference
         "image_provider_id": 1
     }
     return image_data

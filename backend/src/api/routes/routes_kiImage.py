@@ -55,17 +55,11 @@ async def get_ki_image(image_id: int, db: Session = Depends(get_db)):
 @router.post("/ki-images/local", response_model=KIImageMetadata)
 async def upload_local_ki_image(
     file: UploadFile = File(...),
-    image_name: Optional[str] = Form(None),
-    image_tag: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     try:
         file_bytes = await file.read()
-        image_data = service_KIImage.import_local_image(
-            file_bytes=file_bytes,
-            image_name=image_name,
-            image_tag=image_tag
-        )
+        image_data = service_KIImage.import_local_image(file_bytes=file_bytes)
         db_image = crud_kiImage.create_ki_image(db, image_data)
         return db_image
     except ValueError as e:
@@ -81,15 +75,11 @@ async def upload_local_ki_image(
 # ========================================
 @router.post("/ki-images/hub", response_model=KIImageMetadata)
 async def pull_ki_image(
-    image_name: str = Form(...),
-    image_tag: str = Form(...),
+    image_reference: str = Form(...),
     db: Session = Depends(get_db)
 ):
     try:
-        image_data = service_KIImage.import_hub_repositorie_image(
-            image_name=image_name,
-            image_tag=image_tag
-        )
+        image_data = service_KIImage.import_hub_repositorie_image(image_reference=image_reference)
         db_image = crud_kiImage.create_ki_image(db, image_data)
         return db_image
     except ValueError as e:
