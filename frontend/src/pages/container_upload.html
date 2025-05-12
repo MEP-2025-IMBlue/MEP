@@ -1,60 +1,63 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Container Upload – mRay AIR</title>
-  <link rel="stylesheet" href="../styles/container_upload.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Container hochladen – mRay AIR</title>
+  <link rel="stylesheet" href="../styles/container_upload.css" />
 </head>
 <body>
   <nav class="navbar">
     <div class="logo">mRay AIR</div>
     <div class="nav-links">
       <a href="dashboard.html">Dashboard</a>
-      <a class="active" href="#">Container Upload</a>
-      <a href="dicom_upload.html">DICOM upload</a>
-      <a href="#">Profile</a>
+      <a href="#" class="active">Container Upload</a>
+      <a href="dicom_upload.html">DICOM Upload</a>
+      <a href="#">Profil</a>
     </div>
-    <div class="logout">
-      <a href="login.html">Logout</a>
-    </div>    
   </nav>
 
   <main>
-    <h1 class="section-title">Container hochladen</h1>
-    <div class="form-container">
-      <form class="upload-form" id="upload-form" method="POST" enctype="multipart/form-data">
-        <label for="image_id">Image ID</label>
-        <input type="text" id="image_id" name="image_id" required />
+    <h1 class="section-title">Wie möchten Sie Ihren Container bereitstellen?</h1>
+    <div class="card-container">
+      <div class="upload-card" onclick="showUploadOption('local')">
+        <div class="icon">📂</div>
+        <h3>Lokal hochladen</h3>
+        <p>Datei direkt vom Computer auswählen und hochladen.</p>
+      </div>
+      <div class="upload-card" onclick="showUploadOption('hub')">
+        <div class="icon">🐳</div>
+        <h3>Docker Hub Referenz</h3>
+        <p>Einfach Image Name:Tag eingeben, z.&#8201;B. <code>nginx:latest</code>.</p>
+      </div>
+    </div>
 
-        <label for="image_name">Image Name</label>
-        <input type="text" id="image_name" name="image_name" required />
-
-        <label for="image_tag">Image Tag</label>
-        <input type="text" id="image_tag" name="image_tag" required />
-
-        <label for="description">Image Beschreibung</label>
-        <input type="text" id="description" name="description"  placeholder="(optional)"/>
-
-        <label for="path">Image Pfad</label>
-        <input type="text" id="path" name="path" placeholder="(optional)" />
-
-        <label for="local_name">Image Local Name</label>
-        <input type="text" id="local_name" name="local_name"  placeholder="(optional)"/>
-
-        <label for="provider_id">Image Provider ID</label>
-        <input type="text" id="provider_id" name="provider_id" required />
-        
-        <label for="local_file">Lokale Datei hochladen</label>
-        <input type="file" id="local_file" name="local_file" accept=".tar,.zip,.img" />
-
+    <div id="upload-local" class="upload-section">
+      <form id="local-upload-form">
+        <input type="file" name="local_file" required />
         <button type="submit">Hochladen</button>
-        <div id="upload-status" class="upload-status"></div>
+        <div id="local-status" class="upload-status"></div>
+      </form>
+    </div>
+
+    <div id="upload-hub" class="upload-section">
+      <form id="hub-upload-form">
+        <input type="text" name="image_reference" placeholder="Image Name:Tag (z. B. nginx:latest)" required />
+        <button type="submit">Referenzieren</button>
+        <div id="hub-status" class="upload-status"></div>
       </form>
     </div>
   </main>
 
-  <footer>© mRay</footer>
-  <script src="upload_status.js"></script>
+  <footer>&copy; mRay AIR</footer>
+
+  <script>
+    function showUploadOption(type) {
+      document.getElementById("upload-local").style.display = type === "local" ? "flex" : "none";
+      document.getElementById("upload-hub").style.display = type === "hub" ? "flex" : "none";
+    }
+  </script>
+  <script src="upload_container.js"></script>
+
 </body>
 </html>
