@@ -1,4 +1,20 @@
 services:
+
+  keycloak_imblue:
+    image: quay.io/keycloak/keycloak:26.2.4
+    container_name: mep-keycloak
+    command: start-dev
+    env_file:
+      - ./.env
+    ports:
+      - "8090:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - keycloak_imblue_network
+
+
   frontend:
     image: maimuna03/mep-frontend:latest
     container_name: mep-frontend
@@ -8,6 +24,9 @@ services:
       - ./frontend/src:/app
     depends_on:
       - backend
+    networks:
+      - keycloak_imblue_network
+
 
   backend:
     image: maimuna03/mep-backend:latest 
@@ -24,6 +43,9 @@ services:
       - db
     env_file:
       - ./backend/.env
+    networks:
+      - keycloak_imblue_network
+
 
   db:
     image: postgres:16
@@ -34,6 +56,13 @@ services:
     env_file:
       - ./database/.env
       # POSTGRES_HOST_AUTH_METHOD: trust     #Kein Passwort nötig (nicht nötig, wenn Passwort gesetzt)
+    healthcheck: 
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks: 
+      - keycloak_imblue_network
     volumes:
       # Speichert die PostgreSQL-Daten persistent außerhalb des Containers → Daten bleiben erhalten, auch wenn der Container neu gestartet oder gelöscht wird
       - postgres_data:/var/lib/postgresql/data
@@ -42,3 +71,6 @@ services:
 
 volumes:
   postgres_data:
+networks:
+    keycloak_imblue_network:
+      driver: bridge
