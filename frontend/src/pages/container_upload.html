@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Container hochladen – mRay AIR</title>
+  <link rel="stylesheet" href="../styles/container_upload.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">mRay AIR</div>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="#" class="active">Container Upload</a>
+      <a href="dicom_upload.html">DICOM Upload</a>
+      <a href="#">Profil</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1 class="section-title">Wie möchten Sie Ihren Container bereitstellen?</h1>
+    <div class="card-container">
+      <div class="upload-card" onclick="showUploadOption('local')">
+        <div class="icon">📂</div>
+        <h3>Lokal hochladen</h3>
+        <p>Datei direkt vom Computer auswählen und hochladen.</p>
+      </div>
+      <div class="upload-card" onclick="showUploadOption('hub')">
+        <div class="icon">🐳</div>
+        <h3>Docker Hub Referenz</h3>
+        <p>Einfach Image Name:Tag eingeben, z.&#8201;B. <code>nginx:latest</code>.</p>
+      </div>
+    </div>
+
+    <div id="upload-local" class="upload-section">
+      <form id="local-upload-form">
+        <input type="file" name="local_file" required />
+        <button type="submit">Hochladen</button>
+        <div id="local-status" class="upload-status"></div>
+      </form>
+    </div>
+
+    <div id="upload-hub" class="upload-section">
+      <form id="hub-upload-form">
+        <input type="text" name="image_reference" placeholder="Image Name:Tag (z. B. nginx:latest)" required />
+        <button type="submit">Referenzieren</button>
+        <div id="hub-status" class="upload-status"></div>
+      </form>
+    </div>
+  </main>
+
+  <footer>&copy; mRay AIR</footer>
+
+  <script>
+    function showUploadOption(type) {
+      document.getElementById("upload-local").style.display = type === "local" ? "flex" : "none";
+      document.getElementById("upload-hub").style.display = type === "hub" ? "flex" : "none";
+    }
+  </script>
+  <script src="upload_container.js"></script>
+
+</body>
+</html>

@@ -1,6 +1,9 @@
 services:
   frontend:
-    image: maimuna03/mep-frontend:latest
+    # image: maimuna03/mep-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: mep-frontend
     ports:
       - "8080:8080"
@@ -9,11 +12,12 @@ services:
     depends_on:
       - backend
 
+
   backend:
     # image: maimuna03/mep-backend:latest 
     build:
-     context: ./backend
-     dockerfile: Dockerfile 
+    context: ./backend
+    dockerfile: Dockerfile 
     container_name: mep-backend
     ports:
       - "8000:8000"
