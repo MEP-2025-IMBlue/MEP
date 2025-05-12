@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const statusDiv = document.getElementById("local-status");
   
         try {
-          const res = await fetch("http://localhost:8000/containers/upload-local", {
+          const res = await fetch("http://localhost:8000/ki-images/local", {
             method: "POST",
             body: formData
           });
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
   
         try {
-          const res = await fetch("http://localhost:8000/containers/upload-hub", {
+          const res = await fetch("http://localhost:8000/ki-images/hub", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
