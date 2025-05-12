@@ -4,7 +4,7 @@
 # für die FastAPI-Endpunkte 
 
 from typing import Optional, Literal, Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 # ========================================
@@ -31,6 +31,13 @@ class KIImageUpdate(BaseModel):
     image_reference: Optional[str] = None
     image_provider_id: Optional[int] = None
 
+    @field_validator("image_name", "image_tag")
+    @classmethod
+    def no_empty_strings(cls, value, info):
+        if value is not None and value.strip() == "":
+            raise ValueError(f"{info.field_name} must not be empty")
+        return value
+    
     class Config:
         from_attributes = True
 
