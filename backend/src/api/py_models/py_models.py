@@ -15,8 +15,7 @@ class KIImageMetadata(BaseModel):
     image_name: str
     image_tag: str
     image_description: Optional[str] = None
-    image_path: Optional[str] = None
-    image_local_name: Optional[str] = None
+    image_reference: Optional[str] = None
     image_provider_id: int
 
     class Config:
@@ -29,8 +28,7 @@ class KIImageUpdate(BaseModel):
     image_name: Optional[str] = None
     image_tag: Optional[str] = None
     image_description: Optional[str] = None
-    image_path: Optional[str] = None
-    image_local_name: Optional[str] = None
+    image_reference: Optional[str] = None
     image_provider_id: Optional[int] = None
 
     class Config:
@@ -53,25 +51,15 @@ class DICOMMetadata(BaseModel):
 
 
 # ========================================
-# ImageUpload (noch zu überarbeiten)
+# ImageUpload 
 # ========================================
-# TODO: Struktur, Felder und Beschreibung überarbeiten
 class ImageUpload(BaseModel):
     image_data: str
 
 
 # ========================================
-# ContainerCreate (noch zu überarbeiten)
+# ContainerResponse 
 # ========================================
-# TODO: Struktur, Felder und Validierungen anpassen
-class ContainerCreate(BaseModel):
-    container_name: str
-
-
-# ========================================
-# ContainerResponse (noch zu überarbeiten)
-# ========================================
-# TODO: Struktur, Felder und Rückgabeformat finalisieren
 class ContainerResponse(BaseModel):
     container_id: str #VON INT AUF STR GEÄNDERT
     name: str

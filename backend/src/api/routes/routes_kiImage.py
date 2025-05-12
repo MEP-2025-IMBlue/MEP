@@ -21,6 +21,9 @@ router = APIRouter(tags=["KI-Image"])
 logger = logging.getLogger(__name__)
 docker_client = docker.from_env()
 
+# ========================================
+# Liste aller KI-Images holen
+# ========================================
 @router.get("/ki-images")
 async def list_ki_images(db: Session = Depends(get_db)):
     try:
@@ -30,7 +33,9 @@ async def list_ki_images(db: Session = Depends(get_db)):
     except DatabaseError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# ========================================
+# Bestimmtes KI-Image per Image-ID holen
+# ========================================
 @router.get("/ki-images/{image_id}", response_model=KIImageMetadata)
 async def get_ki_image(image_id: int, db: Session = Depends(get_db)):
     try:
@@ -39,15 +44,6 @@ async def get_ki_image(image_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
     except DatabaseError as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# @router.post("/ki-images", response_model=KIImageMetadata)
-# async def add_ki_image_route(ki_image: KIImageMetadata, db: Session = Depends(get_db)):
-#     try:
-#         image_data_dict = ki_image.model_dump(exclude_unset=True)
-#         return crud_kiImage.create_ki_image(db, image_data_dict)
-#     except DatabaseError as e:
-#         raise HTTPException(status_code=500, detail=str(e))
 
 # ========================================
 # KI-Image lokal hochladen
@@ -90,6 +86,9 @@ async def pull_ki_image(
         logger.exception("Unexpected error during dockerhub pull")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ========================================
+# KI-Image löschen 
+# ========================================
 @router.delete("/ki-images/{image_id}")
 async def delete_ki_image_route(image_id: int, db: Session = Depends(get_db)):
     try:
@@ -100,7 +99,9 @@ async def delete_ki_image_route(image_id: int, db: Session = Depends(get_db)):
     except DatabaseError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# ========================================
+# KI-Image ändern
+# ========================================
 @router.patch("/ki-images/{image_id}", response_model=KIImageMetadata)
 async def patch_ki_image(image_id: int, updated_ki_image: KIImageUpdate, db: Session = Depends(get_db)):
     try:

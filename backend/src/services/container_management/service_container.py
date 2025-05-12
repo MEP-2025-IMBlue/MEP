@@ -21,7 +21,7 @@ class ContainerService:
         try:
             # Hole Image aus DB
             ki_image = crud_kiImage.get_ki_image_by_id(db, image_id)
-            image_full_name = f"{ki_image.image_name}:{ki_image.image_tag}"
+            image_reference = f"{ki_image.image_name}:{ki_image.image_tag}"
 
             # Container-Name definieren
             base_name = ki_image.image_name.replace("/", "_")
@@ -42,7 +42,7 @@ class ContainerService:
                 # Neuer Container erstellen
                 logger.info(f"Creating new container {container_name}")
                 container = self.client.containers.run(
-                    image=image_full_name,
+                    image=image_reference,
                     name=container_name,
                     command="tail -f /dev/null", # eventuell nochmal relevant
                     detach=True
@@ -58,7 +58,7 @@ class ContainerService:
                 status=container.status
             )
         except ImageNotFound:
-            raise Exception(f"Image {image_full_name} not found in Docker daemon.")
+            raise Exception(f"Image {image_reference} not found in Docker daemon.")
         except DockerException as e:
             raise Exception(f"Failed to start container: {str(e)}")
 

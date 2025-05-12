@@ -26,6 +26,9 @@ docker_client = docker.from_env()
 #Instanz der Service-Klasse
 container_service = ContainerService()
 
+# ========================================
+# Starte aus Image einen Container
+# ========================================
 @router.post("/containers/start", response_model=ContainerResponse)
 async def start_user_container(
     user_id: int = Form(...),
