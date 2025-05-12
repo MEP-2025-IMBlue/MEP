@@ -18,8 +18,7 @@ class KIImage(Base):
     image_name = Column(String(255), nullable=False)
     image_tag = Column(String(128), nullable=False)
     image_description = Column(String(500), nullable=True)
-    image_path = Column(String(500), nullable=True)
-    image_local_name = Column(String(255), nullable=True)
+    image_reference = Column(String(255), nullable=True)
     image_provider_id = Column(Integer, nullable=False)
 
     def __repr__(self):
