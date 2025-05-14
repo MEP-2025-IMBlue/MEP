@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>mRay Dashboard</title>
-  <link rel="stylesheet" href="../styles/dashboard.css"/>
+  <link rel="stylesheet" href="../styles/dashboard.css" />
+  
 </head>
+
 <body>
   <nav class="navbar">
     <div class="logo">mRay AIR</div>
@@ -16,7 +18,7 @@
       <a href="#">Profil</a>
     </div>
     <div class="logout">
-        <a href="login.html">Logout</a>
+      <a href="login.html">Logout</a>
     </div>
   </nav>
 
@@ -35,41 +37,17 @@
   </main>
 
   <footer>© mRay</footer>
-  <script>
-    async function loadKIImages() {
-      const display = document.getElementById("ki-image-list");
-      try {
-        const res = await fetch("http://localhost:8000/ki-images");
-        const data = await res.json();
 
-        if (!Array.isArray(data) || data.length === 0) {
-          display.innerHTML = "<p>Keine KI-Images gefunden.</p>";
-          return;
-        }
+  <!-- Modal -->
+  <div id="delete-modal" class="modal hidden">
+    <div class="modal-content">
+      <p>Möchtest du dieses KI-Image wirklich löschen?</p>
+      <div class="modal-buttons">
+        <button id="confirm-delete">🗑 Ja, löschen</button>
+        <button id="cancel-delete">Abbrechen</button>
+      </div>
+    </div>
+  </div>
 
-        let html = "<table><thead><tr><th>ID</th><th>Name</th><th>Tag</th><th>Beschreibung</th><th>Aktionen</th></tr></thead><tbody>";
-        data.forEach(img => {
-          html += `<tr>
-            <td>${img.image_id}</td>
-            <td>${img.image_name}</td>
-            <td>${img.image_tag || '-'}</td>
-            <td>${img.description || '-'}</td>
-            <td class="action-links">
-              <span class="edit" onclick="alert('Bearbeiten: ${img.image_id}')">✏ bearbeiten</span> |
-              <span class="delete" onclick="deleteKIImage(${img.image_id})">🗑 löschen</span> |
-              <span class="test" onclick="alert('Testen: ${img.image_id}')">🧪 testen</span>
-            </td>
-          </tr>`;
-        });
-        html += "</tbody></table>";
-        display.innerHTML = html;
-
-      } catch (err) {
-        display.innerHTML = `<p style="color:red;">Fehler: ${err.message}</p>`;
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", loadKIImages);
-  </script>
 </body>
 </html>

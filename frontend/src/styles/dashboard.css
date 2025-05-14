@@ -1,145 +1,210 @@
 body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #0a0a0a;
-    color: #fff;
-  }
-  
-  .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #2a2a2a;
-    padding: 1rem 2rem;
-  }
-  
-  .logo {
-    color: #ffd700;
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .nav-links a {
-    color: #fff;
-    text-decoration: none;
-    margin: 0 1rem;
-  }
-  
-  .nav-links a.active {
-    color: #ffd700;
-    border-bottom: 2px solid #ffd700;
-    padding-bottom: 2px;
-  }
-  
-  .logout {
-    color: #fff;
-  }
-  
-  .section-title {
-    margin: 2rem;
-    font-size: 2rem;
-  }
-  
-  .dashboard-container {
-    display: flex;
-    gap: 2rem;
-    padding: 0 2rem 2rem;
-  }
-  
-  .table-wrapper {
-    flex: 2;
-    border: 2px solid #ffd700;
-    border-radius: 10px;
-    overflow-x: auto;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  th, td {
-    padding: 0.75rem;
-    text-align: left;
-  }
-  
-  thead {
-    background-color: #1c1c1c;
-    color: #ffd700;
-  }
-  
-  tbody tr:nth-child(even) {
-    background-color: #1a1a1a;
-  }
-  
-  tbody tr:nth-child(odd) {
-    background-color: #111;
-  }
-  
-  .highlight {
-    color: #ffd700;
-    font-weight: bold;
-  }
-  
-  .details-card {
-    flex: 1;
-    background-color: #111;
-    padding: 1rem;
-    border-radius: 10px;
-    border-left: 4px solid #ffd700;
-  }
-  
-  .status-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 6px;
-  }
-  
-  .status-dot.active {
-    background-color: #00cc66;
-  }
-  
-  footer {
-    text-align: center;
-    color: #777;
-    padding: 1rem;
-  }
-  
-  .action-links {
-    font-size: 0.85rem;
-    white-space: nowrap;
-    width: 100%;
-    display: flex;
-    gap: 0.5rem;
-    justify-content: start;
-    align-items: center;
-  }
-  
-  .action-links span {
-    display: inline-flex;
-    align-items: csenter;
-  }
-  
-  .action-links .edit:hover {
-    background-color: #ffd70033;
-  }
-  
-  .action-links .delete:hover {
-    background-color: #ff4d4d33;
-  }
-  
-  .action-links .test:hover {
-    background-color: #0099ff33;
-  }
-  .logout a {
-    color: #ffd700; /* Gelb */
-    text-decoration: none;
-    font-weight: bold;
-  }
-  
-  .logout a:hover {
-    color: #ffcc00; /* etwas helleres Gelb beim Hover */
-  }
-  
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #0a0a0a;
+  color: #fff;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2a2a2a;
+  padding: 1rem 2rem;
+}
+
+.logo {
+  color: #ffd700;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-links a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 1rem;
+}
+
+.nav-links a.active {
+  color: #ffd700;
+  border-bottom: 2px solid #ffd700;
+  padding-bottom: 2px;
+}
+
+.logout {
+  color: #fff;
+}
+
+.section-title {
+  margin: 2rem;
+  font-size: 2rem;
+}
+
+.dashboard-container {
+  display: flex;
+  gap: 2rem;
+  padding: 0 2rem 2rem;
+}
+
+.table-wrapper {
+  flex: 2;
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.75rem;
+  text-align: left;
+}
+
+thead {
+  background-color: #1c1c1c;
+  color: #ffd700;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #1a1a1a;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #111;
+}
+
+.highlight {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.details-card {
+  flex: 1;
+  background-color: #111;
+  padding: 1rem;
+  border-radius: 10px;
+  border-left: 4px solid #ffd700;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.status-dot.active {
+  background-color: #00cc66;
+}
+
+footer {
+  text-align: center;
+  color: #777;
+  padding: 1rem;
+}
+
+.action-links {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: start;
+  align-items: center;
+}
+
+.action-links span {
+  display: inline-flex;
+  align-items: csenter;
+}
+
+.action-links .edit:hover {
+  background-color: #ffd70033;
+}
+
+.action-links .delete:hover {
+  background-color: #ff4d4d33;
+}
+
+.action-links .test:hover {
+  background-color: #0099ff33;
+}
+
+.logout a {
+  color: #ffd700;
+  /* Gelb */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logout a:hover {
+  color: #ffcc00;
+  /* etwas helleres Gelb beim Hover */
+}
+
+/* Modal-Stil */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: grey;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 400px;
+}
+
+.modal-buttons {
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  margin: 0 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#confirm-delete {
+  background-color: #e74c3c;
+  color: white;
+}
+
+#cancel-delete {
+  background-color: #ccc;
+}
+#custom-confirm {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #111;
+  color: #ffd700;
+  padding: 20px 30px;
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  z-index: 99999;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+}

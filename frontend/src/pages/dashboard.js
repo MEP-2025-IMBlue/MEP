@@ -1,3 +1,9 @@
+// -------------------------------
+// DOM Ready
+// -------------------------------
+
+let imageIdToDelete = null;
+
 document.addEventListener("DOMContentLoaded", () => {
   loadContainers();
   loadKIImages();
@@ -5,6 +11,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const kiForm = document.getElementById("ki-upload-form");
   if (kiForm) {
     kiForm.addEventListener("submit", uploadKIImage);
+  }
+
+  const confirmBtn = document.getElementById("confirm-delete");
+  const cancelBtn = document.getElementById("cancel-delete");
+
+  if (confirmBtn && cancelBtn) {
+    confirmBtn.addEventListener("click", async () => {
+      if (!imageIdToDelete) return;
+
+      try {
+        const res = await fetch(`http://localhost:8000/ki-images/${imageIdToDelete}`, {
+          method: "DELETE"
+        });
+
+        if (res.ok) {
+          alert(`KI-Image mit ID ${imageIdToDelete} wurde erfolgreich gelöscht.`);
+          loadKIImages();
+        } else {
+          const err = await res.json();
+          alert(`Fehler: ${err.detail || "Unbekannter Fehler beim Löschen"}`);
+        }
+      } catch (err) {
+        alert(`Verbindungsfehler: ${err.message}`);
+      }
+
+      imageIdToDelete = null;
+      document.getElementById("delete-modal").classList.add("hidden");
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      imageIdToDelete = null;
+      document.getElementById("delete-modal").classList.add("hidden");
+    });
   }
 });
 
@@ -66,6 +105,7 @@ async function deleteContainer(id) {
 // -------------------------------
 // 🧠 KI-Image-Funktionen
 // -------------------------------
+let imageIdToDelete = null;
 
 async function loadKIImages() {
   const display = document.getElementById("ki-image-list");
@@ -97,46 +137,55 @@ async function loadKIImages() {
     html += "</tbody></table>";
     display.innerHTML = html;
   } catch (err) {
-    display.innerHTML = `Fehler: ${err.message}`;
+    display.innerHTML = `<p style="color:red;">Fehler: ${err.message}</p>`;
   }
 }
 
-async function uploadKIImage(e) {
-  e.preventDefault();
-  const form = e.target;
+function deleteKIImage(imageId) {
+  imageIdToDelete = imageId;
+  const modal = document.getElementById("delete-modal");
+  if (modal) modal.classList.remove("hidden");
+}
 
-  const payload = {
-    image_name: form.image_name.value,
-    image_tag: form.image_tag.value,
-    description: form.description?.value || null,
-    image_path: form.image_path?.value || null,
-    local_image_name: form.local_image_name?.value || null,
-    provider_id: parseInt(form.provider_id.value)
-  };
+document.addEventListener("DOMContentLoaded", () => {
+  loadContainers();
+  loadKIImages();
 
-  try {
-    const res = await fetch("http://localhost:8000/ki-images", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+  const kiForm = document.getElementById("ki-upload-form");
+  if (kiForm) {
+    kiForm.addEventListener("submit", uploadKIImage);
+  }
+
+  const confirmBtn = document.getElementById("confirm-delete");
+  const cancelBtn = document.getElementById("cancel-delete");
+
+  if (confirmBtn && cancelBtn) {
+    confirmBtn.addEventListener("click", async () => {
+      if (!imageIdToDelete) return;
+
+      try {
+        const res = await fetch(`http://localhost:8000/ki-images/${imageIdToDelete}`, {
+          method: "DELETE"
+        });
+
+        if (res.ok) {
+          alert(`KI-Image mit ID ${imageIdToDelete} wurde erfolgreich gelöscht.`);
+          loadKIImages();
+        } else {
+          const err = await res.json();
+          alert(`Fehler: ${err.detail || "Unbekannter Fehler beim Löschen"}`);
+        }
+      } catch (err) {
+        alert(`Verbindungsfehler: ${err.message}`);
+      }
+
+      imageIdToDelete = null;
+      document.getElementById("delete-modal").classList.add("hidden");
     });
 
-    if (res.ok) {
-      alert("KI-Image erfolgreich hochgeladen");
-      form.reset();
-      loadKIImages();
-    } else {
-      const err = await res.text();
-      alert("Fehler: " + err);
-    }
-  } catch (err) {
-    alert("Verbindungsfehler: " + err.message);
+    cancelBtn.addEventListener("click", () => {
+      imageIdToDelete = null;
+      document.getElementById("delete-modal").classList.add("hidden");
+    });
   }
-}
-
-async function deleteKIImage(id) {
-  if (confirm("KI-Image wirklich löschen?")) {
-    await fetch(`http://localhost:8000/ki-images/${id}`, { method: "DELETE" });
-    loadKIImages();
-  }
-}
+});
