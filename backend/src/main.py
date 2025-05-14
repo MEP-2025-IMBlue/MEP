@@ -6,6 +6,7 @@ from src.db.db_models import db_models
 from src.db.database import database
 from src.api.routes import routes_kiContainer
 from src.api.routes import routes_dicom
+import os
 
 #-------------------------------------------------------------
 # Für die Testverbindung zur DB 
@@ -39,3 +40,8 @@ db_models.Base.metadata.create_all(bind=database.engine)
 app.include_router(routes_kiImage.router)
 app.include_router(routes_kiContainer.router)
 app.include_router(routes_dicom.router)
+
+@app.on_event("startup")
+def prepare_temp_dirs():
+    os.makedirs("/tmp/uploads", exist_ok=True)
+    os.makedirs("/tmp/processed", exist_ok=True)
