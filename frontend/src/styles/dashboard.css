@@ -110,13 +110,16 @@ body {
   .action-links {
     font-size: 0.85rem;
     white-space: nowrap;
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: start;
+    align-items: center;
   }
   
   .action-links span {
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: csenter;
   }
   
   .action-links .edit:hover {

@@ -17,66 +17,59 @@
     </div>
     <div class="logout">
         <a href="login.html">Logout</a>
-      </div>
-      
+    </div>
   </nav>
 
   <main>
-    <h1 class="section-title">Containers</h1>
+    <h1 class="section-title">KI-Images</h1>
     <div class="dashboard-container">
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Image ID</th>
-              <th>Name</th>
-              <th>Tag</th>
-              <th>Repository</th>
-              <th>Created</th>
-              <th>Aktionen</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="highlight">abc1234</td>
-              <td>image1</td>
-              <td>v1.0</td>
-              <td>api</td>
-              <td>2024-04-24</td>
-              <td class="action-links">
-                <span class="edit">✏ bearbeiten</span> |
-                <span class="delete">🗑 löschen</span> |
-                <span class="test">🧪 testen</span>
-              </td>
-            </tr>
-            <tr>
-              <td class="highlight">def3678</td>
-              <td>image2</td>
-              <td>v1.1</td>
-              <td>ml</td>
-              <td>2024-02-23</td>
-              <td class="action-links">
-                <span class="edit">✏ bearbeiten</span> |
-                <span class="delete">🗑 löschen</span> |
-                <span class="test">🧪 testen</span>
-              </td>
-            </tr>
-            <!-- Weitere Container hier -->
-          </tbody>
-        </table>
+      <div class="table-wrapper" id="ki-image-list">
+        <p>Lade KI-Images...</p>
       </div>
 
       <div class="details-card">
-        <h2>Container Details</h2>
-        <p><strong>image1</strong></p>
-        <p>2024-04-24 10:30 AM</p>
-        <p><span class="status-dot active"></span> Active</p>
+        <h2>Info</h2>
+        <p>Hier erscheinen alle hochgeladenen KI-Images.</p>
       </div>
     </div>
-    
   </main>
 
   <footer>© mRay</footer>
-  <script src="dashboard.js"></script>
+  <script>
+    async function loadKIImages() {
+      const display = document.getElementById("ki-image-list");
+      try {
+        const res = await fetch("http://localhost:8000/ki-images");
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          display.innerHTML = "<p>Keine KI-Images gefunden.</p>";
+          return;
+        }
+
+        let html = "<table><thead><tr><th>ID</th><th>Name</th><th>Tag</th><th>Beschreibung</th><th>Aktionen</th></tr></thead><tbody>";
+        data.forEach(img => {
+          html += `<tr>
+            <td>${img.image_id}</td>
+            <td>${img.image_name}</td>
+            <td>${img.image_tag || '-'}</td>
+            <td>${img.description || '-'}</td>
+            <td class="action-links">
+              <span class="edit" onclick="alert('Bearbeiten: ${img.image_id}')">✏ bearbeiten</span> |
+              <span class="delete" onclick="deleteKIImage(${img.image_id})">🗑 löschen</span> |
+              <span class="test" onclick="alert('Testen: ${img.image_id}')">🧪 testen</span>
+            </td>
+          </tr>`;
+        });
+        html += "</tbody></table>";
+        display.innerHTML = html;
+
+      } catch (err) {
+        display.innerHTML = `<p style="color:red;">Fehler: ${err.message}</p>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadKIImages);
+  </script>
 </body>
 </html>
