@@ -1,0 +1,132 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #0a0a0a;
+  color: #fff;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2a2a2a;
+  padding: 1rem 2rem;
+}
+
+.logo {
+  color: #ffd700;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-links a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 1rem;
+}
+
+.nav-links a.active {
+  color: #ffd700;
+  border-bottom: 2px solid #ffd700;
+  padding-bottom: 2px;
+}
+
+.section-title {
+  margin: 2rem;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.upload-card {
+  background-color: #1a1a1a;
+  border-left: 4px solid #ffd700;
+  border-radius: 10px;
+  padding: 2rem;
+  width: 280px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.upload-card:hover {
+  background-color: #2a2a2a;
+  transform: scale(1.03);
+}
+
+.upload-card .icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.upload-card h3 {
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+}
+
+.upload-card p {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.upload-section {
+  display: none;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.upload-section form {
+  background-color: #111;
+  padding: 2rem;
+  border-radius: 10px;
+  border-left: 4px solid #ffd700;
+  max-width: 500px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.upload-section input {
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+.upload-section button {
+  background-color: #ffd700;
+  color: #000;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.upload-section button:hover {
+  background-color: #ffcc00;
+}
+
+.upload-status {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #00cc66;
+}
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: #777;
+  font-size: 0.9rem;
+} 
