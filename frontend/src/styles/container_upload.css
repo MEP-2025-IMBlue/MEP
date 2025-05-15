@@ -140,3 +140,51 @@ footer {
   color: #777;
   font-size: 0.9rem;
 } 
+progress {
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  appearance: none;
+  margin-top: 0.75rem;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #333;
+  border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+  background-color: #ffd700;
+  border-radius: 10px;
+}
+
+/* Spinner-Stil */
+#local-spinner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffaa00;
+  font-size: 1rem;
+}
+
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+#hub-spinner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffaa00;
+  font-size: 1rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #ffd70055;
+  border-top: 3px solid #ffd700;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
