@@ -100,13 +100,12 @@ body {
     width: 200px;
   }
   
-  .ki-card img {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-  }
+ .ki-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #ffd700;
+}
+
   
   .select-btn {
     margin-top: 0.5rem;
