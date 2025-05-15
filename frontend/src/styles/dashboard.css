@@ -35,6 +35,16 @@ body {
   color: #fff;
 }
 
+.logout a {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logout a:hover {
+  color: #ffcc00;
+}
+
 .section-title {
   margin: 2rem;
   font-size: 2rem;
@@ -56,6 +66,8 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
+  color: #fff;
+  font-size: 0.95rem;
 }
 
 th,
@@ -67,6 +79,8 @@ td {
 thead {
   background-color: #1c1c1c;
   color: #ffd700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
 }
 
 tbody tr:nth-child(even) {
@@ -75,11 +89,6 @@ tbody tr:nth-child(even) {
 
 tbody tr:nth-child(odd) {
   background-color: #111;
-}
-
-.highlight {
-  color: #ffd700;
-  font-weight: bold;
 }
 
 .details-card {
@@ -109,45 +118,51 @@ footer {
 }
 
 .action-links {
-  font-size: 0.85rem;
-  white-space: nowrap;
-  width: 100%;
   display: flex;
   gap: 0.5rem;
-  justify-content: start;
+  flex-wrap: wrap;
   align-items: center;
 }
 
-.action-links span {
-  display: inline-flex;
-  align-items: csenter;
+button.btn-edit,
+button.btn-delete,
+button.btn-test {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.3s ease;
 }
 
-.action-links .edit:hover {
-  background-color: #ffd70033;
-}
-
-.action-links .delete:hover {
-  background-color: #ff4d4d33;
-}
-
-.action-links .test:hover {
-  background-color: #0099ff33;
-}
-
-.logout a {
+button.btn-edit {
+  background-color: #ffd70022;
   color: #ffd700;
-  /* Gelb */
-  text-decoration: none;
-  font-weight: bold;
 }
 
-.logout a:hover {
-  color: #ffcc00;
-  /* etwas helleres Gelb beim Hover */
+button.btn-edit:hover {
+  background-color: #ffd70055;
 }
 
-/* Modal-Stil */
+button.btn-delete {
+  background-color: #ff4d4d22;
+  color: #ff4d4d;
+}
+
+button.btn-delete:hover {
+  background-color: #ff4d4d55;
+}
+
+button.btn-test {
+  background-color: #0099ff22;
+  color: #0099ff;
+}
+
+button.btn-test:hover {
+  background-color: #0099ff55;
+}
+
+/* Modal */
 .modal {
   position: fixed;
   top: 0;
@@ -193,6 +208,7 @@ footer {
 #cancel-delete {
   background-color: #ccc;
 }
+
 #custom-confirm {
   position: fixed;
   top: 50%;

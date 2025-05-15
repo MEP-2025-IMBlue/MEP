@@ -1,191 +1,100 @@
-// -------------------------------
-// DOM Ready
-// -------------------------------
+document.addEventListener("DOMContentLoaded", async () => {
+  const container = document.getElementById("ki-image-list");
 
-let imageIdToDelete = null;
+  async function fetchKIImages() {
+    try {
+      const res = await fetch("http://localhost:8000/ki-images");
+      if (!res.ok) throw new Error(await res.text());
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadContainers();
-  loadKIImages();
+      const data = await res.json();
 
-  const kiForm = document.getElementById("ki-upload-form");
-  if (kiForm) {
-    kiForm.addEventListener("submit", uploadKIImage);
-  }
-
-  const confirmBtn = document.getElementById("confirm-delete");
-  const cancelBtn = document.getElementById("cancel-delete");
-
-  if (confirmBtn && cancelBtn) {
-    confirmBtn.addEventListener("click", async () => {
-      if (!imageIdToDelete) return;
-
-      try {
-        const res = await fetch(`http://localhost:8000/ki-images/${imageIdToDelete}`, {
-          method: "DELETE"
-        });
-
-        if (res.ok) {
-          alert(`KI-Image mit ID ${imageIdToDelete} wurde erfolgreich gelöscht.`);
-          loadKIImages();
-        } else {
-          const err = await res.json();
-          alert(`Fehler: ${err.detail || "Unbekannter Fehler beim Löschen"}`);
-        }
-      } catch (err) {
-        alert(`Verbindungsfehler: ${err.message}`);
+      if (data.length === 0) {
+        container.innerHTML = "<p>Keine KI-Images vorhanden.</p>";
+        return;
       }
 
-      imageIdToDelete = null;
-      document.getElementById("delete-modal").classList.add("hidden");
-    });
+      // Tabelle erstellen
+      const table = document.createElement("table");
+      table.classList.add("ki-image-table");
 
-    cancelBtn.addEventListener("click", () => {
-      imageIdToDelete = null;
-      document.getElementById("delete-modal").classList.add("hidden");
-    });
-  }
-});
-
-// -------------------------------
-// 📦 Containerfunktionen
-// -------------------------------
-
-async function loadContainers() {
-  const display = document.getElementById("container-list");
-  if (!display) return;
-
-  display.innerHTML = "Container werden geladen...";
-
-  try {
-    const res = await fetch("http://localhost:8000/containers");
-    const data = await res.json();
-
-    if (!data.length) {
-      display.innerHTML = "Keine Container gefunden.";
-      return;
-    }
-
-    let html = "<table><tr><th>Name</th><th>Tag</th><th>Status</th><th>Aktion</th></tr>";
-    data.forEach(c => {
-      html += `
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
         <tr>
-          <td>${c.name}</td><td>${c.tag || '-'}</td><td>${c.status}</td>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Tag</th>
+          <th>Hochgeladen am</th>
+          <th>Beschreibung</th>
+          <th>Aktionen</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      data.forEach((img) => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${img.image_id}</td>
+          <td>${img.image_name}</td>
+          <td>${img.tag}</td>
+          <td>${formatDateTime(img.created_at)}</td>
+          <td>${img.repository || "-"}</td>
           <td>
-            <button onclick="startContainer('${c.container_id}')">▶ Start</button>
-            <button onclick="stopContainer('${c.container_id}')">⏸ Stop</button>
-            <button onclick="deleteContainer('${c.container_id}')">🗑 Löschen</button>
+            <button class="btn-edit" onclick="editImage(${img.image_id})">Bearbeiten</button>
+            <button class="btn-delete" onclick="deleteImage(${img.image_id})">Löschen</button>
+            <button class="btn-test" onclick="testImage(${img.image_id})">Testen</button>
           </td>
-        </tr>`;
-    });
-    html += "</table>";
-    display.innerHTML = html;
-  } catch (err) {
-    display.innerHTML = `Fehler beim Laden: ${err.message}`;
-  }
-}
+        `;
+        tbody.appendChild(tr);
+      });
 
-async function startContainer(id) {
-  await fetch(`http://localhost:8000/containers/${id}/start`, { method: "POST" });
-  loadContainers();
-}
-
-async function stopContainer(id) {
-  await fetch(`http://localhost:8000/containers/${id}/stop`, { method: "POST" });
-  loadContainers();
-}
-
-async function deleteContainer(id) {
-  if (confirm("Container wirklich löschen?")) {
-    await fetch(`http://localhost:8000/containers/${id}`, { method: "DELETE" });
-    loadContainers();
-  }
-}
-
-// -------------------------------
-// 🧠 KI-Image-Funktionen
-// -------------------------------
-let imageIdToDelete = null;
-
-async function loadKIImages() {
-  const display = document.getElementById("ki-image-list");
-  if (!display) return;
-
-  try {
-    const res = await fetch("http://localhost:8000/ki-images");
-    const data = await res.json();
-
-    if (!data.length) {
-      display.innerHTML = "Keine KI-Images vorhanden.";
-      return;
+      table.appendChild(tbody);
+      container.innerHTML = "";
+      container.appendChild(table);
+    } catch (err) {
+      container.innerHTML = `<p>❌ Fehler beim Laden: ${err.message}</p>`;
     }
-
-    let html = "<table><thead><tr><th>ID</th><th>Name</th><th>Tag</th><th>Beschreibung</th><th>Aktionen</th></tr></thead><tbody>";
-    data.forEach(img => {
-      html += `<tr>
-        <td>${img.image_id}</td>
-        <td>${img.image_name}</td>
-        <td>${img.image_tag || '-'}</td>
-        <td>${img.description || '-'}</td>
-        <td class="action-links">
-          <span class="edit" onclick="alert('Bearbeiten: ${img.image_id}')">✏ bearbeiten</span> |
-          <span class="delete" onclick="deleteKIImage(${img.image_id})">🗑 löschen</span> |
-          <span class="test" onclick="alert('Testen: ${img.image_id}')">🧪 testen</span>
-        </td>
-      </tr>`;
-    });
-    html += "</tbody></table>";
-    display.innerHTML = html;
-  } catch (err) {
-    display.innerHTML = `<p style="color:red;">Fehler: ${err.message}</p>`;
-  }
-}
-
-function deleteKIImage(imageId) {
-  imageIdToDelete = imageId;
-  const modal = document.getElementById("delete-modal");
-  if (modal) modal.classList.remove("hidden");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadContainers();
-  loadKIImages();
-
-  const kiForm = document.getElementById("ki-upload-form");
-  if (kiForm) {
-    kiForm.addEventListener("submit", uploadKIImage);
   }
 
-  const confirmBtn = document.getElementById("confirm-delete");
-  const cancelBtn = document.getElementById("cancel-delete");
+  async function deleteImage(id) {
+    if (!confirm(`Soll das KI-Image mit ID ${id} wirklich gelöscht werden?`)) return;
 
-  if (confirmBtn && cancelBtn) {
-    confirmBtn.addEventListener("click", async () => {
-      if (!imageIdToDelete) return;
+    try {
+      const res = await fetch(`http://localhost:8000/ki-images/${id}`, {
+        method: "DELETE"
+      });
+      if (!res.ok) throw new Error(await res.text());
+      alert("✅ Erfolgreich gelöscht!");
+      fetchKIImages(); // Neu laden
+    } catch (err) {
+      alert("❌ Fehler beim Löschen: " + err.message);
+    }
+  }
 
-      try {
-        const res = await fetch(`http://localhost:8000/ki-images/${imageIdToDelete}`, {
-          method: "DELETE"
-        });
+  window.deleteImage = deleteImage;
 
-        if (res.ok) {
-          alert(`KI-Image mit ID ${imageIdToDelete} wurde erfolgreich gelöscht.`);
-          loadKIImages();
-        } else {
-          const err = await res.json();
-          alert(`Fehler: ${err.detail || "Unbekannter Fehler beim Löschen"}`);
-        }
-      } catch (err) {
-        alert(`Verbindungsfehler: ${err.message}`);
-      }
+  window.editImage = function(id) {
+    alert("🛠 Bearbeiten noch nicht implementiert. ID: " + id);
+    // Hier könntest du z. B. auf eine Bearbeitungsseite weiterleiten
+    // window.location.href = `container_bearbeiten.html?id=${id}`;
+  };
 
-      imageIdToDelete = null;
-      document.getElementById("delete-modal").classList.add("hidden");
-    });
+  window.testImage = function(id) {
+    alert("🧪 Test gestartet für Image ID: " + id);
+    // Beispielhafter Platzhalter für Test-Funktionalität
+  };
 
-    cancelBtn.addEventListener("click", () => {
-      imageIdToDelete = null;
-      document.getElementById("delete-modal").classList.add("hidden");
+  function formatDateTime(dateTimeStr) {
+    const dt = new Date(dateTimeStr);
+    return dt.toLocaleString("de-DE", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
     });
   }
+
+  fetchKIImages();
 });
