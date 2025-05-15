@@ -129,10 +129,24 @@ body {
 }
 
 .upload-status {
+  margin-top: 0.5rem;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 0.95rem;
-  font-weight: bold;
-  color: #00cc66;
+  background-color: #1a1a1a;
+  border-left: 4px solid transparent;
 }
+
+.upload-status.success {
+  color: #00cc66;
+  border-left-color: #00cc66;
+}
+
+.upload-status.error {
+  color: #ff4d4d;
+  border-left-color: #ff4d4d;
+}
+
 
 footer {
   text-align: center;
