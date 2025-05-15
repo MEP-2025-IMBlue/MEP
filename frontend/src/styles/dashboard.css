@@ -56,23 +56,31 @@ body {
   padding: 0 2rem 2rem;
 }
 
-.table-wrapper {
-  flex: 2;
-  border: 2px solid #ffd700;
-  border-radius: 10px;
-  overflow-x: auto;
+/* Neue vertikale Anordnung für Tabelle + Info */
+.dashboard-container.vertical-layout {
+  flex-direction: column;
 }
 
-table {
+/* Tabelle */
+.ki-image-table {
+  table-layout: auto;
+  min-width: 1000px;
   width: 100%;
   border-collapse: collapse;
   color: #fff;
   font-size: 0.95rem;
 }
 
-th,
-td {
+.table-wrapper {
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+/* Tabellen-Design */
+th, td {
   padding: 0.75rem;
+  white-space: nowrap;
   text-align: left;
 }
 
@@ -92,36 +100,10 @@ tbody tr:nth-child(odd) {
 }
 
 .details-card {
-  flex: 1;
   background-color: #111;
   padding: 1rem;
   border-radius: 10px;
   border-left: 4px solid #ffd700;
-}
-
-.status-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.status-dot.active {
-  background-color: #00cc66;
-}
-
-footer {
-  text-align: center;
-  color: #777;
-  padding: 1rem;
-}
-
-.action-links {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  align-items: center;
 }
 
 button.btn-edit,
@@ -135,92 +117,53 @@ button.btn-test {
   transition: background-color 0.3s ease;
 }
 
-button.btn-edit {
-  background-color: #ffd70022;
-  color: #ffd700;
-}
+button.btn-edit { background-color: #ffd70022; color: #ffd700; }
+button.btn-edit:hover { background-color: #ffd70055; }
 
-button.btn-edit:hover {
-  background-color: #ffd70055;
-}
+button.btn-delete { background-color: #ff4d4d22; color: #ff4d4d; }
+button.btn-delete:hover { background-color: #ff4d4d55; }
 
-button.btn-delete {
-  background-color: #ff4d4d22;
-  color: #ff4d4d;
-}
+button.btn-test { background-color: #0099ff22; color: #0099ff; }
+button.btn-test:hover { background-color: #0099ff55; }
 
-button.btn-delete:hover {
-  background-color: #ff4d4d55;
-}
-
-button.btn-test {
-  background-color: #0099ff22;
-  color: #0099ff;
-}
-
-button.btn-test:hover {
-  background-color: #0099ff55;
-}
-
-/* Modal */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #1a1a1a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  background: grey;
-  padding: 20px 30px;
-  border-radius: 10px;
-  text-align: center;
-  max-width: 400px;
-}
-
-.modal-buttons {
-  margin-top: 20px;
-}
-
-.modal-buttons button {
-  margin: 0 10px;
-  padding: 8px 15px;
+.search-bar {
+  margin: 0 2rem 1rem;
+  padding: 8px 14px;
+  border-radius: 6px;
   border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  width: calc(100% - 4rem);
+  font-size: 1rem;
+  background-color: #1a1a1a;
+  color: #fff;
+  border: 1px solid #444;
+}
+.search-bar::placeholder {
+  color: #888;
+}
+.filter-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 2rem 1.5rem;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
-#confirm-delete {
-  background-color: #e74c3c;
-  color: white;
+.filter-controls select,
+.filter-controls input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #1a1a1a;
+  color: #fff;
+  font-size: 1rem;
 }
 
-#cancel-delete {
-  background-color: #ccc;
+.filter-controls select {
+  min-width: 180px;
 }
 
-#custom-confirm {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #111;
-  color: #ffd700;
-  padding: 20px 30px;
-  border: 2px solid #ffd700;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  z-index: 99999;
-  font-family: 'Segoe UI', sans-serif;
-  text-align: center;
+.filter-controls input {
+  flex: 1;
+  min-width: 200px;
 }
