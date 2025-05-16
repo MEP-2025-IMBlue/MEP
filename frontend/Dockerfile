@@ -4,6 +4,7 @@ WORKDIR /app
 
 RUN npm install -g http-server
 
-COPY src/ .
+# Alles im aktuellen Verzeichnis kopieren (inkl. index.html, index.js, src/)
+COPY . .
 
 CMD ["http-server", ".", "-p", "8080"]

@@ -16,12 +16,14 @@ services:
 
 
   frontend:
-    image: maimuna03/mep-frontend:latest
+    #image: maimuna03/mep-frontend:latest
+    build:
+      context: ./frontend
     container_name: mep-frontend
     ports:
       - "8080:8080"
-    volumes:
-      - ./frontend/src:/app
+    #volumes:
+    #  - ./frontend/src:/app/src
     depends_on:
       - backend
     networks:
