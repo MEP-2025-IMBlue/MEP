@@ -5,6 +5,7 @@ pytest
 docker
 python-multipart
 sqlalchemy
+sqlalchemy-utils
 psycopg2-binary # psycopg2 PostgreSQL-Adapter für Python
 pydantic
 python-dotenv  # um .env-Daten lesen zu können
