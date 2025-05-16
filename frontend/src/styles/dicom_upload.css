@@ -76,6 +76,36 @@ body {
     border-radius: 5px;
     cursor: pointer;
   }
+  .drop-zone {
+    position: relative;
+    border: 2px dashed #ffd700;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    background-color: #111;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+    color: #fff;
+  }
+
+  .drop-zone:hover {
+    background-color: #1a1a1a;
+  }
+
+  .drop-zone input[type="file"] {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .drop-zone.dragover {
+    border-color: #00cc66;
+    background-color: #222;
+  }
   
   .upload-status {
     font-weight: bold;

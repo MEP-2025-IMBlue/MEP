@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (res.ok) {
           const result = await res.json();
-          statusDiv.textContent = `✅ Referenziert: ${result.image_name || result.id}`;
+          statusDiv.textContent = `✅ Hochgeladen: ${result.image_name || result.id}`;
           statusDiv.className = "upload-status success";
           hubForm.reset();
         } else {
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 💻 Lokaler Upload mit .tar-Prüfung, Fortschritt, Spinner, Fehlertext
+  // 💻 Lokaler Upload mit Drag-and-Drop + Vorschau + Fortschritt
   if (localForm) {
     const progress = document.createElement("progress");
     progress.id = "local-progress";
@@ -102,17 +102,52 @@ document.addEventListener("DOMContentLoaded", () => {
     spinner.style.marginTop = "10px";
     localForm.appendChild(spinner);
 
+    // 🔁 Drag-and-Drop Vorschau
+    const dropZone = document.getElementById("drop-local");
+    const fileInput = document.getElementById("fileInput-local");
+    const previewText = document.createElement("div");
+    previewText.className = "preview-text";
+    dropZone.appendChild(previewText);
+
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = "#00cc66";
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.style.borderColor = "#ffd700";
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = "#ffd700";
+      if (e.dataTransfer.files.length) {
+        const file = e.dataTransfer.files[0];
+        fileInput.files = e.dataTransfer.files;
+        previewText.textContent = `📄 ${file.name}`;
+      }
+    });
+
+    dropZone.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length) {
+        previewText.textContent = `📄 ${fileInput.files[0].name}`;
+      } else {
+        previewText.textContent = "";
+      }
+    });
+
+    // 📤 Upload
     localForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const fileInput = localForm.querySelector('input[type="file"]');
       const file = fileInput.files[0];
       const statusDiv = document.getElementById("local-status");
 
       statusDiv.textContent = "";
       statusDiv.className = "upload-status";
 
-      // ❗ Typprüfung: nur .tar erlaubt
       if (!file || !file.name.toLowerCase().endsWith(".tar")) {
         statusDiv.textContent = "❌ Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
         statusDiv.className = "upload-status error";
@@ -171,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
               statusDiv.textContent = `✅ Hochgeladen: ${result.image_name || result.id}`;
               statusDiv.className = "upload-status success";
               localForm.reset();
+              previewText.textContent = "";
             } else {
               statusDiv.textContent = interpretErrorMessage(xhr.responseText, "local");
               statusDiv.className = "upload-status error";
@@ -187,7 +223,9 @@ document.addEventListener("DOMContentLoaded", () => {
           statusDiv.className = "upload-status error";
         };
 
-        xhr.send(new FormData(localForm));
+        const formData = new FormData();
+        formData.append("file", file);
+        xhr.send(formData);
       } catch (err) {
         clearInterval(slowInterval);
         progress.style.display = "none";
