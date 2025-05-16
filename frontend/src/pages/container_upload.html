@@ -5,22 +5,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Container hochladen – mRay AIR</title>
+
+  <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/container_upload.css" />
+
 </head>
 
 <body>
-  <nav class="navbar">
-    <div class="logo">mRay AIR</div>
-    <div class="nav-links">
-      <a href="dashboard.html">Dashboard</a>
-      <a href="#" class="active">Container Upload</a>
-      <a href="dicom_upload.html">DICOM Upload</a>
-      <a href="#">Profil</a>
-    </div>
-    <div class="logout">
-      <a href="login.html">Logout</a>
-    </div>
-  </nav>
+  <div id="navbar"></div>
 
   <main>
     <h1 class="section-title">Wie möchten Sie Ihren Container bereitstellen?</h1>
@@ -67,7 +59,8 @@
       document.getElementById("upload-hub").style.display = type === "hub" ? "flex" : "none";
     }
   </script>
-  <script src="container_upload.js"></script>
+  <script src="../scripts/container_upload.js"></script>
+  <script src="../scripts/global_script.js"></script>
 
 </body>
 

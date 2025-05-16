@@ -5,23 +5,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mRay Dashboard</title>
+  
+  <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
 </head>
 
 <body>
-  <nav class="navbar">
-    <div class="logo">mRay AIR</div>
-    <div class="nav-links">
-      <a class="active" href="#">Dashboard</a>
-      <a href="container_upload.html">Container hochladen</a>
-      <a href="dicom_upload.html">DICOM hochladen</a>
-      <a href="#">Profil</a>
-    </div>
-    <div class="logout">
-      <a href="login.html">Logout</a>
-    </div>
-  </nav>
-
+  <div id="navbar"></div>
+  
   <main>
     <h1 class="section-title">KI-Images</h1>
 
@@ -50,7 +41,9 @@
 
   <footer>© mRay</footer>
 
-  <script src="dashboard.js"></script>
+  <script src="../scripts/dashboard.js"></script>
+  <script src="../scripts/global_script.js"></script>
+
 </body>
 
 </html>

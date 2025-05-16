@@ -4,18 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil bearbeiten – mRay AIR</title>
+
+  <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/profil.css" />
 </head>
 <body>
-  <nav class="navbar">
-    <div class="logo">mRay AIR</div>
-    <div class="nav-links">
-      <a href="dashboard.html">Dashboard</a>
-      <a href="container_upload.html">Container hochladen</a>
-      <a href="dicom_upload.html">DICOM hochladen</a>
-      <a href="login.html">Abmelden</a>
-    </div>
-  </nav>
+  <div id="navbar"></div>
 
   <main>
     <h1>Willkommen in <span class="highlight">mRay AIR</span>!</h1>
@@ -73,5 +67,7 @@
       document.getElementById(id).style.display = "none";
     }
   </script>
+  <script src="../scripts/global_script.js"></script>
+
 </body>
 </html>
