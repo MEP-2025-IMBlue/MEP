@@ -9,7 +9,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2a2a2a;
+  background-color: #222;
   padding: 1rem 2rem;
 }
 
@@ -29,6 +29,16 @@ body {
   color: #ffd700;
   border-bottom: 2px solid #ffd700;
   padding-bottom: 2px;
+}
+
+.logout a {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logout a:hover {
+  color: #ffcc00;
 }
 
 .section-title {
@@ -119,10 +129,53 @@ body {
 }
 
 .upload-status {
+  margin-top: 0.5rem;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 0.95rem;
-  font-weight: bold;
-  color: #00cc66;
+  background-color: #1a1a1a;
+  border-left: 4px solid transparent;
 }
+
+.upload-status.success {
+  color: #00cc66;
+  border-left-color: #00cc66;
+}
+
+.upload-status.error {
+  color: #ff4d4d;
+  border-left-color: #ff4d4d;
+}
+.drop-zone {
+  position: relative;
+  border: 2px dashed #ffd700;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  background-color: #111;
+  cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s;
+  color: #fff;
+}
+
+.drop-zone:hover {
+  background-color: #1a1a1a;
+}
+
+.drop-zone input[type="file"] {
+  opacity: 0;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  cursor: pointer;
+}
+
+.preview-text {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
 
 footer {
   text-align: center;
@@ -130,3 +183,51 @@ footer {
   color: #777;
   font-size: 0.9rem;
 } 
+progress {
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  appearance: none;
+  margin-top: 0.75rem;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #333;
+  border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+  background-color: #ffd700;
+  border-radius: 10px;
+}
+
+/* Spinner-Stil */
+#local-spinner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffaa00;
+  font-size: 1rem;
+}
+
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+#hub-spinner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffaa00;
+  font-size: 1rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #ffd70055;
+  border-top: 3px solid #ffd700;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}

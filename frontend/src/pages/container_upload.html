@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Container hochladen – mRay AIR</title>
   <link rel="stylesheet" href="../styles/container_upload.css" />
 </head>
+
 <body>
   <nav class="navbar">
     <div class="logo">mRay AIR</div>
@@ -14,6 +16,9 @@
       <a href="#" class="active">Container Upload</a>
       <a href="dicom_upload.html">DICOM Upload</a>
       <a href="#">Profil</a>
+    </div>
+    <div class="logout">
+      <a href="login.html">Logout</a>
     </div>
   </nav>
 
@@ -34,9 +39,14 @@
 
     <div id="upload-local" class="upload-section">
       <form id="local-upload-form">
-        <input type="file" name="local_file" required />
+        <div class="drop-zone" id="drop-local">
+          <span>📂 Container (.tar) hierher ziehen oder klicken</span>
+          <input type="file" name="file" id="fileInput-local" />
+        </div>
+
         <button type="submit">Hochladen</button>
         <div id="local-status" class="upload-status"></div>
+        <progress id="local-progress" value="0" max="100" style="width: 100%; display: none;"></progress>
       </form>
     </div>
 
@@ -60,4 +70,5 @@
   <script src="container_upload.js"></script>
 
 </body>
+
 </html>
