@@ -3,7 +3,8 @@
 # Enthält alle Pydantic-Modelle zur Validierung und Serialisierung
 # für die FastAPI-Endpunkte 
 
-from typing import Optional, Literal, Dict
+from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, field_validator
 
 
@@ -17,6 +18,7 @@ class KIImageMetadata(BaseModel):
     image_description: Optional[str] = None
     image_reference: Optional[str] = None
     image_provider_id: int
+    image_created_at: datetime  # ✅ NEU hinzugefügt
 
     class Config:
         from_attributes = True # betrifft nur die Ausgabe, wenn FastAPI ein SQLAlchemy-Objekt als response_model in JSON umwandelt.

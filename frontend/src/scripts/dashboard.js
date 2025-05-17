@@ -35,12 +35,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const tbody = document.createElement("tbody");
     data.forEach((img) => {
+      const formattedDate = img.image_created_at
+        ? formatDateTime(img.image_created_at)
+        : "-";
+      
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${img.image_id}</td>
         <td>${img.image_name}</td>
         <td>${img.image_tag}</td>
-        <td>${formatDateTime(localStorage.getItem(`uploadTime_${img.image_id}`) || new Date())}</td>
+        <td>${formattedDate}</td>
         <td>${img.repository || "-"}</td>
         <td>
           <button class="btn-edit" onclick="alert('Bearbeiten: ${img.image_id}')">✏ bearbeiten</button> |
@@ -56,13 +60,61 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.appendChild(table);
   }
 
-  //filter funktion
+  // Zeitstempel formatieren
+  function formatDateTime(dateTimeStr) {
+    if (!dateTimeStr) return "-";
+
+    // Eingabedatum in UTC parsen
+    const utcDate = new Date(dateTimeStr);
+
+    // Sicherstellen, dass das Datum gültig ist
+    if (isNaN(utcDate)) return "-";
+
+    // Aktuelles Datum in Berlin-Zeit
+    const now = new Date();
+    const nowBerlin = new Date(
+      now.toLocaleString("en-US", { timeZone: "Europe/Berlin" })
+    );
+
+    // Eingabedatum in Berlin-Zeit konvertieren
+    const berlinDate = new Date(
+      utcDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" })
+    );
+
+    // Zeit für Anzeige (HH:MM)
+    const timeStr = berlinDate.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // Datumsvergleich (nur Jahr, Monat, Tag)
+    const isSameDay = (date1, date2) =>
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate();
+
+    // Heute prüfen
+    if (isSameDay(berlinDate, nowBerlin)) {
+      return `Heute, ${timeStr} Uhr`;
+    }
+
+    // Gestern prüfen
+    const yesterdayBerlin = new Date(nowBerlin);
+    yesterdayBerlin.setDate(nowBerlin.getDate() - 1);
+    if (isSameDay(berlinDate, yesterdayBerlin)) {
+      return `Gestern, ${timeStr} Uhr`;
+    }
+
+    // Standardformat
+    return `${berlinDate.toLocaleDateString("de-DE")}, ${timeStr} Uhr`;
+  }
+
+  // Filter-Funktion
   searchInput.addEventListener("input", () => {
     const query = searchInput.value.trim().toLowerCase();
     const field = filterSelect.value;
 
     const filtered = allData.filter((img) => {
-      // Wenn kein Filter gewählt ist: Suche in allen Feldern
       if (!field) {
         const uploadTime = localStorage.getItem(`uploadTime_${img.image_id}`)?.toLowerCase() || "";
         return (
@@ -72,7 +124,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
       }
 
-      // Mit gesetztem Filter
       if (field === "created_at") {
         const uploadTime = localStorage.getItem(`uploadTime_${img.image_id}`);
         return uploadTime?.toLowerCase().includes(query);
@@ -83,8 +134,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     renderTable(filtered);
   });
-
-
 
   async function deleteImage(id) {
     if (!confirm(`Soll das KI-Image mit ID ${id} wirklich gelöscht werden?`)) return;
@@ -101,17 +150,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   window.deleteImage = deleteImage;
-
-  function formatDateTime(dateTimeStr) {
-    const dt = new Date(dateTimeStr);
-    return dt.toLocaleString("de-DE", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  }
 
   fetchKIImages();
 });
