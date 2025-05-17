@@ -1,4 +1,4 @@
-/* frontend/src/styles/dashboard.css */
+/* Dashboard-Container */
 .dashboard-container {
   display: flex;
   gap: 2rem;
@@ -9,6 +9,7 @@
   flex-direction: column;
 }
 
+/* Tabelle */
 .ki-image-table {
   table-layout: auto;
   min-width: 1000px;
@@ -45,6 +46,7 @@ tbody tr:nth-child(odd) {
   background-color: #111;
 }
 
+/* Details-Karte */
 .details-card {
   background-color: #111;
   padding: 1rem;
@@ -52,6 +54,7 @@ tbody tr:nth-child(odd) {
   border-left: 4px solid #ffd700;
 }
 
+/* Buttons */
 button.btn-edit,
 button.btn-delete,
 button.btn-test {
@@ -72,6 +75,72 @@ button.btn-delete:hover { background-color: #ff4d4d55; }
 button.btn-test { background-color: #0099ff22; color: #0099ff; }
 button.btn-test:hover { background-color: #0099ff55; }
 
+/* Status-Badges */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  position: relative;
+  min-width: 100px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.status-running {
+  background-color: #ffd70022;
+  color: #ffd700;
+}
+
+.status-success {
+  background-color: #28a74522;
+  color: #28a745;
+}
+
+.status-error {
+  background-color: #ff4d4d22;
+  color: #ff4d4d;
+}
+
+/* Fortschrittsbalken */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #ffd700;
+  border-radius: 0 0 4px 4px;
+  animation: progress 5s linear forwards;
+}
+
+@keyframes progress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+/* Tooltip */
+.status-badge .tooltip {
+  display: none;
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  width: 200px;
+  z-index: 10;
+  white-space: normal;
+  border-left: 2px solid #ffd700;
+}
+
+.status-badge:hover .tooltip {
+  display: block;
+}
+
+/* Suchleiste */
 .search-bar {
   margin: 0 2rem 1rem;
   padding: 8px 14px;
@@ -88,6 +157,7 @@ button.btn-test:hover { background-color: #0099ff55; }
   color: #888;
 }
 
+/* Filter-Steuerung */
 .filter-controls {
   display: flex;
   gap: 0.5rem;
