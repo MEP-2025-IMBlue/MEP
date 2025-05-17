@@ -6,16 +6,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   let allData = []; // wird global gespeichert
 
   async function fetchKIImages() {
-    try {
-      const res = await fetch("http://localhost:8000/ki-images");
-      if (!res.ok) throw new Error(await res.text());
-      allData = await res.json();
-      console.log("DEBUG: ki-images Daten:", allData);
-      renderTable(allData);
-    } catch (err) {
-      container.innerHTML = `<p style="color: #ff4d4d; padding: 1rem;">❌ Fehler beim Laden: ${err.message}</p>`;
-    }
+  container.innerHTML = `<p style="color: #fff; padding: 1rem;">Lade KI-Images...</p>`;
+  try {
+    const res = await fetch("http://localhost:8000/ki-images");
+    if (!res.ok) throw new Error(await res.text());
+    allData = await res.json();
+    console.log("DEBUG: ki-images Daten:", allData);
+    container.innerHTML = allData.length === 0
+      ? `<p>ℹ️ Keine KI-Images verfügbar. Lade ein neues Image hoch!</p>`
+      : "";
+    if (allData.length > 0) renderTable(allData);
+  } catch (err) {
+    console.log("DEBUG: Fehler in fetchKIImages:", err.message);
+    const errorMsg = err.message.includes("keine KI-Bilder")
+      ? "ℹ️ Keine KI-Images verfügbar. Lade ein neues Image hoch!"
+      : "❌ Fehler beim Laden der Images. Bitte später erneut versuchen.";
+    container.innerHTML = `<p>${errorMsg}</p>`;
   }
+}
 
   function renderTable(data) {
     const table = document.createElement("table");
