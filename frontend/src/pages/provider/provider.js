@@ -1,4 +1,7 @@
+// =========================
 // src/pages/provider/provider.js
+// =========================
+
 const keycloak = new Keycloak({
   url: 'http://localhost:8090',
   realm: 'imblue-realm',
@@ -12,6 +15,10 @@ keycloak.init({
 }).then(authenticated => {
   if (!authenticated) {
     keycloak.login();
+  } else {
+    // Provider mit Name begrüßen
+    const name = keycloak.tokenParsed?.name || "Provider";
+    document.getElementById('greeting').textContent = `Hallo ${name}. Herzlich willkommen auf Ihrer Seite!`;
   }
   window.history.replaceState({}, document.title, window.location.pathname);
 });

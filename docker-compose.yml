@@ -22,8 +22,9 @@ services:
     container_name: mep-frontend
     ports:
       - "8080:8080"
-    #volumes:
+    volumes:
     #  - ./frontend/src:/app/src
+      - ./frontend:/app
     depends_on:
       - backend
     networks:
