@@ -14,3 +14,9 @@ class DatabaseError(Exception):
     """Wird geworfen bei allgemeinen Datenbankfehlern."""
     pass
 
+
+class DICOMNotFound(Exception):
+    pass
+
+class NoDICOMInTheList(Exception):
+    pass
