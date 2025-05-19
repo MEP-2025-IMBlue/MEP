@@ -23,12 +23,12 @@ body {
 .logo-text {
   font-size: 2rem;
   font-weight: bold;
-  color: #ffd700;
+  color: #fac73c;
 }
 
 .logo-icon {
   font-size: 2rem;
-  color: #ffd700;
+  color: #fac73c;
 }
 
 .login-title {
@@ -58,7 +58,7 @@ body {
 
 .login-form button {
   padding: 0.75rem;
-  background-color: #ffd700;
+  background-color: #fac73c;
   color: #000;
   border: none;
   border-radius: 6px;
@@ -69,7 +69,7 @@ body {
 }
 
 .login-form button:hover {
-  background-color: #ffcc00;
+  background-color: #fac73c;
 }
 
 .register-btn {
@@ -77,8 +77,8 @@ body {
   margin-top: 0.5rem;
   padding: 0.6rem;
   background-color: transparent;
-  color: #ffd700;
-  border: 1px solid #ffd700;
+  color: #fac73c;
+  border: 1px solid #fac73c;
   border-radius: 6px;
   font-weight: bold;
   text-decoration: none;
@@ -86,7 +86,7 @@ body {
 }
 
 .register-btn:hover {
-  background-color: #ffd700;
+  background-color: #fac73c;
   color: #000;
 }
 
