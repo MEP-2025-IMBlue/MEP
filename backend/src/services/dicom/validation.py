@@ -10,20 +10,15 @@ logging.basicConfig(level=logging.INFO)
 
 # Pflichtfelder mit Typen: 1 = erforderlich mit Inhalt, 2 = erforderlich aber darf leer sein
 REQUIRED_TAGS = {
-    "PatientID": 1,
-    "PatientName": 1,
-    "PatientBirthDate": 2,
-    "PatientSex": 1,
-    "StudyInstanceUID": 1,
-    "StudyDate": 2,
-    "StudyDescription": 2,
-    "AccessionNumber": 2,
-    "SeriesInstanceUID": 1,
-    "SeriesNumber": 2,
-    "SeriesDescription": 2,
+    "PatientID": 2,
+    "PatientName": 2,
+    "StudyInstanceUID": 2,
+    "SeriesInstanceUID": 2,
     "SOPInstanceUID": 1,
     "SOPClassUID": 1,
-    "InstanceNumber": 2
+    "Modality": 1,
+    "InstanceNumber": 2,
+    "StudyDate": 2
 }
 
 # Gültige Modalitäten gemäß DICOM-Standard
