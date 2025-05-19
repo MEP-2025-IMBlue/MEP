@@ -1,6 +1,7 @@
 # db_models.py
 # -------------------------
-from sqlalchemy import Column, String, Integer
+import datetime
+from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -18,9 +19,9 @@ class KIImage(Base):
     image_name = Column(String(255), nullable=False)
     image_tag = Column(String(128), nullable=False)
     image_description = Column(String(500), nullable=True)
-    image_path = Column(String(500), nullable=True)
-    image_local_name = Column(String(255), nullable=True)
+    image_reference = Column(String(255), nullable=True)
     image_provider_id = Column(Integer, nullable=False)
+    image_created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
 
     def __repr__(self):
         return f"<KIImage(id={self.image_id}, name='{self.image_name}', tag='{self.image_tag}')>"

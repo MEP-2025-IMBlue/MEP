@@ -2,8 +2,10 @@ services:
   frontend:
     #image: maimuna03/mep-frontend:latest
     build:
+
      context: ./frontend
      dockerfile: Dockerfile 
+     
     container_name: mep-frontend
     ports:
       - "8080:8080"
@@ -12,11 +14,14 @@ services:
     depends_on:
       - backend
 
+
   backend:
     #image: maimuna03/mep-backend:latest 
     build:
+
      context: ./backend
      dockerfile: Dockerfile 
+
     container_name: mep-backend
     ports:
       - "8000:8000"
@@ -26,7 +31,8 @@ services:
       - ./storage/uploads:/tmp/uploads
       - ./storage/processed:/tmp/processed
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - ./backend/.env
     environment:
@@ -47,6 +53,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
       # Führt einmalig beim allerersten Start das SQL-Initialisierungsskript aus (nicht mehr bei späteren Starts, wenn Daten schon da sind)
       - ./database/schemas/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck: 
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   postgres_data:

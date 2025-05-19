@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
@@ -6,6 +7,18 @@ import os
 load_dotenv()
 from db.database.database import engine
 # SQLAlchemy & Datenbank
+
+from fastapi import FastAPI, Depends, HTTPException 
+from sqlalchemy.orm import Session
+from src.api.routes import routes_kiImage
+from src.db.crud import crud_kiImage
+from src.db.db_models import db_models
+from src.db.database import database
+from src.api.routes import routes_kiContainer
+from fastapi.middleware.cors import CORSMiddleware
+#-------------------------------------------------------------
+# Für die Testverbindung zur DB 
+
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from db.db_models import db_models
@@ -35,6 +48,7 @@ db_models.Base.metadata.create_all(bind=engine)
 # Routen einbinden
 app.include_router(routes_kiImage.router)
 app.include_router(routes_kiContainer.router)
+
 app.include_router(routes_dicom.router)
 
 # Erstelle bei Anwendungstart temporäre Upload-Verzeichnisse
@@ -44,3 +58,13 @@ def prepare_temp_dirs():
     processed_dir = os.getenv("PROCESSED_DIR", "/tmp/processed")
     os.makedirs(upload_dir, exist_ok=True)
     os.makedirs(processed_dir, exist_ok=True)
+
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # für lokale Entwicklung
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+

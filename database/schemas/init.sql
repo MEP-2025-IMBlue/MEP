@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS ki_image_metadata (
     image_name VARCHAR(255) NOT NULL,
     image_tag VARCHAR(128) NOT NULL,
     image_description VARCHAR(500),
-    image_path VARCHAR(500),
-    image_local_name VARCHAR(255),
-    image_provider_id INTEGER NOT NULL
+    image_reference VARCHAR(255),
+    image_provider_id INTEGER NOT NULL,
+    image_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================

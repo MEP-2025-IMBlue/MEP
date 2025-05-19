@@ -3,8 +3,9 @@
 # Enthält alle Pydantic-Modelle zur Validierung und Serialisierung
 # für die FastAPI-Endpunkte
 
-from typing import Optional, Literal, Dict
-from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, field_validator
 
 
 # ========================================
@@ -15,9 +16,9 @@ class KIImageMetadata(BaseModel):
     image_name: str
     image_tag: str
     image_description: Optional[str] = None
-    image_path: Optional[str] = None
-    image_local_name: Optional[str] = None
+    image_reference: Optional[str] = None
     image_provider_id: int
+    image_created_at: datetime  # ✅ NEU hinzugefügt
 
     class Config:
         from_attributes = True # betrifft nur die Ausgabe, wenn FastAPI ein SQLAlchemy-Objekt als response_model in JSON umwandelt.
@@ -29,10 +30,16 @@ class KIImageUpdate(BaseModel):
     image_name: Optional[str] = None
     image_tag: Optional[str] = None
     image_description: Optional[str] = None
-    image_path: Optional[str] = None
-    image_local_name: Optional[str] = None
+    image_reference: Optional[str] = None
     image_provider_id: Optional[int] = None
 
+    @field_validator("image_name", "image_tag")
+    @classmethod
+    def no_empty_strings(cls, value, info):
+        if value is not None and value.strip() == "":
+            raise ValueError(f"{info.field_name} must not be empty")
+        return value
+    
     class Config:
         from_attributes = True
 
@@ -50,26 +57,17 @@ class DICOMMetadata(BaseModel):
 
 
 # ========================================
-# ImageUpload (noch zu überarbeiten)
+# ImageUpload 
 # ========================================
-# TODO: Struktur, Felder und Beschreibung überarbeiten
 class ImageUpload(BaseModel):
     image_data: str
 
 
 # ========================================
-# ContainerCreate (noch zu überarbeiten)
+# ContainerResponse 
 # ========================================
-# TODO: Struktur, Felder und Validierungen anpassen
-class ContainerCreate(BaseModel):
-    container_name: str
-
-
-# ========================================
-# ContainerResponse (noch zu überarbeiten)
-# ========================================
-# TODO: Struktur, Felder und Rückgabeformat finalisieren
 class ContainerResponse(BaseModel):
+
     container_id: int
     status: str
 # ========================================
@@ -90,5 +88,6 @@ class UploadResultItem(BaseModel):
 class UploadDICOMResponseModel(BaseModel):
     message: str = Field(..., description="Statusmeldung zur Verarbeitung")
     data: List[UploadResultItem] = Field(..., description="Liste der Ergebnisse pro Datei")
+
 
 
