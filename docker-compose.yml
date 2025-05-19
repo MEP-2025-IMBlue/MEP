@@ -29,6 +29,9 @@ services:
       - db
     env_file:
       - ./backend/.env
+    environment:
+      - PYTHONPATH=/app/src
+
 
   db:
     image: postgres:16

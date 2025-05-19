@@ -1,7 +1,7 @@
 # py_models.py
 # ----------------------------------------------
 # Enthält alle Pydantic-Modelle zur Validierung und Serialisierung
-# für die FastAPI-Endpunkte 
+# für die FastAPI-Endpunkte
 
 from typing import Optional, Literal, Dict
 from pydantic import BaseModel
@@ -44,9 +44,6 @@ class DICOMMetadata(BaseModel):
     dicom_id: int
     dicom_uuid: str
     dicom_modality: Optional[str] = None
-    dicom_body_part_examined: Optional[str] = None
-    dicom_study_description: Optional[str] = None
-    dicom_model: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -75,3 +72,23 @@ class ContainerCreate(BaseModel):
 class ContainerResponse(BaseModel):
     container_id: int
     status: str
+# ========================================
+# UploadResultItem: Ergebnis für eine einzelne DICOM-Datei
+# ========================================
+from typing import List, Optional
+from pydantic import Field
+
+class UploadResultItem(BaseModel):
+    anonymized_file: Optional[str] = Field(None, description="Pfad zur anonymisierten DICOM-Datei")
+    pixel_array_file: Optional[str] = Field(None, description="Pfad zur gespeicherten .npy-Datei")
+    file: Optional[str] = Field(None, description="Dateiname der Originaldatei (bei Fehlern)")
+    error: Optional[str] = Field(None, description="Fehlermeldung, falls Verarbeitung fehlgeschlagen ist")
+
+# ========================================
+# UploadDICOMResponseModel: Antwortmodell für Upload-Endpunkt
+# ========================================
+class UploadDICOMResponseModel(BaseModel):
+    message: str = Field(..., description="Statusmeldung zur Verarbeitung")
+    data: List[UploadResultItem] = Field(..., description="Liste der Ergebnisse pro Datei")
+
+

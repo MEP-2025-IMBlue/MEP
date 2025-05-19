@@ -1,47 +1,46 @@
-from fastapi import FastAPI, Depends, HTTPException 
-from sqlalchemy.orm import Session
-from src.api.routes import routes_kiImage
-from src.db.crud import crud_kiImage
-from src.db.db_models import db_models
-from src.db.database import database
-from src.api.routes import routes_kiContainer
-from src.api.routes import routes_dicom
+from fastapi import FastAPI
+from dotenv import load_dotenv
 import os
 
-#-------------------------------------------------------------
-# Für die Testverbindung zur DB 
+# Lade Umgebungsvariablen aus der .env-Datei
+load_dotenv()
+from db.database.database import engine
+# SQLAlchemy & Datenbank
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
-from src.db.database.database import engine
+from db.db_models import db_models
+from db.database import database
+from db.database.database import engine  # 
 
-#---------------------------------------------------------------
-# Testverbindung zur DB, um sicherzustellen, dass sie funktioniert
-#try:
-#    with engine.connect() as connection:
-#        result = connection.execute(text("SELECT 1"))
-#        print("Datenbankverbindung erfolgreich!")
-#except Exception as e:
-#    print(f"Fehler bei der Verbindung zur Datenbank: {e}")
+# API-Routen importieren
+from api.routes import routes_kiImage
+from api.routes import routes_kiContainer
+from api.routes import routes_dicom
 
-# ------------------------------------------------------------
-# Erstelle die FastAPI-Anwendung
-app = FastAPI()
+# FastAPI-App instanzieren
+app = FastAPI(
+    title="mRay AIR Backend",
+    version="1.0.0",
+    description="Container- & DICOM-Upload Backend mit FastAPI"
+)
 
+# Root-Endpunkt
 @app.get("/")
 def root():
-    return {"message": "Welcome"} 
+    return {"message": "Welcome to mRay AIR Backend!"}
 
-# ------------------------------------------------------------
-# Initialisiere die Datenbank: Erstelle alle Tabellen, falls sie nicht existieren
-db_models.Base.metadata.create_all(bind=database.engine)
+# Datenbanktabellen initialisieren (nur beim ersten Start)
+db_models.Base.metadata.create_all(bind=engine)
 
-# ------------------------------------------------------------
-# Binde die API-Routen an die FastAPI-Anwendung
+# Routen einbinden
 app.include_router(routes_kiImage.router)
 app.include_router(routes_kiContainer.router)
 app.include_router(routes_dicom.router)
 
+# Erstelle bei Anwendungstart temporäre Upload-Verzeichnisse
 @app.on_event("startup")
 def prepare_temp_dirs():
-    os.makedirs("/tmp/uploads", exist_ok=True)
-    os.makedirs("/tmp/processed", exist_ok=True)
+    upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
+    processed_dir = os.getenv("PROCESSED_DIR", "/tmp/processed")
+    os.makedirs(upload_dir, exist_ok=True)
+    os.makedirs(processed_dir, exist_ok=True)

@@ -1,96 +1,86 @@
-"""
-crud_dicom.py
------------------
-Enthält CRUD-Operationen für die DICOM-Metadaten.
-Pfad: backend/src/db/crud/crud_dicom.py
-"""
-
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from src.db.db_models.db_models import DICOMMetadata
-from src.db.core.exceptions import DICOMNotFound, NoDICOMInTheList, DatabaseError
+from src.db.core.exceptions import DICOMNotFound, DatabaseError
+import logging
 
 
-def create_dicom(db: Session, dicom_data: dict):
-    """
-    Erstellt einen neuen DICOM-Eintrag in der Datenbank.
-    - Wirft DatabaseError bei SQLAlchemy-Problemen.
-    """
+# Erstellt einen neuen DICOM-Metadatensatz in der Datenbank
+def create_dicom(db: Session, metadata: dict) -> DICOMMetadata:
     try:
-        db_dicom = DICOMMetadata(**dicom_data)
-        db.add(db_dicom)
+        dicom_entry = DICOMMetadata(**metadata)
+        db.add(dicom_entry)
         db.commit()
-        db.refresh(db_dicom)
-        return db_dicom
-    except SQLAlchemyError as e:
-        raise DatabaseError("Fehler beim Erstellen eines DICOM-Datensatzes.") from e
+        db.refresh(dicom_entry)
+        logging.info(f"[DB] Neuer DICOM-Eintrag erstellt: {dicom_entry}")
+        return dicom_entry
+    except Exception as e:
+        logging.error(f"[DB] Fehler beim Erstellen des DICOM-Eintrags: {e}")
+        raise
 
 
-def get_dicom_by_id(db: Session, dicom_id: int):
-    """
-    Gibt einen DICOM-Datensatz anhand seiner ID zurück.
-    - Wirft DICOMNotFound, wenn nicht gefunden.
-    - Wirft DatabaseError bei SQLAlchemy-Problemen.
-    """
+# Ruft einen DICOM-Metadatensatz anhand der UUID ab
+def get_dicom_metadata_by_uuid(db: Session, uuid: str) -> DICOMMetadata:
     try:
-        dicom = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_id == dicom_id).first()
-        if not dicom:
-            raise DICOMNotFound(f"DICOM mit ID {dicom_id} nicht gefunden.")
-        return dicom
+        entry = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_uuid == uuid).first()
+        if not entry:
+            raise DICOMNotFound(f"DICOM-Metadaten mit UUID {uuid} nicht gefunden.")
+        return entry
     except SQLAlchemyError as e:
-        raise DatabaseError("Fehler beim Abrufen eines DICOM-Datensatzes.") from e
+        raise DatabaseError("Fehler beim Abrufen eines DICOM-Metadatensatzes.") from e
 
 
-def get_all_dicoms(db: Session, skip: int = 0, limit: int = 100):
-    """
-    Gibt eine Liste aller DICOM-Datensätze zurück.
-    - Wirft NoDICOMInTheList, wenn keine Einträge existieren.
-    - Wirft DatabaseError bei unerwarteten DB-Problemen.
-    """
+# Aktualisiert bestimmte Felder eines vorhandenen DICOM-Metadatensatzes
+def update_dicom_metadata(db: Session, uuid: str, updates: dict) -> DICOMMetadata:
     try:
-        dicoms = db.query(DICOMMetadata).offset(skip).limit(limit).all()
-        if not dicoms:
-            raise NoDICOMInTheList("Keine DICOM-Datensätze in der Datenbank.")
-        return dicoms
-    except SQLAlchemyError as e:
-        raise DatabaseError("Fehler beim Lesen der DICOM-Datenbank.") from e
+        entry = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_uuid == uuid).first()
+        if not entry:
+            raise DICOMNotFound(f"DICOM-Metadaten mit UUID {uuid} nicht gefunden.")
 
+        for key, value in updates.items():
+            if hasattr(entry, key):
+                setattr(entry, key, value)
 
-def update_dicom(db: Session, dicom_id: int, update_data: dict):
-    """
-    Aktualisiert einen DICOM-Datensatz anhand der ID.
-    - Wirft DICOMNotFound, wenn der Datensatz nicht existiert.
-    - Wirft DatabaseError bei SQLAlchemy-Problemen.
-    """
-    try:
-        dicom = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_id == dicom_id).first()
-        if not dicom:
-            raise DICOMNotFound(f"DICOM mit ID {dicom_id} nicht gefunden.")
-        
-        for key, value in update_data.items():
-            setattr(dicom, key, value)
-        
         db.commit()
-        db.refresh(dicom)
-        return dicom
+        db.refresh(entry)
+        return entry
     except SQLAlchemyError as e:
-        raise DatabaseError("Fehler beim Aktualisieren eines DICOM-Datensatzes.") from e
+        raise DatabaseError("Fehler beim Aktualisieren eines DICOM-Eintrags.") from e
 
 
-def delete_dicom(db: Session, dicom_id: int):
-    """
-    Löscht einen DICOM-Datensatz anhand seiner ID.
-    - Gibt das gelöschte Objekt zurück.
-    - Wirft DICOMNotFound, wenn der Datensatz nicht vorhanden ist.
-    - Wirft DatabaseError bei SQLAlchemy-Problemen.
-    """
+# Löscht einen DICOM-Metadatensatz anhand der UUID
+def delete_dicom_metadata(db: Session, uuid: str) -> bool:
     try:
-        dicom = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_id == dicom_id).first()
-        if not dicom:
-            raise DICOMNotFound(f"DICOM mit ID {dicom_id} nicht gefunden.")
-        
-        db.delete(dicom)
+        entry = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_uuid == uuid).first()
+        if not entry:
+            raise DICOMNotFound(f"DICOM-Metadaten mit UUID {uuid} nicht gefunden.")
+
+        db.delete(entry)
         db.commit()
-        return dicom
+        return True
     except SQLAlchemyError as e:
-        raise DatabaseError("Fehler beim Löschen eines DICOM-Datensatzes.") from e
+        raise DatabaseError("Fehler beim Löschen eines DICOM-Eintrags.") from e
+
+
+# Erstellt einen neuen DICOM-Metadatensatz oder ersetzt einen vorhandenen mit derselben UUID
+def create_or_replace_dicom_metadata(db: Session, metadata: dict) -> DICOMMetadata:
+    try:
+        existing = db.query(DICOMMetadata).filter_by(
+            dicom_uuid=metadata["dicom_uuid"]
+        ).first()
+
+        if existing:
+            db.delete(existing)
+            db.commit()
+
+        new_entry = DICOMMetadata(**metadata)
+        db.add(new_entry)
+        db.commit()
+        db.refresh(new_entry)
+
+        return new_entry
+
+    except Exception as e:
+        db.rollback()
+        raise DatabaseError(f"[DB] Fehler beim Erstellen oder Ersetzen des DICOM-Eintrags: {str(e)}")
+
