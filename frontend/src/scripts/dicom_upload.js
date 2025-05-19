@@ -59,12 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 🧪 TEMPORÄR deaktiviert für Tests – auch .pdf, .zip etc. erlaubt
-    // if (!file.name.toLowerCase().endsWith(".dcm")) {
-    //   statusDiv.textContent = "❌ Ungültiges Format. Bitte nur `.dcm`-Dateien hochladen.";
-    //   statusDiv.style.color = "#ff4d4d";
-    //   return;
-    // }
+    if (!file.name.toLowerCase().endsWith(".dcm")) {
+      statusDiv.textContent = "❌ Ungültiges Format. Bitte nur `.dcm`-Dateien hochladen.";
+      statusDiv.style.color = "#ff4d4d";
+      return;
+    }
 
 
     const formData = new FormData();
