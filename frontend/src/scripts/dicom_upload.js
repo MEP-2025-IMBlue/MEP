@@ -3,16 +3,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.getElementById("dicom_file");
   const dropZone = document.getElementById("drop-dicom");
   const statusDiv = document.getElementById("dicom-status");
-  const kiContainer = document.getElementById("ki-list");
-  const aiBox = document.getElementById("ai-result");
-  const kiTitle = document.getElementById("ki-title");
+  const fileList = document.getElementById("dicom-list");
 
-  // Vorschau
+  // 🔍 Vorschau-Element für Dateiname
   const previewText = document.createElement("div");
   previewText.className = "preview-text";
   dropZone.appendChild(previewText);
 
-  // Drag & Drop Verhalten
+  // 🟨 Drag & Drop Verhalten
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropZone.style.borderColor = "#00cc66";
@@ -26,9 +24,13 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     dropZone.style.borderColor = "#ffd700";
     const file = e.dataTransfer.files[0];
-    if (file) {
+    if (file && file.name.toLowerCase().endsWith(".dcm")) {
       fileInput.files = e.dataTransfer.files;
       previewText.textContent = `📄 ${file.name}`;
+    } else {
+      previewText.textContent = "";
+      statusDiv.textContent = "❌ Nur .dcm-Dateien erlaubt.";
+      statusDiv.style.color = "#ff4d4d";
     }
   });
 
@@ -37,21 +39,61 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   fileInput.addEventListener("change", () => {
-    if (fileInput.files.length) {
-      previewText.textContent = `📄 ${fileInput.files[0].name}`;
+    const file = fileInput.files[0];
+    if (file && file.name.toLowerCase().endsWith(".dcm")) {
+      previewText.textContent = `📄 ${file.name}`;
+      statusDiv.textContent = "";
     } else {
+      fileInput.value = ""; // ungültige Datei löschen
       previewText.textContent = "";
+      statusDiv.textContent = "❌ Nur .dcm-Dateien erlaubt.";
+      statusDiv.style.color = "#ff4d4d";
     }
   });
 
-  dicomForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
+  // 📥 GET: Liste der DICOM-Dateien
+  function fetchDicomList() {
+    fetch("/dicom/files")
+      .then(res => res.json())
+      .then(data => {
+        fileList.innerHTML = "";
+        data.forEach(file => {
+          const li = document.createElement("li");
+          li.textContent = `${file.filename} (ID: ${file.id})`;
 
+          const deleteBtn = document.createElement("button");
+          deleteBtn.textContent = "🗑️ Löschen";
+          deleteBtn.onclick = () => deleteDicom(file.id);
+
+          li.appendChild(deleteBtn);
+          fileList.appendChild(li);
+        });
+      });
+  }
+
+  // 🗑️ DELETE
+  function deleteDicom(id) {
+    fetch(`/dicom/delete/${id}`, { method: "DELETE" })
+      .then(res => {
+        if (res.ok) {
+          statusDiv.textContent = `✅ Datei mit ID ${id} gelöscht.`;
+          statusDiv.style.color = "#00cc66";
+          fetchDicomList();
+        } else {
+          statusDiv.textContent = `❌ Fehler beim Löschen der Datei ${id}`;
+          statusDiv.style.color = "#ff4d4d";
+        }
+      });
+  }
+
+  // 🚀 POST: Upload
+  dicomForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
     const file = fileInput.files[0];
+
     statusDiv.className = "upload-status";
     statusDiv.style.color = "#ffd700";
     statusDiv.textContent = "";
-    aiBox.classList.add("hidden");
 
     if (!file) {
       statusDiv.textContent = "❌ Bitte wählen Sie eine DICOM-Datei aus.";
@@ -59,56 +101,36 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 🧪 TEMPORÄR deaktiviert für Tests – auch .pdf, .zip etc. erlaubt
-    // if (!file.name.toLowerCase().endsWith(".dcm")) {
-    //   statusDiv.textContent = "❌ Ungültiges Format. Bitte nur `.dcm`-Dateien hochladen.";
-    //   statusDiv.style.color = "#ff4d4d";
-    //   return;
-    // }
-
+    if (!file.name.toLowerCase().endsWith(".dcm")) {
+      statusDiv.textContent = "❌ Ungültiges Format. Bitte nur `.dcm`-Dateien hochladen.";
+      statusDiv.style.color = "#ff4d4d";
+      return;
+    }
 
     const formData = new FormData();
     formData.append("dicom_file", file);
 
     statusDiv.textContent = "⏳ Upload läuft...";
-    statusDiv.style.color = "#ffd700";
 
-    // Simulierter Upload + Containerliste laden
-    setTimeout(async () => {
+    try {
+      const uploadRes = await fetch("/dicom/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      const uploadText = await uploadRes.text();
+      if (!uploadRes.ok) throw new Error(uploadText);
+
       statusDiv.textContent = "✅ Upload erfolgreich abgeschlossen.";
       statusDiv.style.color = "#00cc66";
-
-      try {
-        const res = await fetch("http://localhost:8000/ki-images");
-        if (!res.ok) throw new Error(await res.text());
-        const containers = await res.json();
-
-        kiContainer.innerHTML = "";
-        kiTitle.classList.remove("hidden");
-
-        containers.forEach((container) => {
-          const card = document.createElement("div");
-          card.className = "ki-card";
-          card.innerHTML = `
-            <div class="ki-card-icon">🧠</div>
-            <h3>${container.image_name}:${container.image_tag}</h3>
-            <p>ID: ${container.image_id}</p>
-            <button class="select-btn" onclick='showResult("Container ausgewählt: ${container.image_name}:${container.image_tag}")'>Auswählen</button>
-          `;
-          kiContainer.appendChild(card);
-        });
-
-        kiContainer.classList.remove("hidden");
-      } catch (err) {
-        kiContainer.innerHTML = `<p style="color:red;">❌ Fehler beim Laden der Container: ${err.message}</p>`;
-      }
-    }, 1000);
+      dicomForm.reset();
+      previewText.textContent = "";
+      fetchDicomList();
+    } catch (err) {
+      statusDiv.textContent = `❌ Fehler beim Upload: ${err.message}`;
+      statusDiv.style.color = "#ff4d4d";
+    }
   });
 
-  window.showResult = function (diagnoseText) {
-    const resultBox = document.getElementById("ai-result");
-    const content = document.getElementById("result-content");
-    content.textContent = JSON.stringify({ diagnose: diagnoseText }, null, 2);
-    resultBox.classList.remove("hidden");
-  };
+  fetchDicomList(); // beim Laden starten
 });
