@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td>
           <button class="btn-edit" onclick="alert('Bearbeiten: ${img.image_id}')">✏ bearbeiten</button> |
           <button class="btn-delete" onclick="deleteImage(${img.image_id})">🗑 löschen</button> |
-          <button class="btn-test" onclick="testContainer(${img.image_id}, '${img.image_name}')">🧪 testen</button>
+          <button class="btn-test" onclick="testContainer(${img.image_id}, '${img.image_name}')">\uD83E\uDDEA testen</button>
         </td>
         <td>
           <span id="test-status-${img.image_id}" class="test-status"></span>
