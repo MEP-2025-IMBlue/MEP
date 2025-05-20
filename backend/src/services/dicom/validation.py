@@ -10,11 +10,11 @@ logging.basicConfig(level=logging.INFO)
 
 # Pflichtfelder mit Typen: 1 = erforderlich mit Inhalt, 2 = erforderlich aber darf leer sein
 REQUIRED_TAGS = {
-    "PatientID": 1,
-    "PatientName": 1,
+    "PatientID": 2,
+    "PatientName": 2,
     "PatientBirthDate": 2,
-    "PatientSex": 1,
-    "StudyInstanceUID": 1,
+    "PatientSex": 2,
+    "StudyInstanceUID": 2,
     "StudyDate": 2,
     "StudyDescription": 2,
     "AccessionNumber": 2,
