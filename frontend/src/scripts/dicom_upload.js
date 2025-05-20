@@ -5,12 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusDiv = document.getElementById("dicom-status");
   const fileList = document.getElementById("dicom-list");
 
-  // 🔍 Vorschau-Element für Dateiname
+  //  Vorschau-Element für Dateiname
   const previewText = document.createElement("div");
   previewText.className = "preview-text";
   dropZone.appendChild(previewText);
 
-  // 🟨 Drag & Drop Verhalten
+  //  Drag & Drop Verhalten
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropZone.style.borderColor = "#00cc66";
@@ -26,10 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const file = e.dataTransfer.files[0];
     if (file && file.name.toLowerCase().endsWith(".dcm")) {
       fileInput.files = e.dataTransfer.files;
-      previewText.textContent = `📄 ${file.name}`;
+      previewText.textContent = `\u{1F4C4} ${file.name}`;
     } else {
       previewText.textContent = "";
-      statusDiv.textContent = "❌ Nur .dcm-Dateien erlaubt.";
+      statusDiv.textContent = "\u274C Nur .dcm-Dateien erlaubt.";
       statusDiv.style.color = "#ff4d4d";
     }
   });
@@ -41,17 +41,17 @@ document.addEventListener("DOMContentLoaded", () => {
   fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
     if (file && file.name.toLowerCase().endsWith(".dcm")) {
-      previewText.textContent = `📄 ${file.name}`;
+      previewText.textContent = `\u{1F4C4} ${file.name}`;
       statusDiv.textContent = "";
     } else {
       fileInput.value = ""; // ungültige Datei löschen
       previewText.textContent = "";
-      statusDiv.textContent = "❌ Nur .dcm-Dateien erlaubt.";
+      statusDiv.textContent = "\u274C Nur .dcm-Dateien erlaubt.";
       statusDiv.style.color = "#ff4d4d";
     }
   });
 
-// 🚀 POST: Upload
+//  POST: Upload
 dicomForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const file = fileInput.files[0];
@@ -61,13 +61,13 @@ dicomForm.addEventListener("submit", async (e) => {
   statusDiv.textContent = "";
 
   if (!file) {
-    statusDiv.textContent = "❌ Bitte wählen Sie eine Datei aus.";
+    statusDiv.textContent = "\u274C Bitte wählen Sie eine Datei aus.";
     statusDiv.style.color = "#ff4d4d";
     return;
   }
 
   if (!file.name.toLowerCase().endsWith(".dcm") && !file.name.toLowerCase().endsWith(".zip")) {
-    statusDiv.textContent = "❌ Ungültiges Format. Nur `.dcm` oder `.zip` erlaubt.";
+    statusDiv.textContent = "\u274C Ungültiges Format. Nur `.dcm` oder `.zip` erlaubt.";
     statusDiv.style.color = "#ff4d4d";
     return;
   }
@@ -75,7 +75,7 @@ dicomForm.addEventListener("submit", async (e) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  statusDiv.textContent = "⏳ Upload läuft...";
+  statusDiv.textContent = "\u23F3 Upload läuft...";
 
   try {
     const uploadRes = await fetch("http://localhost:8000/dicom", {
@@ -92,19 +92,19 @@ dicomForm.addEventListener("submit", async (e) => {
 
     if (!uploadRes.ok) throw new Error(result.detail || `HTTP ${uploadRes.status}: ${uploadRes.statusText}`);
 
-    statusDiv.textContent = `✅ ${result.message}`;
+    statusDiv.textContent = `\u2705 ${result.message}`;
     statusDiv.style.color = "#00cc66";
     dicomForm.reset();
     previewText.textContent = "";
     // fetchDicomList();
     displayKiImages(); // KI-Images nach Upload anzeigen
   } catch (err) {
-    statusDiv.textContent = `❌ Fehler beim Upload: ${err.message}`;
+    statusDiv.textContent = `\u274C Fehler beim Upload: ${err.message}`;
     statusDiv.style.color = "#ff4d4d";
   }
 });
 
-// 📋 KI-Images abrufen und anzeigen
+//  KI-Images abrufen und anzeigen
 async function displayKiImages() {
   const kiContainer = document.getElementById("ki-list");
   const kiTitle = document.getElementById("ki-title");
@@ -112,7 +112,7 @@ async function displayKiImages() {
 
   if (!kiContainer || !kiTitle) {
     console.error("DOM elements for KI list not found");
-    statusDiv.textContent = "❌ Fehler: KI-Liste nicht gefunden.";
+    statusDiv.textContent = "\u274C Fehler: KI-Liste nicht gefunden.";
     statusDiv.style.color = "#ff4d4d";
     return;
   }
@@ -144,7 +144,7 @@ async function displayKiImages() {
       const card = document.createElement("div");
       card.className = "ki-card";
       card.innerHTML = `
-        <div class="ki-card-icon">🧠</div>
+        <div class="ki-card-icon">\uD83E\uDDE0</div>
         <h3>${container.image_name}:${container.image_tag}</h3>
         <p>ID: ${container.image_id}</p>
         <button class="select-btn" onclick='displayDiagnosis("Container ausgewählt: ${container.image_name}:${container.image_tag}")'>Auswählen</button>
@@ -154,14 +154,14 @@ async function displayKiImages() {
 
     kiContainer.classList.remove("hidden");
   } catch (err) {
-    statusDiv.textContent = `❌ Fehler beim Laden der KI-Images: ${err.message}`;
+    statusDiv.textContent = `\u274C Fehler beim Laden der KI-Images: ${err.message}`;
     statusDiv.style.color = "#ff4d4d";
     kiContainer.innerHTML = "";
     kiContainer.textContent = "Fehler beim Laden der KI-Images.";
   }
 }
 
-// 📋 DICOM-Liste abrufen und anzeigen
+//  DICOM-Liste abrufen und anzeigen
 //async function fetchDicomList() {
   // try {
   //   const response = await fetch("http://localhost:8000/dicoms", {
