@@ -6,12 +6,12 @@ document.getElementById("register-form").addEventListener("submit", function (e)
     const message = document.getElementById("register-message");
   
     if (password !== confirm) {
-      message.textContent = "❌ Die Passwörter stimmen nicht überein.";
+      message.textContent = "\u274C Die Passwörter stimmen nicht überein.";
       message.style.color = "#ff4d4d";
       return;
     }
   
-    message.textContent = "✅ Registrierung erfolgreich! Weiterleitung...";
+    message.textContent = "\u2705 Registrierung erfolgreich! Weiterleitung...";
     message.style.color = "#00cc66";
   
     setTimeout(() => {

@@ -13,28 +13,28 @@ document.addEventListener("DOMContentLoaded", () => {
       xhr.upload.addEventListener("progress", function (e) {
         if (e.lengthComputable) {
           const percent = Math.round((e.loaded / e.total) * 100);
-          statusDiv.innerText = `🔄 Wird hochgeladen... ${percent}%`;
+          statusDiv.innerText = `\u{1F504} Wird hochgeladen... ${percent}%`;
         }
       });
   
       xhr.onload = function () {
         if (xhr.status >= 200 && xhr.status < 300) {
-          statusDiv.innerText = "✅ Upload erfolgreich!";
+          statusDiv.innerText = "\u2705 Upload erfolgreich!";
           statusDiv.style.color = "#00cc66";
         } else {
-          statusDiv.innerText = `❌ Fehler beim Hochladen (${xhr.status})`;
+          statusDiv.innerText = `\u274C Fehler beim Hochladen (${xhr.status})`;
           statusDiv.style.color = "#ff4d4d";
         }
       };
   
       xhr.onerror = function () {
-        statusDiv.innerText = "❌ Upload fehlgeschlagen (Verbindungsfehler)";
+        statusDiv.innerText = "\u274C Upload fehlgeschlagen (Verbindungsfehler)";
         statusDiv.style.color = "#ff4d4d";
       };
   
       xhr.send(formData);
       statusDiv.style.color = "#ffd700";
-      statusDiv.innerText = "⏳ Upload gestartet...";
+      statusDiv.innerText = "\u23F3 Upload gestartet...";
     });
   });
   

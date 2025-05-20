@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const file = e.dataTransfer.files[0];
     if (file) {
       fileInput.files = e.dataTransfer.files;
-      previewText.textContent = `📄 ${file.name}`;
+      previewText.textContent = `\u{1F4C4} ${file.name}`;
     }
   });
 
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fileInput.addEventListener("change", () => {
     if (fileInput.files.length) {
-      previewText.textContent = `📄 ${fileInput.files[0].name}`;
+      previewText.textContent = `\u{1F4C4} ${fileInput.files[0].name}`;
     } else {
       previewText.textContent = "";
     }
@@ -54,28 +54,27 @@ document.addEventListener("DOMContentLoaded", () => {
     aiBox.classList.add("hidden");
 
     if (!file) {
-      statusDiv.textContent = "❌ Bitte wählen Sie eine DICOM-Datei aus.";
+      statusDiv.textContent = "\u274C Bitte wählen Sie eine DICOM-Datei aus.";
       statusDiv.style.color = "#ff4d4d";
       return;
     }
 
-    // 🧪 TEMPORÄR deaktiviert für Tests – auch .pdf, .zip etc. erlaubt
-    // if (!file.name.toLowerCase().endsWith(".dcm")) {
-    //   statusDiv.textContent = "❌ Ungültiges Format. Bitte nur `.dcm`-Dateien hochladen.";
-    //   statusDiv.style.color = "#ff4d4d";
-    //   return;
-    // }
+    if (!file.name.toLowerCase().endsWith(".dcm")) {
+      statusDiv.textContent = "\u274C Ungültiges Format. Bitte nur `.dcm`-Dateien hochladen.";
+      statusDiv.style.color = "#ff4d4d";
+      return;
+    }
 
 
     const formData = new FormData();
     formData.append("dicom_file", file);
 
-    statusDiv.textContent = "⏳ Upload läuft...";
+    statusDiv.textContent = "\u23F3 Upload läuft...";
     statusDiv.style.color = "#ffd700";
 
     // Simulierter Upload + Containerliste laden
     setTimeout(async () => {
-      statusDiv.textContent = "✅ Upload erfolgreich abgeschlossen.";
+      statusDiv.textContent = "\u2705 Upload erfolgreich abgeschlossen.";
       statusDiv.style.color = "#00cc66";
 
       try {
@@ -90,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const card = document.createElement("div");
           card.className = "ki-card";
           card.innerHTML = `
-            <div class="ki-card-icon">🧠</div>
+            <div class="ki-card-icon">\uD83E\uDDE0</div>
             <h3>${container.image_name}:${container.image_tag}</h3>
             <p>ID: ${container.image_id}</p>
             <button class="select-btn" onclick='showResult("Container ausgewählt: ${container.image_name}:${container.image_tag}")'>Auswählen</button>
@@ -100,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         kiContainer.classList.remove("hidden");
       } catch (err) {
-        kiContainer.innerHTML = `<p style="color:red;">❌ Fehler beim Laden der Container: ${err.message}</p>`;
+        kiContainer.innerHTML = `<p style="color:red;">\u274C Fehler beim Laden der Container: ${err.message}</p>`;
       }
     }, 1000);
   });
