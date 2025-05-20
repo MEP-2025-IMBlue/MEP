@@ -4,7 +4,7 @@ from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, Upl
 from db.database.database import get_db
 from db.crud import crud_dicom
 from db.core.exceptions import DICOMNotFound, NoDICOMInTheList, DatabaseError
-from services.dicom.service_dicom import handle_dicom_upload  # ✅ Artık doğrudan erişilir
+from services.dicom.service_dicom import handle_dicom_upload  # erreichbar
 import shutil, os, uuid, zipfile
 import logging
 

@@ -51,86 +51,153 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 📥 GET: Liste der DICOM-Dateien
-  function fetchDicomList() {
-    fetch("/dicom/files")
-      .then(res => res.json())
-      .then(data => {
-        fileList.innerHTML = "";
-        data.forEach(file => {
-          const li = document.createElement("li");
-          li.textContent = `${file.filename} (ID: ${file.id})`;
+// 🚀 POST: Upload
+dicomForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const file = fileInput.files[0];
 
-          const deleteBtn = document.createElement("button");
-          deleteBtn.textContent = "🗑️ Löschen";
-          deleteBtn.onclick = () => deleteDicom(file.id);
+  statusDiv.className = "upload-status";
+  statusDiv.style.color = "#ffd700";
+  statusDiv.textContent = "";
 
-          li.appendChild(deleteBtn);
-          fileList.appendChild(li);
-        });
-      });
+  if (!file) {
+    statusDiv.textContent = "❌ Bitte wählen Sie eine Datei aus.";
+    statusDiv.style.color = "#ff4d4d";
+    return;
   }
 
-  // 🗑️ DELETE
-  function deleteDicom(id) {
-    fetch(`/dicom/delete/${id}`, { method: "DELETE" })
-      .then(res => {
-        if (res.ok) {
-          statusDiv.textContent = `✅ Datei mit ID ${id} gelöscht.`;
-          statusDiv.style.color = "#00cc66";
-          fetchDicomList();
-        } else {
-          statusDiv.textContent = `❌ Fehler beim Löschen der Datei ${id}`;
-          statusDiv.style.color = "#ff4d4d";
-        }
-      });
+  if (!file.name.toLowerCase().endsWith(".dcm") && !file.name.toLowerCase().endsWith(".zip")) {
+    statusDiv.textContent = "❌ Ungültiges Format. Nur `.dcm` oder `.zip` erlaubt.";
+    statusDiv.style.color = "#ff4d4d";
+    return;
   }
 
-  // 🚀 POST: Upload
-  dicomForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append("file", file);
 
-    statusDiv.className = "upload-status";
-    statusDiv.style.color = "#ffd700";
-    statusDiv.textContent = "";
+  statusDiv.textContent = "⏳ Upload läuft...";
 
-    if (!file) {
-      statusDiv.textContent = "❌ Bitte wählen Sie eine DICOM-Datei aus.";
-      statusDiv.style.color = "#ff4d4d";
-      return;
-    }
+  try {
+    const uploadRes = await fetch("http://localhost:8000/dicom", {
+      method: "POST",
+      body: formData
+    });
 
-    if (!file.name.toLowerCase().endsWith(".dcm")) {
-      statusDiv.textContent = "❌ Ungültiges Format. Bitte nur `.dcm`-Dateien hochladen.";
-      statusDiv.style.color = "#ff4d4d";
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("dicom_file", file);
-
-    statusDiv.textContent = "⏳ Upload läuft...";
-
+    let result;
     try {
-      const uploadRes = await fetch("/dicom/upload", {
-        method: "POST",
-        body: formData
-      });
-
-      const uploadText = await uploadRes.text();
-      if (!uploadRes.ok) throw new Error(uploadText);
-
-      statusDiv.textContent = "✅ Upload erfolgreich abgeschlossen.";
-      statusDiv.style.color = "#00cc66";
-      dicomForm.reset();
-      previewText.textContent = "";
-      fetchDicomList();
-    } catch (err) {
-      statusDiv.textContent = `❌ Fehler beim Upload: ${err.message}`;
-      statusDiv.style.color = "#ff4d4d";
+      result = await uploadRes.json();
+    } catch {
+      throw new Error("Server returned an unexpected response format");
     }
-  });
 
-  fetchDicomList(); // beim Laden starten
+    if (!uploadRes.ok) throw new Error(result.detail || `HTTP ${uploadRes.status}: ${uploadRes.statusText}`);
+
+    statusDiv.textContent = `✅ ${result.message}`;
+    statusDiv.style.color = "#00cc66";
+    dicomForm.reset();
+    previewText.textContent = "";
+    // fetchDicomList();
+    displayKiImages(); // KI-Images nach Upload anzeigen
+  } catch (err) {
+    statusDiv.textContent = `❌ Fehler beim Upload: ${err.message}`;
+    statusDiv.style.color = "#ff4d4d";
+  }
+});
+
+// 📋 KI-Images abrufen und anzeigen
+async function displayKiImages() {
+  const kiContainer = document.getElementById("ki-list");
+  const kiTitle = document.getElementById("ki-title");
+  const statusDiv = document.getElementById("dicom-status");
+
+  if (!kiContainer || !kiTitle) {
+    console.error("DOM elements for KI list not found");
+    statusDiv.textContent = "❌ Fehler: KI-Liste nicht gefunden.";
+    statusDiv.style.color = "#ff4d4d";
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:8000/ki-images", {
+      method: "GET"
+    });
+
+    let containers;
+    try {
+      containers = await response.json();
+    } catch {
+      throw new Error("Failed to parse KI images response");
+    }
+
+    if (!response.ok) throw new Error(containers.detail || `HTTP ${response.status}: ${response.statusText}`);
+
+    kiContainer.innerHTML = ""; // Alte Liste leeren
+    kiTitle.classList.remove("hidden");
+
+    if (containers.length === 0) {
+      kiContainer.textContent = "Keine KI-Images verfügbar.";
+      kiContainer.classList.remove("hidden");
+      return;
+    }
+
+    containers.forEach((container) => {
+      const card = document.createElement("div");
+      card.className = "ki-card";
+      card.innerHTML = `
+        <div class="ki-card-icon">🧠</div>
+        <h3>${container.image_name}:${container.image_tag}</h3>
+        <p>ID: ${container.image_id}</p>
+        <button class="select-btn" onclick='displayDiagnosis("Container ausgewählt: ${container.image_name}:${container.image_tag}")'>Auswählen</button>
+      `;
+      kiContainer.appendChild(card);
+    });
+
+    kiContainer.classList.remove("hidden");
+  } catch (err) {
+    statusDiv.textContent = `❌ Fehler beim Laden der KI-Images: ${err.message}`;
+    statusDiv.style.color = "#ff4d4d";
+    kiContainer.innerHTML = "";
+    kiContainer.textContent = "Fehler beim Laden der KI-Images.";
+  }
+}
+
+// 📋 DICOM-Liste abrufen und anzeigen
+//async function fetchDicomList() {
+  // try {
+  //   const response = await fetch("http://localhost:8000/dicoms", {
+  //     method: "GET"
+  //   });
+
+  //   let dicoms;
+  //   try {
+  //     dicoms = await response.json();
+  //   } catch {
+  //     throw new Error("Failed to parse DICOM list");
+  //   }
+
+  //   if (!response.ok) throw new Error(dicoms.detail || `HTTP ${response.status}: ${response.statusText}`);
+
+  //   // Liste im HTML-Element anzeigen
+  //   const fileList = document.getElementById("dicom-list");
+  //   fileList.innerHTML = ""; // Alte Liste leeren
+  //   if (dicoms.length === 0) {
+  //     fileList.textContent = "Keine DICOM-Datensätze verfügbar.";
+  //     return;
+  //   }
+
+  //   dicoms.forEach(dicom => {
+  //     const listItem = document.createElement("div");
+  //     listItem.textContent = `📄 ${dicom.dicom_uuid} (${dicom.dicom_modality})`;
+  //     fileList.appendChild(listItem);
+  //   });
+  // } catch (err) {
+  //   const statusDiv = document.getElementById("dicom-status");
+  //   statusDiv.textContent = `❌ Fehler beim Laden der DICOM-Liste: ${err.message}`;
+  //   statusDiv.style.color = "#ff4d4d";
+  // }
+//}
+
+//fetchDicomList(); // Beim Laden starten
+//displayKiImages();
+
 });
