@@ -6,7 +6,7 @@ main {
 }
 
 .highlight {
-  color: #ffd700;
+  color: #fac73c;
 }
 
 .profile-card {
@@ -28,7 +28,7 @@ main {
   border: none;
   border-radius: 6px;
   font-size: 1rem;
-  background-color: #ffd700;
+  background-color: #fac73c;
   color: #000;
   font-weight: bold;
   cursor: pointer;

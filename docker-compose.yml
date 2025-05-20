@@ -2,8 +2,10 @@ services:
   frontend:
     #image: maimuna03/mep-frontend:latest
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+
+     context: ./frontend
+     dockerfile: Dockerfile 
+     
     container_name: mep-frontend
     ports:
       - "8080:8080"
@@ -16,19 +18,26 @@ services:
   backend:
     #image: maimuna03/mep-backend:latest 
     build:
-      context: ./backend
-      dockerfile: Dockerfile 
+
+     context: ./backend
+     dockerfile: Dockerfile 
+
     container_name: mep-backend
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
       - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
+      - ./storage/uploads:/tmp/uploads
+      - ./storage/processed:/tmp/processed
     depends_on:
       db:
         condition: service_healthy
     env_file:
       - ./backend/.env
+    environment:
+      - PYTHONPATH=/app/src
+
 
   db:
     image: postgres:16

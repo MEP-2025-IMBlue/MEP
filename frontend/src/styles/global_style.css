@@ -15,7 +15,7 @@ body {
 }
 
 .logo {
-  color: #ffd700;
+  color: #fac73c;
   font-size: 1.5rem;
   font-weight: bold;
 }
@@ -32,19 +32,19 @@ body {
 }
 
 .nav-links a.active {
-  color: #ffd700;
-  border-bottom: 2px solid #ffd700;
+  color: #fac73c;
+  border-bottom: 2px solid #fac73c;
   padding-bottom: 2px;
 }
 
 .logout a {
-  color: #ffd700;
+  color: #fac73c;
   text-decoration: none;
   font-weight: bold;
 }
 
 .logout a:hover {
-  color: #ffcc00;
+  color: #fac73c;
 }
 
 .section-title {
@@ -70,7 +70,7 @@ footer {
 
 .upload-card {
   background-color: #1a1a1a;
-  border-left: 4px solid #ffd700;
+  border-left: 4px solid #fac73c;
   border-radius: 10px;
   padding: 2rem;
   width: 280px;
@@ -91,7 +91,7 @@ footer {
 }
 
 .upload-card h3 {
-  color: #ffd700;
+  color: #fac73c;
   margin-bottom: 0.5rem;
 }
 
@@ -110,7 +110,7 @@ footer {
   background-color: #111;
   padding: 2rem;
   border-radius: 10px;
-  border-left: 4px solid #ffd700;
+  border-left: 4px solid #fac73c;
   max-width: 500px;
   width: 100%;
   display: flex;
@@ -127,7 +127,7 @@ footer {
 }
 
 .upload-section button {
-  background-color: #ffd700;
+  background-color: #fac73c;
   color: #000;
   border: none;
   padding: 0.7rem;
@@ -138,7 +138,7 @@ footer {
 }
 
 .upload-section button:hover {
-  background-color: #ffcc00;
+  background-color: #fac73c;
 }
 
 .upload-status {
@@ -162,7 +162,7 @@ footer {
 
 .drop-zone {
   position: relative;
-  border: 2px dashed #ffd700;
+  border: 2px dashed #fac73c;
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;

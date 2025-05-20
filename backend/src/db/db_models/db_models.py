@@ -33,15 +33,14 @@ class KIImage(Base):
 class DICOMMetadata(Base):
     """
     Tabelle 'dicom_metadata' für die Speicherung von DICOM-Metadaten.
+    Alle Spalten haben den Prefix 'dicom_'.
     """
     __tablename__ = "dicom_metadata"
 
     dicom_id = Column(Integer, primary_key=True, index=True)
-    dicom_uuid = Column(String(64), unique=True, nullable=False)
+    dicom_uuid = Column(String(128), unique=True, nullable=False)
     dicom_modality = Column(String(50), nullable=True)
-    dicom_body_part_examined = Column(String(100), nullable=True)
-    dicom_study_description = Column(String(255), nullable=True)
-    dicom_model = Column(String(128), nullable=True)
 
     def __repr__(self):
-        return f"<DICOMMetadata(id={self.dicom_id}, uuid='{self.dicom_uuid}')>"
+        return f"<DICOMMetadata(id={self.dicom_id}, uuid='{self.dicom_uuid}', modality='{self.dicom_modality}')>"
+

@@ -14,7 +14,7 @@ form {
   background-color: #111;
   padding: 2rem;
   border-radius: 10px;
-  border-left: 4px solid #ffd700;
+  border-left: 4px solid #fac73c;
   max-width: 600px;
   width: 100%;
   display: flex;
@@ -31,7 +31,7 @@ form input[type="file"] {
 }
 
 form button {
-  background-color: #ffd700;
+  background-color: #fac73c;
   color: #000;
   font-weight: bold;
   border: none;
@@ -48,7 +48,7 @@ form button {
 .upload-status {
   font-weight: bold;
   font-size: 0.95rem;
-  color: #ffd700;
+  color: #fac73c;
 }
 
 .ki-list {
@@ -63,7 +63,7 @@ form button {
   background-color: #1a1a1a;
   padding: 1rem;
   border-radius: 10px;
-  border: 1px solid #ffd700;
+  border: 1px solid #fac73c;
   text-align: center;
   width: 200px;
 }
@@ -71,7 +71,7 @@ form button {
 .ki-card-icon {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #ffd700;
+  color: #fac73c;
 }
 
 .select-btn {

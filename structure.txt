@@ -1,0 +1,38 @@
+.
+├── README.md
+├── backend
+│   ├── Dockerfile
+│   ├── README.md
+│   ├── requirements.txt
+│   └── src
+│       ├── README.md
+│       ├── __pycache__
+│       ├── api
+│       ├── db
+│       ├── main.py
+│       ├── services
+│       └── tests
+├── database
+│   ├── README.md
+│   └── schemas
+│       └── init.sql
+├── docker-compose.yml
+├── frontend
+│   ├── Dockerfile
+│   ├── README.md
+│   └── src
+│       ├── assets
+│       ├── index.html
+│       ├── pages
+│       ├── script.js
+│       ├── styles
+│       └── styles.css
+├── storage
+│   ├── processed
+│   │   └── 55a4bb7afa3c0b6e451eafe21cc98fdaa0d391c616bb6c2f9c3d2b66cedb328c_anon.npy
+│   └── uploads
+│       ├── 55a4bb7afa3c0b6e451eafe21cc98fdaa0d391c616bb6c2f9c3d2b66cedb328c_anon.dcm
+│       └── 68e64369-4d0c-45ea-8ab9-b387b63b909c.dcm
+└── structure.txt
+
+18 directories, 18 files
