@@ -8,6 +8,7 @@ from services.dicom.compliance_checker import check_compliance
 # Logging-Konfiguration
 logging.basicConfig(level=logging.INFO)
 
+
 # Pflichtfelder mit Typen: 1 = erforderlich mit Inhalt, 2 = erforderlich aber darf leer sein
 REQUIRED_TAGS = {
     "PatientID": 2,
@@ -42,11 +43,32 @@ TRANSFER_SYNTAX_UIDS = {
 }
 
 
-# Hauptfunktion zur Durchführung aller Prüfungen
 def run_full_validation(ds: Dataset, filename: str) -> None:
     logging.info(f"[Validation] Starte Validierung der DICOM-Metadaten für Datei: {filename}")
     check_compliance(ds, filename)
-    check_required_tags(ds)
+
+    # Dynamische Pflichtfelder basierend auf Modalität
+    required_tags = {
+        "PatientID": 2,
+        "PatientName": 2,
+        "StudyInstanceUID": 2,
+        "SeriesInstanceUID": 2,
+        "SOPInstanceUID": 1,
+        "SOPClassUID": 1,
+        "Modality": 1,
+        "InstanceNumber": 2,
+        "StudyDate": 2,
+        "FrameOfReferenceUID": 2,
+        "SamplesPerPixel": 2,
+        "PhotometricInterpretation": 2,
+    }
+
+    if ds.Modality in {"CT", "MR", "PT"}:
+        required_tags["ImagePositionPatient"] = 2
+        required_tags["ImageOrientationPatient"] = 2
+        required_tags["PixelSpacing"] = 2
+
+    check_required_tags(ds, required_tags)
     check_date_fields(ds)
     check_uid_formats(ds)
     check_modality(ds)
@@ -56,16 +78,10 @@ def run_full_validation(ds: Dataset, filename: str) -> None:
     logging.info(f"[Validation] DICOM-Metadaten erfolgreich validiert für Datei: {filename}")
 
 
-# Prüfung auf Pflichtfelder anhand ihres Typs
-def check_required_tags(ds: Dataset) -> None:
-    """
-    Überprüft die im REQUIRED_TAGS definierten Pflichtfelder.
-    Typ 1 → Muss vorhanden & nicht leer sein → Fehler
-    Typ 2 → Muss vorhanden sein, darf aber leer sein → nur Warnung
-    """
+def check_required_tags(ds: Dataset, required_tags: dict) -> None:
     fehlende_typ1 = []
 
-    for tag, tag_typ in REQUIRED_TAGS.items():
+    for tag, tag_typ in required_tags.items():
         if not hasattr(ds, tag):
             if tag_typ == 1:
                 fehlende_typ1.append(tag)
@@ -84,7 +100,6 @@ def check_required_tags(ds: Dataset) -> None:
         raise ValueError(f"Fehlende Pflichtfelder: {', '.join(fehlende_typ1)}")
 
 
-# Prüfung auf Datumsfelder & Format
 def check_date_fields(ds: Dataset) -> None:
     for field in ["PatientBirthDate", "StudyDate"]:
         value = getattr(ds, field, "")
@@ -107,16 +122,14 @@ def check_date_fields(ds: Dataset) -> None:
             raise HTTPException(status_code=422, detail="Ungültiges Zeitformat in StudyTime. Erwartet: HHMMSS.")
 
 
-# Prüfung auf gültige UID-Formate
 def check_uid_formats(ds: Dataset) -> None:
     for field in ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID", "SOPClassUID"]:
         uid = getattr(ds, field, "")
-        if uid and not re.fullmatch(r"(\d+\.)+\d+", uid):
+        if uid and not re.fullmatch(r"^\d+(\.\d+)+$", uid):
             logging.error(f"[Validation] Ungültige UID in {field}: {uid}")
             raise HTTPException(status_code=422, detail=f"Ungültiges UID-Format in {field}.")
 
 
-# Prüfung auf Modalität
 def check_modality(ds: Dataset) -> None:
     modality = getattr(ds, "Modality", "").upper()
     if modality and modality not in VALID_MODALITIES:
@@ -124,7 +137,6 @@ def check_modality(ds: Dataset) -> None:
         raise HTTPException(status_code=422, detail=f"Unbekannte oder ungültige Modalität: {modality}.")
 
 
-# Prüfung auf Vorhandensein & Konsistenz der Pixel-Daten
 def check_pixeldata_presence(ds: Dataset, filename: str) -> None:
     if not hasattr(ds, "PixelData"):
         logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
@@ -154,7 +166,6 @@ def verify_pixeldata_consistency(ds: Dataset, filename: str) -> None:
         )
 
 
-# Prüfung auf bekannte Transfer Syntax UID
 def check_transfer_syntax(ds: Dataset) -> None:
     try:
         ts = str(ds.file_meta.TransferSyntaxUID)
@@ -164,8 +175,8 @@ def check_transfer_syntax(ds: Dataset) -> None:
         logging.warning(f"[TransferSyntax] Fehler bei TransferSyntax-Prüfung: {e}")
 
 
-# Ausgabe von privaten DICOM-Tags
 def log_private_tags(ds: Dataset, filename: str) -> None:
     for elem in ds.iterall():
         if elem.tag.is_private:
             logging.warning(f"[PrivateTag] {filename}: {elem.tag} = {elem.value}")
+
