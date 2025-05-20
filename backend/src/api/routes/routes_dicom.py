@@ -4,7 +4,11 @@ from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, Upl
 from db.database.database import get_db
 from db.crud import crud_dicom
 from db.core.exceptions import DICOMNotFound, NoDICOMInTheList, DatabaseError
+<<<<<<< HEAD
 from services.dicom.service_dicom import handle_dicom_upload  # erreichbar
+=======
+from services.dicom.service_dicom import handle_dicom_upload 
+>>>>>>> a2adcd7 (kommentar änderung)
 import shutil, os, uuid, zipfile
 import logging
 
@@ -55,7 +59,7 @@ async def upload_dicom(file: UploadFile = File(...)):
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_dir)
 
-            for root, dirs, files in os.walk(extract_dir):  # 🔁 ZIP rekursiv verarbeiten
+            for root, dirs, files in os.walk(extract_dir):  # ZIP rekursiv verarbeiten
                 for entry in files:
                     if entry.endswith(".dcm"):
                         full_path = os.path.join(root, entry)
