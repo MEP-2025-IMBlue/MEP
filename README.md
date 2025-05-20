@@ -8,7 +8,8 @@ Kopiere das: docker exec mep-keycloak /opt/keycloak/bin/kc.sh export --dir=/opt/
 
 -----------------2.Datei aus dem Container kopieren:----------------------------------------
 
-Kopiere das: docker cp mep-keycloak:/opt/keycloak/data/import ./keycloak-export
+Kopiere das: docker cp mep-keycloak:/opt/keycloak/data/import/imblue-realm-realm.json ./keycloak-export/
+
 
 📁 Jetzt hast du im Projektverzeichnis den Ordner ./keycloak-export/ mit der Datei
 imblue-realm-realm.json.
@@ -18,5 +19,3 @@ imblue-realm-realm.json.
 Du musst diese Schritte nur ausführen, wenn du Änderungen am Realm sichern oder teilen willst.
 
 Beim nächsten Start wird diese Datei nur dann genutzt, wenn der Realm nicht existiert (z. B. nach docker compose down -v).
-
-Wenn du willst, kann ich dir ein kleines .sh oder .ps1 Skript machen, das beide Schritte automatisch macht.
