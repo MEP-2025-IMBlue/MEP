@@ -68,7 +68,7 @@ class ImageUpload(BaseModel):
 # ========================================
 class ContainerResponse(BaseModel):
 
-    container_id: int
+    container_id: str
     status: str
 # ========================================
 # UploadResultItem: Ergebnis für eine einzelne DICOM-Datei
