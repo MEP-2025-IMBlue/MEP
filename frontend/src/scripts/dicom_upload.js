@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
   }
-}
+});
 
 //  DICOM-Liste abrufen und anzeigen
 //async function fetchDicomList() {
@@ -216,4 +216,4 @@ document.addEventListener("DOMContentLoaded", () => {
 //fetchDicomList(); // Beim Laden starten
 //displayKiImages();
 
-});
+
