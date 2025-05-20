@@ -2,36 +2,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const hubForm = document.getElementById("hub-upload-form");
   const localForm = document.getElementById("local-upload-form");
 
-  // 🔧 Fehlermeldung interpretieren
+  // Fehlermeldung interpretieren
   function interpretErrorMessage(rawMsg, source = "") {
-    if (!rawMsg) return "❌ Ein unbekannter Fehler ist aufgetreten.";
+    if (!rawMsg) return "\u{1F4C4} Ein unbekannter Fehler ist aufgetreten.";
 
     const msg = rawMsg.toLowerCase();
 
     if (source === "local" && msg.includes("file") && msg.includes("invalid")) {
-      return "❌ Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
+      return "\u{1F4C4} Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
     }
 
     if (source === "hub" && (msg.includes("invalid") || msg.includes("format"))) {
-      return "❌ Ungültiges Format. Bitte geben Sie z. B. ein Image im Format `nginx:latest` ein.";
+      return "\u{1F4C4} Ungültiges Format. Bitte geben Sie z. B. ein Image im Format `nginx:latest` ein.";
     }
 
     if (msg.includes("missing") || msg.includes("required")) {
-      return "❌ Bitte füllen Sie alle Pflichtfelder aus.";
+      return "\u{1F4C4} Bitte füllen Sie alle Pflichtfelder aus.";
     }
 
     if (msg.includes("already exists")) {
-      return "❌ Dieses Image wurde bereits hochgeladen.";
+      return "\u{1F4C4} Dieses Image wurde bereits hochgeladen.";
     }
 
     if (msg.includes("not found")) {
-      return "❌ Das angegebene Image konnte nicht gefunden werden.";
+      return "\u{1F4C4} Das angegebene Image konnte nicht gefunden werden.";
     }
 
-    return `❌ Fehler: ${rawMsg}`;
+    return `\u{1F4C4} Fehler: ${rawMsg}`;
   }
 
-  // 🐳 DockerHub Upload
+  // DockerHub Upload
   if (hubForm) {
     const spinner = document.createElement("div");
     spinner.id = "hub-spinner";
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (res.ok) {
           const result = await res.json();
-          statusDiv.textContent = `✅ Hochgeladen: ${result.image_name || result.id}`;
+          statusDiv.textContent = `\u2705" Hochgeladen: ${result.image_name || result.id}`;
           statusDiv.className = "upload-status success";
           hubForm.reset();
         } else {
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 💻 Lokaler Upload mit Drag-and-Drop + Vorschau + Fortschritt
+  //  Lokaler Upload mit Drag-and-Drop + Vorschau + Fortschritt
   if (localForm) {
     const progress = document.createElement("progress");
     progress.id = "local-progress";
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     spinner.style.marginTop = "10px";
     localForm.appendChild(spinner);
 
-    // 🔁 Drag-and-Drop Vorschau
+    // Drag-and-Drop Vorschau
     const dropZone = document.getElementById("drop-local");
     const fileInput = document.getElementById("fileInput-local");
     const previewText = document.createElement("div");
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.dataTransfer.files.length) {
         const file = e.dataTransfer.files[0];
         fileInput.files = e.dataTransfer.files;
-        previewText.textContent = `📄 ${file.name}`;
+        previewText.textContent = `\u{1F4C4} ${file.name}`;
       }
     });
 
@@ -132,13 +132,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fileInput.addEventListener("change", () => {
       if (fileInput.files.length) {
-        previewText.textContent = `📄 ${fileInput.files[0].name}`;
+        previewText.textContent = `\u{1F4C4} ${fileInput.files[0].name}`;
       } else {
         previewText.textContent = "";
       }
     });
 
-    // 📤 Upload
+    //  Upload
     localForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
       statusDiv.className = "upload-status";
 
       if (!file || !file.name.toLowerCase().endsWith(".tar")) {
-        statusDiv.textContent = "❌ Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
+        statusDiv.textContent = "\u{1F4C4} Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
         statusDiv.className = "upload-status error";
         return;
       }
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (xhr.status >= 200 && xhr.status < 300) {
               const result = JSON.parse(xhr.responseText);
-              statusDiv.textContent = `✅ Hochgeladen: ${result.image_name || result.id}`;
+              statusDiv.textContent = `\u2705" Hochgeladen: ${result.image_name || result.id}`;
               statusDiv.className = "upload-status success";
               localForm.reset();
               previewText.textContent = "";
@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
           progress.style.display = "none";
           percentLabel.style.display = "none";
           spinner.style.display = "none";
-          statusDiv.textContent = "❌ Upload-Fehler";
+          statusDiv.textContent = "\u{1F4C4} Upload-Fehler";
           statusDiv.className = "upload-status error";
         };
 

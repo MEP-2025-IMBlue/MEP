@@ -13,14 +13,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     allData = await res.json();
     console.log("DEBUG: ki-images Daten:", allData);
     container.innerHTML = allData.length === 0
-      ? `<p>ℹ️ Keine KI-Images verfügbar. Lade ein neues Image hoch!</p>`
+      ? `<p>\u2139\uFE0F Keine KI-Images verfügbar. Lade ein neues Image hoch!</p>`
       : "";
     if (allData.length > 0) renderTable(allData);
   } catch (err) {
     console.log("DEBUG: Fehler in fetchKIImages:", err.message);
     const errorMsg = err.message.includes("keine KI-Bilder")
-      ? "ℹ️ Keine KI-Images verfügbar. Lade ein neues Image hoch!"
-      : "❌ Fehler beim Laden der Images. Bitte später erneut versuchen.";
+      ? "\u2139\uFE0F Keine KI-Images verfügbar. Lade ein neues Image hoch!"
+      : "\u274C Fehler beim Laden der Images. Bitte später erneut versuchen.";
     container.innerHTML = `<p>${errorMsg}</p>`;
   }
 }
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       statusElement.innerHTML = "";
       const badge = document.createElement("span");
       badge.className = `status-badge status-${status}`;
-      badge.textContent = status === "running" ? `⏳ ${message}` : status === "success" ? `✅ ${message}` : `❌ ${message}`;
+      badge.textContent = status === "running" ? `\u23F3 ${message}` : status === "success" ? `\u2705 ${message}` : `\u274C ${message}`;
 
       if (status === "running") {
         const progress = document.createElement("div");
@@ -238,10 +238,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(await res.text());
-      alert("✅ Erfolgreich gelöscht!");
+      alert("\u2705 Erfolgreich gelöscht!");
       fetchKIImages();
     } catch (err) {
-      alert("❌ Fehler beim Löschen: " + err.message);
+      alert("\u274C Fehler beim Löschen: " + err.message);
     }
   }
 
