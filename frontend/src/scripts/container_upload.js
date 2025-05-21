@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (res.ok) {
           const result = await res.json();
-          statusDiv.textContent = `\u2705" Hochgeladen: ${result.image_name || result.id}`;
+          statusDiv.textContent = `\u2705 Hochgeladen: ${result.image_name || result.id}`;
           statusDiv.className = "upload-status success";
           hubForm.reset();
         } else {
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (xhr.status >= 200 && xhr.status < 300) {
               const result = JSON.parse(xhr.responseText);
-              statusDiv.textContent = `\u2705" Hochgeladen: ${result.image_name || result.id}`;
+              statusDiv.textContent = `\u2705 Hochgeladen: ${result.image_name || result.id}`;
               statusDiv.className = "upload-status success";
               localForm.reset();
               previewText.textContent = "";
