@@ -214,4 +214,5 @@ document.addEventListener("DOMContentLoaded", () => {
 //}
 
 //fetchDicomList(); // Beim Laden starten
+
 //displayKiImages();
