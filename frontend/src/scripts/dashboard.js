@@ -72,30 +72,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.appendChild(table);
   }
 
-  // Zeitstempel formatieren
-  function formatDateTime(dateTimeStr) {
-    if (!dateTimeStr) return "-";
+function formatDateTime(dateTimeStr) {
+  if (!dateTimeStr) return "-";
 
-    const utcDate = new Date(dateTimeStr);
-    if (isNaN(utcDate)) return "-";
+  // Parse die Zeit als UTC (füge "Z" hinzu, falls nicht vorhanden)
+  const utcDate = new Date(dateTimeStr.endsWith("Z") ? dateTimeStr : `${dateTimeStr}Z`);
+  if (isNaN(utcDate)) return "-";
 
-    const now = new Date();
-    const nowBerlin = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Berlin" }));
-    const berlinDate = new Date(utcDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" }));
+  // Konvertiere nach Europe/Berlin
+  const berlinDate = new Date(utcDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" }));
 
-    const timeStr = berlinDate.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  // Formatierung für Stunden und Minuten
+  const timeStr = berlinDate.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
-    const isSameDay = (date1, date2) =>
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate();
+  // Vergleiche mit aktuellem Datum in Europe/Berlin
+  const now = new Date();
+  const nowBerlin = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Berlin" }));
 
-    if (isSameDay(berlinDate, nowBerlin)) return `heute, ${timeStr} Uhr`;
-    const yesterdayBerlin = new Date(nowBerlin);
-    yesterdayBerlin.setDate(nowBerlin.getDate() - 1);
-    if (isSameDay(berlinDate, yesterdayBerlin)) return `gestern, ${timeStr} Uhr`;
-    return `${berlinDate.toLocaleDateString("de-DE")}, ${timeStr} Uhr`;
-  }
+  const isSameDay = (date1, date2) =>
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate();
+
+  if (isSameDay(berlinDate, nowBerlin)) return `heute, ${timeStr} Uhr`;
+  const yesterdayBerlin = new Date(nowBerlin);
+  yesterdayBerlin.setDate(nowBerlin.getDate() - 1);
+  if (isSameDay(berlinDate, yesterdayBerlin)) return `gestern, ${timeStr} Uhr`;
+  return `${berlinDate.toLocaleDateString("de-DE")}, ${timeStr} Uhr`;
+}
 
   // Funktion zum Testen eines Containers
   async function testContainer(imageId, imageName) {

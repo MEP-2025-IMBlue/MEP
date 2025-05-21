@@ -1,4 +1,5 @@
 # FastAPI & Dependency Injection
+from datetime import timezone
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 
 # Datenbank (SQLAlchemy)
@@ -38,7 +39,11 @@ Returns a list of all currently stored KI-images from the database.
     })
 async def list_ki_images(db: Session = Depends(get_db)):
     try:
-        return crud_kiImage.get_all_ki_images(db)
+        images = crud_kiImage.get_all_ki_images(db)
+        # Konvertiere image_created_at zu UTC mit ISO-Format
+        for image in images:
+            image.image_created_at = image.image_created_at.astimezone(timezone.utc).isoformat()
+        return images
     except NoKIImagesInTheList as e:
         raise HTTPException(status_code=404, detail=str(e))
     except DatabaseError as e:
@@ -60,7 +65,10 @@ Retrieves a single KI-image by its unique ID.
     })
 async def get_ki_image(image_id: int, db: Session = Depends(get_db)):
     try:
-        return crud_kiImage.get_ki_image_by_id(db, image_id)
+        image = crud_kiImage.get_ki_image_by_id(db, image_id)
+        # Konvertiere image_created_at zu UTC mit ISO-Format
+        image.image_created_at = image.image_created_at.astimezone(timezone.utc).isoformat()
+        return image 
     except KIImageNotFound as e:
         raise HTTPException(status_code=404, detail=str(e))
     except DatabaseError as e:
