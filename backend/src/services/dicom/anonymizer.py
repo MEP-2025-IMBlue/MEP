@@ -1,6 +1,7 @@
 import logging
 import pydicom
 
+#TO DO: final entschieden, was wirklich anonymisiert wird 
 # Diese Funktion anonymisiert sensible DICOM-Felder gemäß DSGVO / HIPAA
 def anonymize_dicom_fields(ds: pydicom.Dataset) -> pydicom.Dataset:
     """
@@ -10,11 +11,11 @@ def anonymize_dicom_fields(ds: pydicom.Dataset) -> pydicom.Dataset:
     tags_to_anonymize = [
         "PatientName",              # Name des Patienten
         "PatientID",                # Interne ID
-        "PatientBirthDate",         # Geburtsdatum
+        #"PatientBirthDate",         # Geburtsdatum
         "InstitutionName",          # Name der Klinik
         "ReferringPhysicianName",   # Überweisender Arzt
         "OtherPatientIDs",          # Weitere IDs
-        "AccessionNumber",          # Zugriffsnummer
+        #"AccessionNumber",          # Zugriffsnummer
         "OperatorsName",            # Bedienername
         "PatientAddress",           # Adresse
         "IssuerOfPatientID",        # ID-Aussteller

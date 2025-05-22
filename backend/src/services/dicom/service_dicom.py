@@ -1,3 +1,5 @@
+#TO DO: Alle Funktionalitäten für den DICOM-Upload (NICHT Datenbank!!) hier in dieser Datei zusammenführen
+
 import os
 from dotenv import load_dotenv
 import hashlib
@@ -42,11 +44,12 @@ def handle_dicom_upload(file_path: str) -> dict:
     run_full_validation(ds, file_path)
     logging.info("[Validation] Validierung abgeschlossen.")
 
-    dicom_hash = generate_dicom_hash(ds)
-    logging.info(f"[Hash] Hash generiert: {dicom_hash}")
+    # dicom_hash = generate_dicom_hash(ds)
+    # logging.info(f"[Hash] Hash generiert: {dicom_hash}")
 
     upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
     os.makedirs(upload_dir, exist_ok=True)
+    #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
     anon_path = os.path.join(upload_dir, f"{dicom_hash}_anon.dcm")
 
     try:
@@ -57,26 +60,31 @@ def handle_dicom_upload(file_path: str) -> dict:
         raise RuntimeError(f"Fehler beim Speichern der anonymisierten Datei: {str(e)}")
 
     try:
+        #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
         npy_path = extract_pixel_array(ds, dicom_hash)
         logging.info(f"[PixelData] Pixel-Array gespeichert unter: {npy_path}")
     except Exception as e:
         logging.error(f"[PixelData] Fehler beim Speichern des Pixel-Arrays: {str(e)}")
         raise RuntimeError(f"Fehler beim Speichern des Pixel-Arrays: {str(e)}")
 
-    metadata = extract_metadata(ds)
+    #TO DO: nur für die Datenbank, also noch nicht relevant
+    #metadata = extract_metadata(ds)
 
-    try:
-        crud_dicom.create_or_replace_dicom_metadata(db, metadata)
-        logging.info("[DB] Metadaten erfolgreich in die Datenbank gespeichert.")
-    except Exception as e:
-        logging.error(f"[Upload] Fehler bei DB-Speicherung: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Fehler beim Erstellen eines DICOM-Metadatensatzes."
-        )
+    #TO DO: Speciherung der Metadaten in der Datenbank
+    # try:
+    #     #TO DO: Benutzung von create_dicom aus crud_dicom.py
+    #     #crud_dicom.create_or_replace_dicom_metadata(db, metadata)
+    #     logging.info("[DB] Metadaten erfolgreich in die Datenbank gespeichert.")
+    # except Exception as e:
+    #     logging.error(f"[Upload] Fehler bei DB-Speicherung: {e}")
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail="Fehler beim Erstellen eines DICOM-Metadatensatzes."
+    #     )
 
     return {
         "anonymized_file": anon_path,
-        "pixel_array_file": npy_path,
-        "metadata": metadata
+        "pixel_array_file": npy_path
+
+        #"metadata": metadata
     }

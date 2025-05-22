@@ -47,6 +47,7 @@ class KIImageUpdate(BaseModel):
 # ========================================
 # DICOMMetadata: DICOM-Modell aus db_models.py
 # ========================================
+#TO DO: Attribute ändern, also final entscheiden, was wir in der Datenbank ZUR STATISTIK specihern wollen 
 class DICOMMetadata(BaseModel):
     dicom_id: int
     dicom_uuid: str
@@ -85,6 +86,7 @@ class UploadResultItem(BaseModel):
 # ========================================
 # UploadDICOMResponseModel: Antwortmodell für Upload-Endpunkt
 # ========================================
+#TO DO: final entscheiden, was wir dem User alles als Antwort nach dem Upload geben möchten
 class UploadDICOMResponseModel(BaseModel):
     message: str = Field(..., description="Statusmeldung zur Verarbeitung")
     data: List[UploadResultItem] = Field(..., description="Liste der Ergebnisse pro Datei")

@@ -16,9 +16,9 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 
 router = APIRouter(tags=["DICOM"])
 
-
+#TO DO: Funktionen besser auslagern, die Route macht keine Logik, nur HTTPException Handling
 # Upload-Endpunkt für einzelne DICOM-Dateien oder ZIP-Archive
-@router.post("/dicom", response_model=UploadDICOMResponseModel)
+@router.post("/dicoms", response_model=UploadDICOMResponseModel)
 async def upload_dicom(file: UploadFile = File(...)):
     filename = file.filename.lower()
     os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -85,6 +85,8 @@ async def upload_dicom(file: UploadFile = File(...)):
         logger.warning(f"Invalid file type uploaded: {filename}")
         raise HTTPException(status_code=400, detail="Nur .dcm oder .zip-Dateien erlaubt.")
 
+#TO DO: Post Routen trennen: 1.Post-Route nur Upload, 2.Post-Route (also diese hier) nur Datenbank
+@router.post("dicoms/database")
 
 # Liefert eine Liste aller verfügbaren DICOM-Datensätze
 @router.get("/dicoms")

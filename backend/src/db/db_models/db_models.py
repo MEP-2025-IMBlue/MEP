@@ -30,6 +30,7 @@ class KIImage(Base):
 # -----------------------------
 # Modell: DICOMMetadata (DICOM-Metadaten)
 # -----------------------------
+#TO DO: dieses Model an py_model Variante anpassen
 class DICOMMetadata(Base):
     """
     Tabelle 'dicom_metadata' für die Speicherung von DICOM-Metadaten.
