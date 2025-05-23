@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from main import app
+from backend.src.main import app
 from db.database.database import get_db
 from tests.api_tests.fixtures import *
 from tests.api_tests.utils import *

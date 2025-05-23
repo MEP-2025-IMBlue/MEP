@@ -8,7 +8,7 @@ from tests.api_tests.fixtures import TEST_DATABASE_URL
 class TestDatabase:
     def __init__(self, session: Session):
         self.session = session
-        
+    #TODO: richtige KIImages rein machen    
     def populate_test_database(self):
         ki_image_1 = KIImage(
             name="Product 2",
