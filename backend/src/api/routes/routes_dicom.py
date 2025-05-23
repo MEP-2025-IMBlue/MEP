@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, UploadResultItem
 from db.database.database import get_db
 from db.crud import crud_dicom
-from db.core.exceptions import DICOMNotFound, NoDICOMInTheList, DatabaseError
-from services.dicom.service_dicom import handle_dicom_upload  # ✅ Artık doğrudan erişilir
+from db.core.exceptions import *
+from src.services.dicom import service_dicom
 import shutil, os, uuid, zipfile
 import logging
 
@@ -12,18 +12,34 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 
 router = APIRouter(tags=["DICOM"])
 
-#TO DO: Funktionen besser auslagern, die Route macht keine Logik, nur HTTPException Handling
+#TODO: Funktionen besser auslagern, die Route macht keine Logik, nur HTTPException Handling
+# + neue Route zum Löschen der temporär gespeciehrten Datei
 # Upload-Endpunkt für einzelne DICOM-Dateien oder ZIP-Archive
 @router.post("/dicoms", response_model=UploadDICOMResponseModel)
-async def upload_dicom(file: UploadFile = File(...)):
-    filename = file.filename.lower()
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+async def post_upload_dicom(file: UploadFile = File(...)):
+    service_dicom.receive_file()
 
-    if filename.endswith(".dcm"):
+    #if received: single dicom
+    service_dicom.upload_dicom()
+    
+    #if received: zip
+    service_dicom.upload_dicom_zip()
+
+    try:
+        DICOM_file = service_dicom.upload_dicom()
+    except InvalidDICOMFileType as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ERROR_Platzhalter_irgendwas_mit_Fehler_Einlesen as e:
+        raise HTTPException
+    
+    #ALLES AB HIER BURAK ORIGINAL
+    # filename = file.filename.lower()
+    # os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    #if filename.endswith(".dcm"):
         tmp_filepath = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.dcm")
         try:
             with open(tmp_filepath, "wb") as buffer:
@@ -41,7 +57,7 @@ async def upload_dicom(file: UploadFile = File(...)):
             if os.path.exists(tmp_filepath):
                 os.remove(tmp_filepath)  # 🧹 Temporäre Datei löschen
 
-    elif filename.endswith(".zip"):
+    #elif filename.endswith(".zip"):
         zip_id = str(uuid.uuid4())
         zip_path = os.path.join(UPLOAD_DIR, f"{zip_id}.zip")
         extract_dir = os.path.join(UPLOAD_DIR, zip_id)
@@ -81,9 +97,9 @@ async def upload_dicom(file: UploadFile = File(...)):
             if os.path.exists(extract_dir):
                 shutil.rmtree(extract_dir, ignore_errors=True)
 
-    else:
-        logger.warning(f"Invalid file type uploaded: {filename}")
-        raise HTTPException(status_code=400, detail="Nur .dcm oder .zip-Dateien erlaubt.")
+    # else:
+    #     logger.warning(f"Invalid file type uploaded: {filename}")
+    #     raise HTTPException(status_code=400, detail="Nur .dcm oder .zip-Dateien erlaubt.")
 
 #TO DO: Post Routen trennen: 1.Post-Route nur Upload, 2.Post-Route (also diese hier) nur Datenbank
 @router.post("dicoms/database")

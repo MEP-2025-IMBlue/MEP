@@ -1,4 +1,4 @@
-#TO DO: hier werden die Dicom Exceptions geworfen
+#TODO: hier werden die Dicom Exceptions geworfen
 # -> HTTP-Exceptions in routes_dicom.py auslagern
 
 import re
@@ -11,77 +11,78 @@ from services.dicom.compliance_checker import check_compliance
 # Logging-Konfiguration
 logging.basicConfig(level=logging.INFO)
 
-# Gültige Modalitäten gemäß DICOM-Standard
-VALID_MODALITIES = {"CT", "MR", "XR", "US", "NM", "PT", "DX", "MG", "CR"}
+# # Gültige Modalitäten gemäß DICOM-Standard
+# VALID_MODALITIES = {"CT", "MR", "XR", "US", "NM", "PT", "DX", "MG", "CR"}
 
-# Bekannte TransferSyntaxUIDs
-TRANSFER_SYNTAX_UIDS = {
-    "1.2.840.10008.1.2": "Implicit VR Little Endian",
-    "1.2.840.10008.1.2.1": "Explicit VR Little Endian",
-    "1.2.840.10008.1.2.2": "Explicit VR Big Endian",
-    "1.2.840.10008.1.2.4.50": "JPEG Baseline (Lossy)",
-    "1.2.840.10008.1.2.4.70": "JPEG Lossless",
-    "1.2.840.10008.1.2.4.80": "JPEG-LS Lossless",
-    "1.2.840.10008.1.2.4.90": "JPEG 2000 Lossless",
-    "1.2.840.10008.1.2.5": "RLE Lossless"
-}
+# # Bekannte TransferSyntaxUIDs
+# TRANSFER_SYNTAX_UIDS = {
+#     "1.2.840.10008.1.2": "Implicit VR Little Endian",
+#     "1.2.840.10008.1.2.1": "Explicit VR Little Endian",
+#     "1.2.840.10008.1.2.2": "Explicit VR Big Endian",
+#     "1.2.840.10008.1.2.4.50": "JPEG Baseline (Lossy)",
+#     "1.2.840.10008.1.2.4.70": "JPEG Lossless",
+#     "1.2.840.10008.1.2.4.80": "JPEG-LS Lossless",
+#     "1.2.840.10008.1.2.4.90": "JPEG 2000 Lossless",
+#     "1.2.840.10008.1.2.5": "RLE Lossless"
+# }
 
+#Verlagert in service_dicom
+# def run_full_validation(ds: Dataset, filename: str) -> None:
+#     logging.info(f"[Validation] Starte Validierung der DICOM-Metadaten für Datei: {filename}")
+#     #check_compliance(ds, filename)
 
-def run_full_validation(ds: Dataset, filename: str) -> None:
-    logging.info(f"[Validation] Starte Validierung der DICOM-Metadaten für Datei: {filename}")
-    #check_compliance(ds, filename)
+#     # TODO: Final entscheiden welche Pflichtfelder validiert werden
+#     required_tags = {
+#         # "PatientID": 2,
+#         # "PatientName": 2,
+#         # "StudyInstanceUID": 2,
+#         # "SeriesInstanceUID": 2,
+#         "SOPInstanceUID": 1,
+#         "SOPClassUID": 1,
+#         "Modality": 1,
+#         # "InstanceNumber": 2,
+#         # "StudyDate": 2,
+#         # "FrameOfReferenceUID": 2,
+#         # "SamplesPerPixel": 2,
+#         # "PhotometricInterpretation": 2,
+#     }
 
-    # Dynamische Pflichtfelder basierend auf Modalität
-    required_tags = {
-        # "PatientID": 2,
-        # "PatientName": 2,
-        # "StudyInstanceUID": 2,
-        # "SeriesInstanceUID": 2,
-        "SOPInstanceUID": 1,
-        "SOPClassUID": 1,
-        "Modality": 1,
-        # "InstanceNumber": 2,
-        # "StudyDate": 2,
-        # "FrameOfReferenceUID": 2,
-        # "SamplesPerPixel": 2,
-        # "PhotometricInterpretation": 2,
-    }
+#     # if ds.Modality in {"CT", "MR", "PT"}:
+#     #     required_tags["ImagePositionPatient"] = 2
+#     #     required_tags["ImageOrientationPatient"] = 2
+#     #     required_tags["PixelSpacing"] = 2
 
-    # if ds.Modality in {"CT", "MR", "PT"}:
-    #     required_tags["ImagePositionPatient"] = 2
-    #     required_tags["ImageOrientationPatient"] = 2
-    #     required_tags["PixelSpacing"] = 2
+#     check_required_tags(ds, required_tags)
+#     #check_date_fields(ds)
+#     #check_uid_formats(ds)
+#     check_modality(ds)
+#     check_pixeldata_presence(ds, filename)
+#     #check_transfer_syntax(ds)
+#     #log_private_tags(ds, filename)
+#     logging.info(f"[Validation] DICOM-Metadaten erfolgreich validiert für Datei: {filename}")
 
-    check_required_tags(ds, required_tags)
-    #check_date_fields(ds)
-    #check_uid_formats(ds)
-    check_modality(ds)
-    check_pixeldata_presence(ds, filename)
-    #check_transfer_syntax(ds)
-    #log_private_tags(ds, filename)
-    logging.info(f"[Validation] DICOM-Metadaten erfolgreich validiert für Datei: {filename}")
+#Verlagert in service_dicom.py
+# #TODO: nur nach Tag 1 prüfen
+# def check_required_tags(ds: Dataset, required_tags: dict) -> None:
+#     fehlende_typ1 = []
 
-#TO DO: nur nach Tag 1 prüfen
-def check_required_tags(ds: Dataset, required_tags: dict) -> None:
-    fehlende_typ1 = []
+#     for tag, tag_typ in required_tags.items():
+#         if not hasattr(ds, tag):
+#             if tag_typ == 1:
+#                 fehlende_typ1.append(tag)
+#             elif tag_typ == 2:
+#                 logging.warning(f"[Validation] Optionaler Pflichtwert (Type 2) fehlt: {tag}")
+#             continue
 
-    for tag, tag_typ in required_tags.items():
-        if not hasattr(ds, tag):
-            if tag_typ == 1:
-                fehlende_typ1.append(tag)
-            elif tag_typ == 2:
-                logging.warning(f"[Validation] Optionaler Pflichtwert (Type 2) fehlt: {tag}")
-            continue
+#         value = getattr(ds, tag)
+#         if tag_typ == 1 and (value is None or str(value).strip() == ""):
+#             fehlende_typ1.append(tag)
+#         elif tag_typ == 2 and (value is None or str(value).strip() == ""):
+#             logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
 
-        value = getattr(ds, tag)
-        if tag_typ == 1 and (value is None or str(value).strip() == ""):
-            fehlende_typ1.append(tag)
-        elif tag_typ == 2 and (value is None or str(value).strip() == ""):
-            logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
-
-    if fehlende_typ1:
-        logging.error(f"[Validation] Fehlende Pflichtfelder (Type 1): {fehlende_typ1}")
-        raise ValueError(f"Fehlende Pflichtfelder: {', '.join(fehlende_typ1)}")
+#     if fehlende_typ1:
+#         logging.error(f"[Validation] Fehlende Pflichtfelder (Type 1): {fehlende_typ1}")
+#         raise ValueError(f"Fehlende Pflichtfelder: {', '.join(fehlende_typ1)}")
 
 
 # def check_date_fields(ds: Dataset) -> None:
@@ -113,21 +114,23 @@ def check_required_tags(ds: Dataset, required_tags: dict) -> None:
 #             logging.error(f"[Validation] Ungültige UID in {field}: {uid}")
 #             raise HTTPException(status_code=422, detail=f"Ungültiges UID-Format in {field}.")
 
-#TO DO: Tag "modaltity" soll geprüft werden, 
-#obs befüllt ist, aber dessen Inhalt auch, 
-#aber soll nicht crashen, wenn die Modalität nicht in Valid_Modalities drin ist 
-def check_modality(ds: Dataset) -> None:
-    modality = getattr(ds, "Modality", "").upper()
-    if modality and modality not in VALID_MODALITIES:
-        logging.error(f"[Validation] Unbekannte oder ungültige Modalität: {modality}")
-        raise HTTPException(status_code=422, detail=f"Unbekannte oder ungültige Modalität: {modality}.")
+#Verlagert in service_dicom.py
+# #TODO: Tag "modaltity" soll geprüft werden, 
+# #obs befüllt ist, aber dessen Inhalt auch, 
+# #aber soll nicht crashen, wenn die Modalität nicht in Valid_Modalities drin ist 
+# def check_modality(ds: Dataset) -> None:
+#     modality = getattr(ds, "Modality", "").upper()
+#     if modality and modality not in VALID_MODALITIES:
+#         logging.error(f"[Validation] Unbekannte oder ungültige Modalität: {modality}")
+#         raise HTTPException(status_code=422, detail=f"Unbekannte oder ungültige Modalität: {modality}.")
 
-#TO DO: Final entscheiden ob man die braucht oder nicht
-def check_pixeldata_presence(ds: Dataset, filename: str) -> None:
-    if not hasattr(ds, "PixelData"):
-        logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
-        raise HTTPException(status_code=422, detail="Fehlender 'Pixel Data' (7FE0,0010) Tag.")
-    #verify_pixeldata_consistency(ds, filename)
+#Verlagert in service_dicom
+# #TODO: Final entscheiden ob man die braucht oder nicht
+# def check_pixeldata_presence(ds: Dataset, filename: str) -> None:
+#     if not hasattr(ds, "PixelData"):
+#         logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
+#         raise HTTPException(status_code=422, detail="Fehlender 'Pixel Data' (7FE0,0010) Tag.")
+#     #verify_pixeldata_consistency(ds, filename)
 
 
 # def verify_pixeldata_consistency(ds: Dataset, filename: str) -> None:

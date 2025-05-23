@@ -14,9 +14,13 @@ class DatabaseError(Exception):
     """Wird geworfen bei allgemeinen Datenbankfehlern."""
     pass
 
-
+#TODO: final entscheiden welche Exceptions geworfen werden
 class DICOMNotFound(Exception):
     pass
 
 class NoDICOMInTheList(Exception):
+    pass
+
+class InvalidDICOMFileType(Exception):
+    """Wird geworfen wenn DICOM-File weder .dcm oder .zip ist"""
     pass

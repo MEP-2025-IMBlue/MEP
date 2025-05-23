@@ -1,4 +1,4 @@
-#TO DO: diese Errors werden in der validation.py geworfen
+#TODO: diese Errors werden in der validation.py geworfen
 
 # import logging
 # import pydicom
