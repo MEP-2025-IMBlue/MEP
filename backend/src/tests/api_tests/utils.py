@@ -11,10 +11,13 @@ class TestDatabase:
     #TODO: richtige KIImages rein machen    
     def populate_test_database(self):
         ki_image_1 = KIImage(
-            name="Product 2",
-            quantity=10
+            image_id = 1,
+            image_name = "python",
+            image_tag = "latest",
+            image_provider_id = 1,
+            image_created_at = "YYMMDD"
         )
-        
+
         ki_image_2 = KIImage(
             name="Product 1",
             quantity=4
