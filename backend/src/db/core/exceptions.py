@@ -24,3 +24,14 @@ class NoDICOMInTheList(Exception):
 class InvalidDICOMFileType(Exception):
     """Wird geworfen wenn DICOM-File weder .dcm oder .zip ist"""
     pass
+
+#TODO: Beschreibung besser schreiben
+class MissingRequiredTagError(Exception):
+    """Wird geworfen wenn Tags im DICOM-File fhelen"""
+
+#TODO: Beschreibung besser schreiben
+class MissingPixelData(Exception):
+    """Wird geworfen, wenn DICOM-File kein Pixeldata hat"""
+
+class FailedPixelDataExtraction(Exception):
+    """Wird geworfen, wenn Extraktion der DICOM-Pixeldaten fehlschlägt"""
