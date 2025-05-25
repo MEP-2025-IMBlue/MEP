@@ -4,10 +4,14 @@ services:
     image: postgres:16
     container_name: imblue-db
     restart: always
+    ports:
+      - "5432:5432"
     env_file:
       - ./database/.env
     volumes:
+      # Speichert die PostgreSQL-Daten persistent außerhalb des Containers → Daten bleiben erhalten, auch wenn der Container neu gestartet oder gelöscht wird
       - imblue_data:/var/lib/postgresql/data
+      # Führt einmalig beim allerersten Start das SQL-Initialisierungsskript aus (nicht mehr bei späteren Starts, wenn Daten schon da sind)
       - ./database/schemas/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U imblue_user -d imblue_db"]
@@ -36,6 +40,8 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: mep-keycloak
+    # Startet Keycloak im Entwickler-Modus (kein HTTPS, schnelleres Setup) & Importiert einmalig beim ersten Start den Realm aus der Datei im Volume
+    # Wichtig: Der Import passiert nur, wenn dieser Realm im Keycloak noch nicht existiert. Wenn du z. B. den Container löschst oder das Volume entfernst, wird er beim nächsten Start erneut importiert.
     command: start-dev --import-realm
     env_file:
       - ./keycloak/.env
@@ -50,6 +56,7 @@ services:
       - mep-network
 
   backend:
+    #image: maimuna03/mep-backend:latest   
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -65,7 +72,7 @@ services:
       - ./backend:/app
       - ./storage/uploads:/tmp/uploads
       - ./storage/processed:/tmp/processed
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
     env_file:
       - ./backend/.env
     environment:
@@ -74,6 +81,7 @@ services:
       - mep-network
 
   frontend:
+    #image: maimuna03/mep-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
