@@ -22,14 +22,13 @@ router = APIRouter(tags=["DICOM"])
 async def post_upload_dicom(file: UploadFile = File(...)):
     try:
         return service_dicom.receive_file(file)
-    except InvalidDICOMFileType as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except DICOMValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DICOMProcessingError as e:
-        raise HTTPException(status_code=500, detail="Interner Verarbeitungsfehler")
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Unbekannter Fehler: " + str(e))
+
  
     
     

@@ -53,9 +53,9 @@ class DICOMExtractionError(DICOMProcessingError):
 #     """Fehler beim Zugriff auf oder Umwandlung der Pixeldaten."""
 #     pass
 
-class UnexpectedDICOMError(DICOMProcessingError):
-    """Allgemeiner, unerwarteter Fehler bei der DICOM-Verarbeitung (z. B. I/O, Bugs)."""
-    pass
+# class UnexpectedDICOMError(DICOMProcessingError):
+#     """Allgemeiner, unerwarteter Fehler bei der DICOM-Verarbeitung, zum catch-all."""
+#     pass
 
 # class InvalidDICOMFileType(Exception):
 #     """Wird geworfen wenn DICOM-File weder .dcm oder .zip ist"""

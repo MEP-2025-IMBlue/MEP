@@ -14,6 +14,7 @@ from pydicom.dataset import Dataset
 from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, UploadResultItem
 from db.core.exceptions import *
 import shutil, os, uuid, zipfile
+import tempfile
 
 
 # Logging-Konfiguration
@@ -65,16 +66,21 @@ def receive_file(file: UploadFile = File(...)):
 
         # Verarbeiten der Datei -> Übergabe an nächste Funktion
         if filename.endswith(".dcm"):
-            return upload_dicom(tmp_filepath)
+            result = upload_dicom(tmp_filepath)
+            return UploadDICOMResponseModel(
+                message="DICOM-Datei erfolgreich verarbeitet",
+                data=[result]
+            )
         elif filename.endswith(".zip"):
-            return upload_dicom_zip(tmp_filepath)
+            result = upload_dicom_zip(tmp_filepath)
+            return result
 
     # Löschen der temporären Datei 
     finally:
         if os.path.exists(tmp_filepath):
             os.remove(tmp_filepath)
 
-def upload_dicom(tmp_filepath:str):
+def upload_dicom(tmp_filepath:str) -> UploadResultItem:
     """Führt den vollständigen Upload-Workflow für eine DICOM-Datei durch:
     - Validierung
     - Anonymisierung
@@ -86,9 +92,8 @@ def upload_dicom(tmp_filepath:str):
     ds = anonymize_dicom(ds)
     pixel_array = extract_pixel_array(ds)
     #metadata = extract_metadata(ds) -> TODO: eher für Maimuna relevant
-    upload_res = store_dicom_and_data(ds, pixel_array)
-    return upload_res
-    #return UploadResult(...)
+    return store_dicom_and_data(ds, pixel_array)
+    
 
 def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
     #Schaue nach, ob die Datei DICOM konform ist
@@ -97,10 +102,10 @@ def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
         return ds
         #logging.info(f"[Upload] DICOM-Datei erfolgreich gelesen: {file_path}")
     except InvalidDicomError:
-        raise InvalidDICOMFormat("Datei ist kein gültiges DICOM-Format.")
+        raise InvalidDICOMFileType("Datei ist kein gültiges DICOM-Format.")
     except Exception as e:
         #logging.error(f"[Upload] Allgemeiner Fehler beim Lesen der Datei: {file_path} → {str(e)}")
-        raise UnexpectedDICOMError(f"Unerwarteter Fehler: {str(e)}")
+        raise DICOMProcessingError(f"Unerwarteter Fehler: {str(e)}")
     
 def validate_dicom(ds: Dataset) -> None:
     """
@@ -133,7 +138,7 @@ def check_required_tags(ds: Dataset) -> None:
         # elif tag_typ == 2 and (value is None or str(value).strip() == ""):
         #     logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
 
-def check_pixeldata(ds: Dataset, filename: str) -> None:
+def check_pixeldata(ds: Dataset) -> None:
     """Prüft, ob PixelData vorhanden ist."""
 
     if not hasattr(ds, "PixelData"):
@@ -191,7 +196,7 @@ def extract_pixel_array(ds: pydicom.Dataset):
     # logging.info(f"[Extractor] Pixel-Array gespeichert unter: {out_path}")
     # return out_path
 
-def store_dicom_and_data(ds: pydicom.Dataset, pixel_array) -> UploadDICOMResponseModel:
+def store_dicom_and_data(ds: pydicom.Dataset, pixel_array) -> UploadResultItem:
     """Speicherung der DICOM-Datei und die extrahierte Pixelarray."""
 
     #upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
@@ -209,20 +214,50 @@ def store_dicom_and_data(ds: pydicom.Dataset, pixel_array) -> UploadDICOMRespons
         raise DICOMProcessingError(f"Fehler beim Speichern der anonymisierten Datei: {str(e)}")
 
     try:
-        #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
-        pixel_array.save_as(npy_path)
+        np.save(npy_path, pixel_array)
         logging.info(f"[PixelData] Pixel-Array gespeichert unter: {npy_path}")
     except Exception as e:
         logging.error(f"[PixelData] Fehler beim Speichern des Pixel-Arrays: {str(e)}")
         raise DICOMProcessingError(f"Fehler beim Speichern des Pixel-Arrays: {str(e)}")
     
-    return UploadDICOMResponseModel(
-        message="DICOM-Datei erfolgreich verarbeitet",
-        data=[UploadResultItem(
-            sop_instance_uid=sop_uid,
-            saved_dicom_path=anon_path,
-            saved_pixel_array_path=npy_path)]
+    return UploadResultItem(
+        sop_instance_uid=sop_uid,
+        saved_dicom_path=anon_path,
+        saved_pixel_array_path=npy_path
     )
+
+def upload_dicom_zip(zip_path: str) -> UploadDICOMResponseModel:
+    """Verarbeitet eine ZIP-Datei mit mehreren DICOM-Dateien."""
+
+    results = []
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(tmp_dir)
+        except Exception as e:
+            raise DICOMProcessingError(f"Fehler beim Entpacken der ZIP-Datei: {str(e)}")
+
+        for root, _, files in os.walk(tmp_dir):
+            for filename in files:
+                if not filename.lower().endswith(".dcm"):
+                    logger.warning(f"[ZIP] Ungültige Datei in ZIP übersprungen: {filename}")
+                    continue
+
+                dicom_path = os.path.join(root, filename)
+
+                try:
+                    result_item = upload_dicom(dicom_path)
+                    results.append(result_item)
+                except Exception as e:
+                    logger.error(f"Fehler bei Datei {filename}: {str(e)}")
+                    raise DICOMProcessingError(f"Fehler bei Datei {filename}: {str(e)}")
+
+    return UploadDICOMResponseModel(
+        message=f"{len(results)} DICOM-Datei(en) erfolgreich verarbeitet.",
+        data=results
+    )
+  
     
 
     
@@ -309,9 +344,8 @@ def store_dicom_and_data(ds: pydicom.Dataset, pixel_array) -> UploadDICOMRespons
 #         raise HTTPException(status_code=422, detail=f"Unbekannte oder ungültige Modalität: {modality}.")
 
     
-#TODO: final entscheiden, was genau in einer zip-Datei drin ist
-def upload_dicom_zip():
-    pass
+
+
 
 
 
