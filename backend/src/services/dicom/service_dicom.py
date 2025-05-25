@@ -35,35 +35,44 @@ logging.basicConfig(level=logging.INFO)
 # from db.crud import crud_dicom
 # from db.database.database import get_db
 
-#TODO: Was ist das?
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
+PROCESSED_DIR = os.getenv("PROCESSED_DIR", "/tmp/processed")
+UPLOAD_TMP_DIR = os.getenv("UPLOAD_TMP_DIR", "storage/tmp")
 
 def receive_file(file: UploadFile = File(...)):
-    """Empfangen von Datei. Nachschauen, ob .dcm oder .zip. Wenn ja, Dateiinhalt in tmp_filepath reinschreiben"""
+    """Empfängt eine Datei, prüft Endung (.dcm/.zip),
+    speichert sie temporär, 
+    übergibt zur Verarbeitung und räumt auf."""
 
-    #TODO: Macht diese Zeile hier Sinn?
     os.makedirs(UPLOAD_DIR, exist_ok=True)
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+    os.makedirs(UPLOAD_TMP_DIR, exist_ok=True)
 
-    #Schaue nach, ob die empfangene Datei mit dcm oder zip endet
     filename = file.filename.lower()
     if not filename.endswith((".dcm", ".zip")):
         logger.error(f"Invalid file type uploaded: {filename}")
         raise InvalidDICOMFileType(f"Ungültiger Dateityp: '{filename}'. Erlaubt sind nur .dcm oder .zip.")
 
-    #Erzeuge einen temporären Pfad und schreibe dort den Dateiinhalt von file rein 
-    tmp_filepath = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.dcm")
-    try:
-        with open(tmp_filepath, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-    except Exception as e:
-        logger.error(f"Error processing single DICOM file: {str(e)}")
-        raise blabla
+    tmp_filepath = os.path.join(UPLOAD_TMP_DIR, f"{uuid.uuid4()}.dcm")
 
-    #Weiterleitung an die nächsten Funktionen
-    if filename.endswith(".dcm"):
-        upload_dicom(tmp_filepath)
-    elif filename.endswith(".zip"):
-        upload_dicom_zip(tmp_filepath)   
+    try:
+        # Dateiinhalt in temporäre Datei schreiben
+        try:
+            with open(tmp_filepath, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        except Exception as e:
+            raise DICOMProcessingError(f"Fehler beim Zwischenspeichern der Datei: {str(e)}")
+
+        # Verarbeiten der Datei -> Übergabe an nächste Funktion
+        if filename.endswith(".dcm"):
+            return upload_dicom(tmp_filepath)
+        elif filename.endswith(".zip"):
+            return upload_dicom_zip(tmp_filepath)
+
+    # Löschen der temporären Datei 
+    finally:
+        if os.path.exists(tmp_filepath):
+            os.remove(tmp_filepath)
 
 def upload_dicom(tmp_filepath:str):
     """Führt den vollständigen Upload-Workflow für eine DICOM-Datei durch:
@@ -77,8 +86,144 @@ def upload_dicom(tmp_filepath:str):
     ds = anonymize_dicom(ds)
     pixel_array = extract_pixel_array(ds)
     #metadata = extract_metadata(ds) -> TODO: eher für Maimuna relevant
-    store_dicom_and_data(ds, pixel_array)
+    upload_res = store_dicom_and_data(ds, pixel_array)
+    return upload_res
     #return UploadResult(...)
+
+def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
+    #Schaue nach, ob die Datei DICOM konform ist
+    try:
+        ds = pydicom.dcmread(tmp_filepath)
+        return ds
+        #logging.info(f"[Upload] DICOM-Datei erfolgreich gelesen: {file_path}")
+    except InvalidDicomError:
+        raise InvalidDICOMFormat("Datei ist kein gültiges DICOM-Format.")
+    except Exception as e:
+        #logging.error(f"[Upload] Allgemeiner Fehler beim Lesen der Datei: {file_path} → {str(e)}")
+        raise UnexpectedDICOMError(f"Unerwarteter Fehler: {str(e)}")
+    
+def validate_dicom(ds: Dataset) -> None:
+    """
+    Führt alle notwendigen Validierungen an der DICOM-Datei durch.
+    Wirft bei Fehlern Exceptions.
+    """
+
+    check_pixeldata(ds)
+    check_required_tags(ds)
+    #TODO: final entscheiden ob check_modality nötig ist
+    #check_modality(ds)
+
+def check_required_tags(ds: Dataset) -> None:
+    """Prüft, ob alle benötigten Tags vorhanden sind."""
+    required_tags = {"SOPInstanceUID", "SOPClassUID", "Modality"}
+    missing_tags = []
+
+    for tag in required_tags:
+        if tag not in ds:
+            missing_tags.append(tag)
+            continue
+
+    if missing_tags:
+        #logging.error(f"[Validation] Fehlende Pflichtfelder (Type 1): {fehlende_typ1}")
+        raise MissingRequiredTagError(f"Fehlende Pflichtfelder: {', '.join(missing_tags)}")
+
+        # value = getattr(ds, tag)
+        # if tag_typ == 1 and (value is None or str(value).strip() == ""):
+        #     fehlende_typ1.append(tag)
+        # elif tag_typ == 2 and (value is None or str(value).strip() == ""):
+        #     logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
+
+def check_pixeldata(ds: Dataset, filename: str) -> None:
+    """Prüft, ob PixelData vorhanden ist."""
+
+    if not hasattr(ds, "PixelData"):
+        #logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
+        raise MissingPixelData("DICOM-File hat keine Pixeldata")
+    
+#TODO: final entschieden, was wirklich anonymisiert wird 
+def anonymize_dicom(ds: pydicom.Dataset) -> pydicom.Dataset:
+    """
+    Entfernt oder ersetzt sensible Patientendaten im DICOM-Datensatz.
+    Gibt einen anonymisierten Datensatz zurück.
+    """
+
+    tags_to_anonymize = [
+        "PatientName",              # Name des Patienten
+        "InstitutionName",          # Name der Klinik
+        "ReferringPhysicianName",   # Überweisender Arzt
+        "PatientAddress",           # Adresse
+        #"PatientID",                # Interne ID
+        #"PatientBirthDate",         # Geburtsdatum
+        #"OtherPatientIDs",          # Weitere IDs
+        #"AccessionNumber",          # Zugriffsnummer
+        #"OperatorsName",            # Bedienername
+        #"IssuerOfPatientID",        # ID-Aussteller
+        #"StudyID"                   # Studiennummer
+    ]
+
+    for tag in tags_to_anonymize:
+        if tag in ds:
+            ds[tag].value = "ANONYMIZED"
+        
+    return ds
+
+def extract_pixel_array(ds: pydicom.Dataset):
+    """
+    Wandelt das DICOM-Bild in ein NumPy-Array um und speichert es im .npy-Format.
+    """
+    # if output_dir is None:
+    #     output_dir = os.getenv("PROCESSED_DIR", "/tmp/processed")
+    #     logging.info(f"[Extractor] Verwende Standardverzeichnis: {output_dir}")
+
+    # os.makedirs(output_dir, exist_ok=True)
+
+    try:
+        pixel_array = ds.pixel_array.astype(np.float32)
+        logging.info(f"[Extractor] Pixel-Array erfolgreich extrahiert")
+    except Exception as e:
+        logging.error(f"[Extractor] Fehler beim Extrahieren des Pixel-Arrays: {str(e)}")
+        raise DICOMExtractionError("Fehler beim Extahieren des Pixel-Arrays.")
+    
+    return pixel_array
+
+    # out_path = os.path.join(output_dir, f"{hash_name}_anon.npy")
+    # np.save(out_path, array)
+    # logging.info(f"[Extractor] Pixel-Array gespeichert unter: {out_path}")
+    # return out_path
+
+def store_dicom_and_data(ds: pydicom.Dataset, pixel_array) -> UploadDICOMResponseModel:
+    """Speicherung der DICOM-Datei und die extrahierte Pixelarray."""
+
+    #upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
+    #os.makedirs(upload_dir, exist_ok=True)
+    #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
+    sop_uid = ds.SOPInstanceUID
+    anon_path = os.path.join(UPLOAD_DIR, f"{sop_uid}_anon.dcm")
+    npy_path = os.path.join(PROCESSED_DIR, f"{sop_uid}_anon.npy")
+
+    try:
+        ds.save_as(anon_path)
+        logging.info(f"[Datei] Anonymisierte Datei gespeichert: {anon_path}")
+    except Exception as e:
+        logging.error(f"[Datei] Fehler beim Speichern der anonymisierten Datei: {anon_path} → {str(e)}")
+        raise DICOMProcessingError(f"Fehler beim Speichern der anonymisierten Datei: {str(e)}")
+
+    try:
+        #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
+        pixel_array.save_as(npy_path)
+        logging.info(f"[PixelData] Pixel-Array gespeichert unter: {npy_path}")
+    except Exception as e:
+        logging.error(f"[PixelData] Fehler beim Speichern des Pixel-Arrays: {str(e)}")
+        raise DICOMProcessingError(f"Fehler beim Speichern des Pixel-Arrays: {str(e)}")
+    
+    return UploadDICOMResponseModel(
+        message="DICOM-Datei erfolgreich verarbeitet",
+        data=[UploadResultItem(
+            sop_instance_uid=sop_uid,
+            saved_dicom_path=anon_path,
+            saved_pixel_array_path=npy_path)]
+    )
+    
 
     
     
@@ -146,113 +291,7 @@ def upload_dicom(tmp_filepath:str):
     #     #"metadata": metadata
     # }
 
-def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
-    #Schaue nach, ob die Datei DICOM konform ist
-    try:
-        ds = pydicom.dcmread(tmp_filepath)
-        return ds
-        #logging.info(f"[Upload] DICOM-Datei erfolgreich gelesen: {file_path}")
-    except InvalidDicomError:
-        #TODO: Datei aus tmp_filepath entfernen -> clean up
-        raise ValueError("Datei ist kein gültiges DICOM-Format.")
-    except Exception as e:
-        #logging.error(f"[Upload] Allgemeiner Fehler beim Lesen der Datei: {file_path} → {str(e)}")
-        raise blabla
-    
-def validate_dicom(ds: Dataset) -> None:
-    """
-    Führt alle notwendigen Validierungen an der DICOM-Datei durch.
-    Wirft bei Fehlern Exceptions.
-    """
 
-    check_pixeldata(ds)
-    check_required_tags(ds)
-    #TODO: final entscheiden ob check_modality nötig ist
-    #check_modality(ds)
-
-def check_required_tags(ds: Dataset) -> None:
-    """Prüft, ob alle benötigten Tags vorhanden sind."""
-    required_tags = {"SOPInstanceUID", "SOPClassUID", "Modality"}
-    missing_tags = []
-
-    for tag in required_tags.items():
-        if not hasattr(ds, tag):  
-            missing_tags.append(tag)
-            continue
-
-    if missing_tags:
-        #logging.error(f"[Validation] Fehlende Pflichtfelder (Type 1): {fehlende_typ1}")
-        raise MissingRequiredTagError(f"Fehlende Pflichtfelder: {', '.join(missing_tags)}")
-
-        # value = getattr(ds, tag)
-        # if tag_typ == 1 and (value is None or str(value).strip() == ""):
-        #     fehlende_typ1.append(tag)
-        # elif tag_typ == 2 and (value is None or str(value).strip() == ""):
-        #     logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
-
-def check_pixeldata(ds: Dataset, filename: str) -> None:
-    """Prüft, ob PixelData vorhanden ist."""
-
-    if not hasattr(ds, "PixelData"):
-        #logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
-        raise MissingPixelData("DICOM-File hat keine Pixeldata")
-    
-#TODO: final entschieden, was wirklich anonymisiert wird 
-def anonymize_dicom(ds: pydicom.Dataset) -> pydicom.Dataset:
-    """
-    Entfernt oder ersetzt sensible Patientendaten im DICOM-Datensatz.
-    Gibt einen anonymisierten Datensatz zurück.
-    """
-
-    tags_to_anonymize = [
-        "PatientName",              # Name des Patienten
-        "InstitutionName",          # Name der Klinik
-        "ReferringPhysicianName",   # Überweisender Arzt
-        "PatientAddress",           # Adresse
-        #"PatientID",                # Interne ID
-        #"PatientBirthDate",         # Geburtsdatum
-        #"OtherPatientIDs",          # Weitere IDs
-        #"AccessionNumber",          # Zugriffsnummer
-        #"OperatorsName",            # Bedienername
-        #"IssuerOfPatientID",        # ID-Aussteller
-        #"StudyID"                   # Studiennummer
-    ]
-
-    for tag in tags_to_anonymize.items():
-        if hasattr(ds, tag):  
-            #original_value = str(ds.get(tag, ""))
-            ds.data_element(tag).value = "ANONYMIZED"
-            #logging.info(f"[Anonymizer] Feld '{tag}' anonymisiert (alt: {original_value})")
-        
-    return ds
-
-def extract_pixel_array(ds: pydicom.Dataset, hash_name: str, output_dir: str = None) -> str:
-    """
-    Wandelt das DICOM-Bild in ein NumPy-Array um und speichert es im .npy-Format.
-    """
-    # if output_dir is None:
-    #     output_dir = os.getenv("PROCESSED_DIR", "/tmp/processed")
-    #     logging.info(f"[Extractor] Verwende Standardverzeichnis: {output_dir}")
-
-    # os.makedirs(output_dir, exist_ok=True)
-
-    try:
-        pixel_array = ds.pixel_array.astype(np.float32)
-        logging.info(f"[Extractor] Pixel-Array erfolgreich extrahiert")
-    except Exception as e:
-        logging.error(f"[Extractor] Fehler beim Extrahieren des Pixel-Arrays: {str(e)}")
-        raise FailedPixelDataExtraction("Fehler beim Extahieren des Pixel-Arrays.")
-    
-    return pixel_array
-
-    # out_path = os.path.join(output_dir, f"{hash_name}_anon.npy")
-    # np.save(out_path, array)
-    # logging.info(f"[Extractor] Pixel-Array gespeichert unter: {out_path}")
-    # return out_path
-
-def store_dicom_and_data(ds: pydicom.Dataset, pixel_array):
-    
-    pass
 
 
 #TODO: Tag "modaltity" soll geprüft werden, 

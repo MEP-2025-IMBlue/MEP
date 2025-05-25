@@ -20,20 +20,18 @@ router = APIRouter(tags=["DICOM"])
 # Upload-Endpunkt für einzelne DICOM-Dateien oder ZIP-Archive
 @router.post("/dicoms", response_model=UploadDICOMResponseModel)
 async def post_upload_dicom(file: UploadFile = File(...)):
-    service_dicom.receive_file()
-
-    #if received: single dicom
-    service_dicom.upload_dicom()
-    
-    #if received: zip
-    service_dicom.upload_dicom_zip()
-
     try:
-        DICOM_file = service_dicom.upload_dicom()
+        return service_dicom.receive_file(file)
     except InvalidDICOMFileType as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except ERROR_Platzhalter_irgendwas_mit_Fehler_Einlesen as e:
-        raise HTTPException
+    except DICOMValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except DICOMProcessingError as e:
+        raise HTTPException(status_code=500, detail="Interner Verarbeitungsfehler")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Unbekannter Fehler: " + str(e))
+ 
+    
     
     #ALLES AB HIER BURAK ORIGINAL
     # filename = file.filename.lower()

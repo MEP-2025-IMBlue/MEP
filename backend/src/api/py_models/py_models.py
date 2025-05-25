@@ -74,19 +74,15 @@ class ContainerResponse(BaseModel):
 # ========================================
 # UploadResultItem: Ergebnis für eine einzelne DICOM-Datei
 # ========================================
-from typing import List, Optional
-from pydantic import Field
-
 class UploadResultItem(BaseModel):
-    anonymized_file: Optional[str] = Field(None, description="Pfad zur anonymisierten DICOM-Datei")
-    pixel_array_file: Optional[str] = Field(None, description="Pfad zur gespeicherten .npy-Datei")
-    file: Optional[str] = Field(None, description="Dateiname der Originaldatei (bei Fehlern)")
-    error: Optional[str] = Field(None, description="Fehlermeldung, falls Verarbeitung fehlgeschlagen ist")
+    sop_instance_uid: str
+    saved_dicom_path: str
+    saved_pixel_array_path: str
 
 # ========================================
 # UploadDICOMResponseModel: Antwortmodell für Upload-Endpunkt
 # ========================================
 #TO DO: final entscheiden, was wir dem User alles als Antwort nach dem Upload geben möchten
 class UploadDICOMResponseModel(BaseModel):
-    message: str = Field(..., description="Statusmeldung zur Verarbeitung")
-    data: List[UploadResultItem] = Field(..., description="Liste der Ergebnisse pro Datei")
+    message: str
+    data: list[UploadResultItem]
