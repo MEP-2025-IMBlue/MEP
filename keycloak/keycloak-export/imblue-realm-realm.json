@@ -406,8 +406,8 @@
     "id" : "c80f94ae-6cb7-4b24-b60f-9791910ec79f",
     "username" : "admin1",
     "firstName" : "Admin",
-    "lastName" : "Der Erste",
-    "email" : "test@hotmail.com",
+    "lastName" : "First",
+    "email" : "admin1@hotmail.com",
     "emailVerified" : false,
     "createdTimestamp" : 1747301274397,
     "enabled" : true,
@@ -429,8 +429,8 @@
     "id" : "3a68a54d-f44b-4c1b-9532-4a20a7ea2aa3",
     "username" : "provider1",
     "firstName" : "Provider",
-    "lastName" : "Der Erste",
-    "email" : "demo@provider.com",
+    "lastName" : "First",
+    "email" : "provider1@hotmail.com",
     "emailVerified" : false,
     "createdTimestamp" : 1747301903208,
     "enabled" : true,
@@ -452,8 +452,8 @@
     "id" : "748eff0e-8e83-4a7c-abc0-78d4b893db97",
     "username" : "test1",
     "firstName" : "Test",
-    "lastName" : "Test",
-    "email" : "marius@hotmail.com",
+    "lastName" : "First",
+    "email" : "test1@hotmail.com",
     "emailVerified" : false,
     "createdTimestamp" : 1747412796386,
     "enabled" : true,
@@ -468,15 +468,31 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "default-roles-imblue-realm" ],
+    "realmRoles" : [ "default-roles-imblue-realm" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "80fe4789-f80a-4a9d-b998-8ba735e5f53f",
+    "username" : "test2",
+    "firstName" : "Test",
+    "lastName" : "Second",
+    "email" : "test2@hotmail.com",
+    "emailVerified" : false,
+    "createdTimestamp" : 1748210047963,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-imblue-realm" ],
     "notBefore" : 0,
     "groups" : [ ]
   }, {
     "id" : "45513a0a-89cf-4ef3-83b9-47f4e3b48212",
     "username" : "user1",
     "firstName" : "User",
-    "lastName" : "Der Erste",
-    "email" : "user@hotmail.com",
+    "lastName" : "First",
+    "email" : "user1@hotmail.com",
     "emailVerified" : false,
     "createdTimestamp" : 1747301979703,
     "enabled" : true,
@@ -1462,7 +1478,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "saml-role-list-mapper" ]
       }
     }, {
       "id" : "e65d9fda-d680-4cb7-b7ab-9bf8b8c10323",
@@ -1506,7 +1522,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "saml-role-list-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "oidc-address-mapper" ]
       }
     } ],
     "org.keycloak.keys.KeyProvider" : [ {
