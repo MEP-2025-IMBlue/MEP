@@ -29,6 +29,19 @@ async def post_upload_dicom(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Unbekannter Fehler: " + str(e))
 
+@router.delete("/dicoms/uploads/{sop_uid}")
+async def delete_upload_dicom(sop_uid):
+    service_dicom.delete_upload_dicom(sop_uid)
+
+@router.get("/dicoms/uploads")
+async def get_all_stored_dicom():
+    return service_dicom.get_all_stored_dicom()
+
+    # try:
+    #     pass
+    # except:
+    #     pass
+    #     raise HTTPException()
  
     
     
@@ -37,66 +50,66 @@ async def post_upload_dicom(file: UploadFile = File(...)):
     # os.makedirs(UPLOAD_DIR, exist_ok=True)
 
     #if filename.endswith(".dcm"):
-        tmp_filepath = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.dcm")
-        try:
-            with open(tmp_filepath, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-            result = handle_dicom_upload(tmp_filepath)
-            logger.info(f"Successfully uploaded single DICOM file: {filename}")
-            return UploadDICOMResponseModel(
-                message="Einzelne DICOM-Datei verarbeitet",
-                data=[UploadResultItem(**result)]
-            )
-        except Exception as e:
-            logger.error(f"Error processing single DICOM file: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Fehler bei Verarbeitung: {str(e)}")
-        finally:
-            if os.path.exists(tmp_filepath):
-                os.remove(tmp_filepath)  # 🧹 Temporäre Datei löschen
+        # tmp_filepath = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.dcm")
+        # try:
+        #     with open(tmp_filepath, "wb") as buffer:
+        #         shutil.copyfileobj(file.file, buffer)
+        #     result = handle_dicom_upload(tmp_filepath)
+        #     logger.info(f"Successfully uploaded single DICOM file: {filename}")
+        #     return UploadDICOMResponseModel(
+        #         message="Einzelne DICOM-Datei verarbeitet",
+        #         data=[UploadResultItem(**result)]
+        #     )
+        # except Exception as e:
+        #     logger.error(f"Error processing single DICOM file: {str(e)}")
+        #     raise HTTPException(status_code=500, detail=f"Fehler bei Verarbeitung: {str(e)}")
+        # finally:
+        #     if os.path.exists(tmp_filepath):
+        #         os.remove(tmp_filepath)  # 🧹 Temporäre Datei löschen
 
     #elif filename.endswith(".zip"):
-        zip_id = str(uuid.uuid4())
-        zip_path = os.path.join(UPLOAD_DIR, f"{zip_id}.zip")
-        extract_dir = os.path.join(UPLOAD_DIR, zip_id)
-        results = []
+    #     zip_id = str(uuid.uuid4())
+    #     zip_path = os.path.join(UPLOAD_DIR, f"{zip_id}.zip")
+    #     extract_dir = os.path.join(UPLOAD_DIR, zip_id)
+    #     results = []
 
-        try:
-            with open(zip_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
+    #     try:
+    #         with open(zip_path, "wb") as buffer:
+    #             shutil.copyfileobj(file.file, buffer)
 
-            os.makedirs(extract_dir, exist_ok=True)
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                zip_ref.extractall(extract_dir)
+    #         os.makedirs(extract_dir, exist_ok=True)
+    #         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    #             zip_ref.extractall(extract_dir)
 
-            for root, dirs, files in os.walk(extract_dir):  # 🔁 ZIP rekursiv verarbeiten
-                for entry in files:
-                    if entry.endswith(".dcm"):
-                        full_path = os.path.join(root, entry)
-                        try:
-                            result = handle_dicom_upload(full_path)
-                            logger.info(f"Successfully processed DICOM from ZIP: {entry}")
-                            results.append(UploadResultItem(**result))
-                        except Exception as e:
-                            logger.error(f"Error while processing file from ZIP: {entry} → {str(e)}")
-                            results.append(UploadResultItem(file=entry, error=str(e)))
+    #         for root, dirs, files in os.walk(extract_dir):  # 🔁 ZIP rekursiv verarbeiten
+    #             for entry in files:
+    #                 if entry.endswith(".dcm"):
+    #                     full_path = os.path.join(root, entry)
+    #                     try:
+    #                         result = handle_dicom_upload(full_path)
+    #                         logger.info(f"Successfully processed DICOM from ZIP: {entry}")
+    #                         results.append(UploadResultItem(**result))
+    #                     except Exception as e:
+    #                         logger.error(f"Error while processing file from ZIP: {entry} → {str(e)}")
+    #                         results.append(UploadResultItem(file=entry, error=str(e)))
 
-            return UploadDICOMResponseModel(
-                message="ZIP-Datei verarbeitet",
-                data=results
-            )
-        except Exception as e:
-            logger.error(f"Unhandled exception during ZIP processing: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Fehler bei ZIP-Verarbeitung: {str(e)}")
-        finally:
-            # 🧹 Temporäre ZIP-Datei und extrahiertes Verzeichnis löschen
-            if os.path.exists(zip_path):
-                os.remove(zip_path)
-            if os.path.exists(extract_dir):
-                shutil.rmtree(extract_dir, ignore_errors=True)
+    #         return UploadDICOMResponseModel(
+    #             message="ZIP-Datei verarbeitet",
+    #             data=results
+    #         )
+    #     except Exception as e:
+    #         logger.error(f"Unhandled exception during ZIP processing: {str(e)}")
+    #         raise HTTPException(status_code=500, detail=f"Fehler bei ZIP-Verarbeitung: {str(e)}")
+    #     finally:
+    #         # 🧹 Temporäre ZIP-Datei und extrahiertes Verzeichnis löschen
+    #         if os.path.exists(zip_path):
+    #             os.remove(zip_path)
+    #         if os.path.exists(extract_dir):
+    #             shutil.rmtree(extract_dir, ignore_errors=True)
 
-    # else:
-    #     logger.warning(f"Invalid file type uploaded: {filename}")
-    #     raise HTTPException(status_code=400, detail="Nur .dcm oder .zip-Dateien erlaubt.")
+    # # else:
+    # #     logger.warning(f"Invalid file type uploaded: {filename}")
+    # #     raise HTTPException(status_code=400, detail="Nur .dcm oder .zip-Dateien erlaubt.")
 
 #TO DO: Post Routen trennen: 1.Post-Route nur Upload, 2.Post-Route (also diese hier) nur Datenbank
 @router.post("dicoms/database")

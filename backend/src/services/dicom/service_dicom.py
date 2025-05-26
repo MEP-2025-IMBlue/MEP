@@ -40,14 +40,14 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 PROCESSED_DIR = os.getenv("PROCESSED_DIR", "/tmp/processed")
 UPLOAD_TMP_DIR = os.getenv("UPLOAD_TMP_DIR", "storage/tmp")
 
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(PROCESSED_DIR, exist_ok=True)
+os.makedirs(UPLOAD_TMP_DIR, exist_ok=True)
+
 def receive_file(file: UploadFile = File(...)):
     """Empfängt eine Datei, prüft Endung (.dcm/.zip),
     speichert sie temporär, 
     übergibt zur Verarbeitung und räumt auf."""
-
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    os.makedirs(PROCESSED_DIR, exist_ok=True)
-    os.makedirs(UPLOAD_TMP_DIR, exist_ok=True)
 
     filename = file.filename.lower()
     if not filename.endswith((".dcm", ".zip")):
@@ -94,7 +94,6 @@ def upload_dicom(tmp_filepath:str) -> UploadResultItem:
     #metadata = extract_metadata(ds) -> TODO: eher für Maimuna relevant
     return store_dicom_and_data(ds, pixel_array)
     
-
 def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
     #Schaue nach, ob die Datei DICOM konform ist
     try:
@@ -187,7 +186,7 @@ def extract_pixel_array(ds: pydicom.Dataset):
         logging.info(f"[Extractor] Pixel-Array erfolgreich extrahiert")
     except Exception as e:
         logging.error(f"[Extractor] Fehler beim Extrahieren des Pixel-Arrays: {str(e)}")
-        raise DICOMExtractionError("Fehler beim Extahieren des Pixel-Arrays.")
+        raise DICOMExtractionError("Fehler beim Extrahieren des Pixel-Arrays.")
     
     return pixel_array
 
@@ -257,6 +256,41 @@ def upload_dicom_zip(zip_path: str) -> UploadDICOMResponseModel:
         message=f"{len(results)} DICOM-Datei(en) erfolgreich verarbeitet.",
         data=results
     )
+
+def delete_upload_dicom(sop_uid:str):
+    """Löscht die DICOM-Upload Files, also: die .dcm und .npy anhand der SOPInstanceUID"""
+
+    filename_dcm = f"{sop_uid}_anon.dcm"
+    filepath_dcm = os.path.join(UPLOAD_DIR, filename_dcm)
+    filename_npy = f"{sop_uid}_anon.npy"
+    filepath_npy = os.path.join(UPLOAD_DIR, filename_npy)
+
+    # Lösche die Datei, wenn sie existiert
+    if os.path.exists(filepath_dcm):
+        os.remove(filepath_dcm)
+        return f"Datei {filename_dcm} wurde gelöscht"
+    if os.path.exists(filepath_npy):
+        os.remove(filepath_npy)
+        return f"Datei {filename_npy} wurde gelöscht"
+    
+    return f"Es wurde keine Dateien namens {filename_dcm} gefunden."
+
+
+def get_all_stored_dicom():
+    """Listet alle DICOM-Bilder, die gerade gespeichert sind."""
+    result = []
+    #dir_path_dcm = os.path.dirname(UPLOAD_DIR)
+
+    for files in os.walk(UPLOAD_DIR):
+        for file in files:
+            result.append(file)
+             
+    return result
+             
+            
+
+
+
   
     
 
