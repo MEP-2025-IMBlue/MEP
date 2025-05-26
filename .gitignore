@@ -3,3 +3,6 @@
 # Python Bytecode
 __pycache__/
 *.py[cod]
+
+#Sensible Daten wie Passwort & Benutzername -> Es werden alle .env-Dateien ignoriert
+#*.env

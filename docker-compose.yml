@@ -1,38 +1,103 @@
 services:
-  frontend:
-    image: maimuna03/mep-frontend:latest
-    container_name: mep-frontend
+
+  imblue-db:
+    image: postgres:16
+    container_name: imblue-db
+    restart: always
     ports:
-      - "8080:8080"
+      - "5432:5432"
+    env_file:
+      - ./database/.env
     volumes:
-      - ./frontend/src:/app
+      # Speichert die PostgreSQL-Daten persistent außerhalb des Containers → Daten bleiben erhalten, auch wenn der Container neu gestartet oder gelöscht wird
+      - imblue_data:/var/lib/postgresql/data
+      # Führt einmalig beim allerersten Start das SQL-Initialisierungsskript aus (nicht mehr bei späteren Starts, wenn Daten schon da sind)
+      - ./database/schemas/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imblue_user -d imblue_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mep-network
+
+  kc_imblue-db:
+    image: postgres:16
+    container_name: kc_imblue-db
+    restart: always
+    env_file:
+      - ./keycloak/.env
+    volumes:
+      - kc_imblue_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kc_imblue_user -d kc_imblue_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mep-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.4
+    container_name: mep-keycloak
+    # Startet Keycloak im Entwickler-Modus (kein HTTPS, schnelleres Setup) & Importiert einmalig beim ersten Start den Realm aus der Datei im Volume
+    # Wichtig: Der Import passiert nur, wenn dieser Realm im Keycloak noch nicht existiert. Wenn du z. B. den Container löschst oder das Volume entfernst, wird er beim nächsten Start erneut importiert.
+    command: start-dev --import-realm
+    env_file:
+      - ./keycloak/.env
     depends_on:
-      - backend
+      kc_imblue-db:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./keycloak/keycloak-export:/opt/keycloak/data/import
+    networks:
+      - mep-network
 
   backend:
-    image: maimuna03/mep-backend:latest
+    image: maimuna03/mep-backend:latest   
+    #build:
+    #  context: ./backend
+    #  dockerfile: Dockerfile
     container_name: mep-backend
+    depends_on:
+      imblue-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/src:/app
-    depends_on:
-      - db
+      - ./backend:/app
+      - ./storage/uploads:/tmp/uploads
+      - ./storage/processed:/tmp/processed
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
+    env_file:
+      - ./backend/.env
     environment:
-      - DATABASE_URL=postgresql://imblue_user:secret@db:5432/imblue_db
+      - PYTHONPATH=/app/src
+    networks:
+      - mep-network
 
-  db:
-    image: postgres:16
-    container_name: mep-db
-    restart: always
-    environment:
-      POSTGRES_DB: imblue_db
-      POSTGRES_USER: imblue_user
-      POSTGRES_PASSWORD: secret
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  frontend:
+    image: maimuna03/mep-frontend:latest
+    #build:
+    #  context: ./frontend
+    #  dockerfile: Dockerfile
+    container_name: mep-frontend
+    depends_on:
+      keycloak:
+        condition: service_started
     ports:
-      - "5432:5432"
+      - "8080:8080"
+    networks:
+      - mep-network
 
 volumes:
-  postgres_data:
+  imblue_data:
+  kc_imblue_data:
+
+networks:
+  mep-network:
+    driver: bridge
