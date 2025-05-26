@@ -11,12 +11,16 @@
 </head>
 
 <body>
+  <!-- Navigation wird per JavaScript dynamisch geladen -->
   <div id="navbar"></div>
   
   <main>
+    <!-- Hauptüberschrift der Seite -->
     <h1 class="section-title">KI-Images</h1>
 
+    <!-- Container für Filter, Tabelle und Zusatzinformationen -->
     <div class="dashboard-container vertical-layout">
+      <!-- Filterleiste oben mit Dropdown und Texteingabe -->
       <div class="filter-controls">
         <select id="filterSelect">
           <option value>&#x2B07; Filtern nach...</option>
@@ -24,13 +28,15 @@
           <option value="image_tag"> Tag</option>
           <option value="created_at"> Hochgeladen am</option>
         </select>
-
+        <!-- Texteingabefeld zur Live-Suche -->
         <input type="text" id="searchInput" placeholder="&#x1F50E; Suchbegriff eingeben..." />
       </div>
+      <!-- Platzhalter für dynamisch generierte Tabelle -->
       <div class="table-wrapper" id="ki-image-list">
         <p>Lade KI-Images...</p>
       </div>
 
+       <!-- Informationsbox rechts oder unterhalb der Tabelle -->
       <div class="details-card">
         <h2>Info</h2>
         <p>Hier erscheinen alle hochgeladenen KI-Images.</p>
@@ -41,7 +47,7 @@
 
   <footer>© mRay</footer>
 
-  <script src="../scripts/dashboard.js?v=20250517"></script>
+  <script src="../scripts/dashboard.js?v=20250517"></script> 
   <script src="../scripts/global_script.js"></script>
 
 </body>
