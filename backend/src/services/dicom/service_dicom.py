@@ -138,11 +138,20 @@ def check_required_tags(ds: Dataset) -> None:
         #     logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
 
 def check_pixeldata(ds: Dataset) -> None:
-    """Prüft, ob PixelData vorhanden ist."""
+    # """Prüft, ob PixelData vorhanden ist."""
 
-    if not hasattr(ds, "PixelData"):
-        #logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
-        raise MissingPixelData("DICOM-File hat keine Pixeldata")
+    # if not hasattr(ds, "PixelData"):
+    #     #logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
+    #     raise MissingPixelData("DICOM-File hat keine Pixeldata")
+    """
+    Stellt sicher, dass das Pixel-Array dekodierbar ist.
+    """
+    try:
+        _ = ds.pixel_array  # löst alle relevanten Fehler aus
+    except NotImplementedError:
+        raise MissingPixelData("PixelData ist komprimiert und kein passender Decoder installiert.")
+    except Exception as e:
+        raise MissingPixelData(f"PixelData kann nicht extrahiert werden: {str(e)}")
     
 #TODO: final entschieden, was wirklich anonymisiert wird 
 def anonymize_dicom(ds: pydicom.Dataset) -> pydicom.Dataset:
@@ -257,35 +266,30 @@ def upload_dicom_zip(zip_path: str) -> UploadDICOMResponseModel:
         data=results
     )
 
-def delete_upload_dicom(sop_uid:str):
+def delete_upload_dicom(sop_uid:str) -> None:
     """Löscht die DICOM-Upload Files, also: die .dcm und .npy anhand der SOPInstanceUID"""
 
     filename_dcm = f"{sop_uid}_anon.dcm"
     filepath_dcm = os.path.join(UPLOAD_DIR, filename_dcm)
     filename_npy = f"{sop_uid}_anon.npy"
-    filepath_npy = os.path.join(UPLOAD_DIR, filename_npy)
+    filepath_npy = os.path.join(PROCESSED_DIR, filename_npy)
 
-    # Lösche die Datei, wenn sie existiert
-    if os.path.exists(filepath_dcm):
+    if os.path.exists(filepath_dcm) and os.path.exists(filepath_npy):
         os.remove(filepath_dcm)
-        return f"Datei {filename_dcm} wurde gelöscht"
-    if os.path.exists(filepath_npy):
         os.remove(filepath_npy)
-        return f"Datei {filename_npy} wurde gelöscht"
+    else:
+        raise FileNotFoundError(f"Datei {filepath_dcm} nicht gefunden")
     
-    return f"Es wurde keine Dateien namens {filename_dcm} gefunden."
-
-
-def get_all_stored_dicom():
+def get_all_stored_dicom() -> list:
     """Listet alle DICOM-Bilder, die gerade gespeichert sind."""
-    result = []
-    #dir_path_dcm = os.path.dirname(UPLOAD_DIR)
 
-    for files in os.walk(UPLOAD_DIR):
-        for file in files:
-            result.append(file)
-             
-    return result
+    result = []
+
+    for file in os.listdir(UPLOAD_DIR):
+        filename = os.path.basename(file)
+        result.append(filename)
+    return result        
+    
              
             
 

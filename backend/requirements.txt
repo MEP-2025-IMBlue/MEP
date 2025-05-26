@@ -10,3 +10,6 @@ pydantic
 python-dotenv  # um .env-Daten lesen zu können
 numpy
 pydicom
+pylibjpeg
+pylibjpeg-libjpeg
+pylibjpeg-openjpeg

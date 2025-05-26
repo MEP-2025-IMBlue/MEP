@@ -15,10 +15,7 @@ logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(tags=["DICOM"])
 
-#TODO: Funktionen besser auslagern, die Route macht keine Logik, nur HTTPException Handling
-# + neue Route zum Löschen der temporär gespeciehrten Datei
-# Upload-Endpunkt für einzelne DICOM-Dateien oder ZIP-Archive
-@router.post("/dicoms", response_model=UploadDICOMResponseModel)
+@router.post("/dicoms/uploads", response_model=UploadDICOMResponseModel)
 async def post_upload_dicom(file: UploadFile = File(...)):
     try:
         return service_dicom.receive_file(file)
@@ -29,13 +26,21 @@ async def post_upload_dicom(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Unbekannter Fehler: " + str(e))
 
+#TODO: DICOM-Dateien löschen, wenn sie vor X Tagen hochgeladen wurden
 @router.delete("/dicoms/uploads/{sop_uid}")
 async def delete_upload_dicom(sop_uid):
-    service_dicom.delete_upload_dicom(sop_uid)
+    try:
+        service_dicom.delete_upload_dicom(sop_uid)
+        return {"message": f"{sop_uid}_anon.dcm wurde gelöscht"}
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.get("/dicoms/uploads")
 async def get_all_stored_dicom():
-    return service_dicom.get_all_stored_dicom()
+    result = service_dicom.get_all_stored_dicom()
+    if not result:
+        return {"message": "Es wurden noch keine DICOM_Dateien hochgeladen."}
+    return result
 
     # try:
     #     pass
