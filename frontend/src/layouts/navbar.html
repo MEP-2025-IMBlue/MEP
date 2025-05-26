@@ -1,15 +1,13 @@
 <!-- frontend/src/layouts/navbar.html -->
 <nav class="navbar">
   <div class="logo">
-    <a style="text-decoration: none; color: inherit;" href="/pages/dashboard.html">mRay AIR</a>
+    <a style="text-decoration: none; color: inherit;" href="#">mRay AIR</a>
   </div>
-  <div class="nav-links">
-    <a href="/pages/dashboard.html">Dashboard</a>
-    <a href="/pages/container_upload.html">Container hochladen</a>
-    <a href="/pages/dicom_upload.html">DICOM hochladen</a>
-    <a href="/pages/profil.html">Profil</a>
-  </div>
+  
+  <!-- Dynamisch durch auth.js gefüllt -->
+  <div class="nav-links" id="nav-links"></div>
+
   <div class="logout">
-    <a href="/pages/login.html">Logout</a>
+    <button onclick="logout()">Logout</button>
   </div>
 </nav>
