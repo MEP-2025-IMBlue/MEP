@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
       statusDiv.style.color = "#00cc66";
       dicomForm.reset();
       previewText.textContent = "";
-      // fetchDicomList();
+     
       displayKiImages(); // KI-Images nach Upload anzeigen
     } catch (err) {
       statusDiv.textContent = `\u274C Fehler beim Upload: ${err.message}`;
