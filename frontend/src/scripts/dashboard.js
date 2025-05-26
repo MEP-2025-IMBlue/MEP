@@ -1,10 +1,12 @@
+// Hauptfunktion: Wird ausgeführt, sobald das DOM vollständig geladen ist
 document.addEventListener("DOMContentLoaded", async () => {
-  const container = document.getElementById("ki-image-list");
-  const searchInput = document.getElementById("searchInput");
-  const filterSelect = document.getElementById("filterSelect");
+  const container = document.getElementById("ki-image-list");// Container für KI-Image-Tabelle
+  const searchInput = document.getElementById("searchInput");// Texteingabe für Filter
+  const filterSelect = document.getElementById("filterSelect");// Dropdown für Filterfeld
 
-  let allData = []; // wird global gespeichert
+  let allData = []; // globale Liste aller geladenen KI-Images
 
+  // Funktion zum Laden aller KI-Images vom Backend
   async function fetchKIImages() {
   container.innerHTML = `<p style="color: #fff; padding: 1rem;">Lade KI-Images...</p>`;
   try {
@@ -15,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.innerHTML = allData.length === 0
       ? `<p>\u2139\uFE0F Keine KI-Images verfügbar. Lade ein neues Image hoch!</p>`
       : "";
-    if (allData.length > 0) renderTable(allData);
+    if (allData.length > 0) renderTable(allData);// Wenn Daten vorhanden: Tabelle anzeigen
   } catch (err) {
     console.log("DEBUG: Fehler in fetchKIImages:", err.message);
     const errorMsg = err.message.includes("keine KI-Bilder")
@@ -24,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.innerHTML = `<p>${errorMsg}</p>`;
   }
 }
-
+// Tabelle dynamisch erzeugen und befüllen
   function renderTable(data) {
     const table = document.createElement("table");
     table.className = "ki-image-table";
@@ -72,6 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.appendChild(table);
   }
 
+ // Datum lesbar formatieren (inkl. "heute", "gestern")
 function formatDateTime(dateTimeStr) {
   if (!dateTimeStr) return "-";
 
@@ -108,6 +111,7 @@ function formatDateTime(dateTimeStr) {
   async function testContainer(imageId, imageName) {
     const statusElement = document.getElementById(`test-status-${imageId}`);
 
+    //Visuelle Statusanzeige aktualisieren
     const updateStatus = (message, status = "info", tooltip = "") => {
       console.log(`DEBUG: Status für Image ${imageName} (ID: ${imageId}): ${message}`);
       if (!statusElement) return;
@@ -134,6 +138,7 @@ function formatDateTime(dateTimeStr) {
     };
 
     try {
+      //Validierung der imageId
       if (!imageId || isNaN(imageId)) {
         console.log("DEBUG: Ungültige imageId:", imageId);
         throw new Error("Ungültige Image-ID.");
@@ -238,6 +243,7 @@ function formatDateTime(dateTimeStr) {
     renderTable(filtered);
   });
 
+  // Löscht KI-Image nach Benutzerbestätigung
   async function deleteImage(id) {
     if (!confirm(`Soll das KI-Image mit ID ${id} wirklich gelöscht werden?`)) return;
     try {
@@ -246,14 +252,15 @@ function formatDateTime(dateTimeStr) {
       });
       if (!res.ok) throw new Error(await res.text());
       alert("\u2705 Erfolgreich gelöscht!");
-      fetchKIImages();
+      fetchKIImages();// Tabelle neu laden
     } catch (err) {
       alert("\u274C Fehler beim Löschen: " + err.message);
     }
   }
-
+  // Methoden global verfügbar machen
   window.deleteImage = deleteImage;
   window.testContainer = testContainer;
-
+  
+  // Starte initialen Datenabruf
   fetchKIImages();
 });
