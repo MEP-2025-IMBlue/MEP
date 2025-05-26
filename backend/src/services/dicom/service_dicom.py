@@ -2,16 +2,13 @@
 
 import os
 from dotenv import load_dotenv
-import hashlib
 import numpy as np
 import pydicom
 from pydicom.errors import InvalidDicomError
-from sqlalchemy.orm import Session
 import logging
-from fastapi import HTTPException, File, UploadFile, Depends, APIRouter
-from datetime import datetime
+from fastapi import File, UploadFile
 from pydicom.dataset import Dataset
-from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, UploadResultItem
+from api.py_models.py_models import UploadDICOMResponseModel, UploadResultItem
 from db.core.exceptions import *
 import shutil, os, uuid, zipfile
 import tempfile
@@ -138,21 +135,12 @@ def check_required_tags(ds: Dataset) -> None:
         #     logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
 
 def check_pixeldata(ds: Dataset) -> None:
-    # """Prüft, ob PixelData vorhanden ist."""
+    """Prüft, ob PixelData vorhanden ist."""
 
-    # if not hasattr(ds, "PixelData"):
-    #     #logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
-    #     raise MissingPixelData("DICOM-File hat keine Pixeldata")
-    """
-    Stellt sicher, dass das Pixel-Array dekodierbar ist.
-    """
-    try:
-        _ = ds.pixel_array  # löst alle relevanten Fehler aus
-    except NotImplementedError:
-        raise MissingPixelData("PixelData ist komprimiert und kein passender Decoder installiert.")
-    except Exception as e:
-        raise MissingPixelData(f"PixelData kann nicht extrahiert werden: {str(e)}")
-    
+    if not hasattr(ds, "PixelData"):
+        #logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
+        raise MissingPixelData("DICOM-File hat keine Pixeldata")
+
 #TODO: final entschieden, was wirklich anonymisiert wird 
 def anonymize_dicom(ds: pydicom.Dataset) -> pydicom.Dataset:
     """

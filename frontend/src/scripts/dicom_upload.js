@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
     statusDiv.textContent = "\u23F3 Upload läuft...";
 
     try {
-      const uploadRes = await fetch("http://localhost:8000/dicoms", {
+      const uploadRes = await fetch("http://localhost:8000/dicoms/uploads", {
         method: "POST",
         body: formData
       });
