@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS ki_image_metadata (
     image_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- =========================
 -- Tabelle: dicom_metadata
+-- =========================
 CREATE TABLE IF NOT EXISTS dicom_metadata (
     dicom_id SERIAL PRIMARY KEY,
     dicom_uuid VARCHAR(128) UNIQUE NOT NULL,
