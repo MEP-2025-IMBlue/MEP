@@ -185,9 +185,20 @@ footer {
   height: 100%;
   cursor: pointer;
 }
-
+/*Für den Button Englisch-Deutsch*/
 .preview-text {
   margin-top: 8px;
   font-size: 0.9rem;
   color: #ccc;
+}
+.lang-toggle {
+  margin-left: 20px;
+}
+#lang-toggle {
+  padding: 6px 12px;
+  border: none;
+  background-color: #444;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
 }
