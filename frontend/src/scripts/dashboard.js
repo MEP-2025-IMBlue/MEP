@@ -260,7 +260,5 @@ function formatDateTime(dateTimeStr) {
   // Methoden global verfügbar machen
   window.deleteImage = deleteImage;
   window.testContainer = testContainer;
-  
-  // Starte initialen Datenabruf
   fetchKIImages();
 });

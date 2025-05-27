@@ -191,3 +191,18 @@ footer {
   font-size: 0.9rem;
   color: #ccc;
 }
+.lang-toggle button#lang-toggle {
+  background-color: #ffd700;
+  color: #000;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.lang-toggle button#lang-toggle:hover {
+  background-color: #ffcc00;
+}
