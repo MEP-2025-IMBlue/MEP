@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <th>Hochgeladen am</th>
         <th>Beschreibung</th>
         <th>Aktionen</th>
-        <th>Teststatus</th>
+        <th>Status</th>
       </tr>
     `;
     table.appendChild(thead);
@@ -136,8 +136,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const userId = img.image_provider_id;
         if (!userId) throw new Error("Benutzer-ID nicht verfügbar");
 
-        // Container starten
         if (currentStatus === "stopped") {
+          // Container STARTEN
           const formData = new FormData();
           formData.append("user_id", userId);
           formData.append("image_id", imageId);
@@ -155,31 +155,50 @@ document.addEventListener("DOMContentLoaded", async () => {
           btn.dataset.status = "running";
           btn.dataset.containerId = containerId;
 
-          // Zustand lokal anpassen
+          // Lokalen Status anpassen
           img.running_container_id = containerId;
 
           alert("\u2705 Container gestartet (ID: " + containerId + ")");
+          renderInfoBox(allData);
+
         } else {
-          // Container stoppen
+          // Container STOPPEN
+
           if (!containerId) throw new Error("Container-ID fehlt");
 
+          // ⏳ Ladeanzeige im Statusfeld
+          const statusElement = document.getElementById("test-status-" + imageId);
+          if (statusElement) {
+            statusElement.innerHTML = `
+            <span class="status-badge status-running">
+              ⏳ Wird gestoppt...
+              <div class="progress-bar"></div>
+            </span>
+          `;
+          }
+
+          // Stop-Anfrage
           const stopRes = await fetch(`http://localhost:8000/containers/${containerId}/stop`, {
             method: "POST",
           });
           if (!stopRes.ok) throw new Error(await stopRes.text());
 
+          // Button anpassen
           btn.textContent = "\u25B6 Starten";
           btn.dataset.status = "stopped";
           delete btn.dataset.containerId;
 
-          // Zustand lokal anpassen
+          // Lokalen Status zurücksetzen
           img.running_container_id = null;
 
           alert("\u26D4 Container gestoppt");
-        }
 
-        // Nur Infobox neu berechnen (keine Tabelle neuladen)
-        renderInfoBox(allData);
+          // Infobox neu berechnen
+          renderInfoBox(allData);
+
+          // Ladeanzeige wieder leeren
+          if (statusElement) statusElement.innerHTML = "";
+        }
 
       } catch (err) {
         alert("\u26A0 Fehler: " + err.message);
@@ -187,6 +206,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   });
+
 
   // Container testen (temporär starten → stoppen → löschen)
   async function testContainer(imageId, imageName) {
