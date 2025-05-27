@@ -57,6 +57,7 @@
   "confirm_delete_continue": "?",
   "delete_success": "✅ Successfully deleted!",
   "delete_error_prefix": "❌ Error deleting:",
+  "info_text": "All logs of the AI images appear here.",
 
   "invalid_image_id": "Invalid image ID.",
   "no_images_loaded": "No images loaded. Please reload the page.",

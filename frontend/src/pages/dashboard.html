@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
 </head>
+
 <body>
   <div id="navbar"></div>
 
@@ -22,7 +24,12 @@
           <option value="image_tag" data-i18n-key="dashboard_filter_tag">Tag</option>
           <option value="created_at" data-i18n-key="dashboard_filter_created">Hochgeladen am</option>
         </select>
-        <input type="text" id="searchInput" placeholder="🔎 Suchbegriff eingeben..." data-i18n-key-placeholder="dashboard_search_placeholder" />
+        <input type="text" id="searchInput" placeholder="🔎 Suchbegriff eingeben..."
+          data-i18n-key-placeholder="dashboard_search_placeholder" />
+      </div>
+
+      <div id="dashboard-info" class="details-card">
+        <!-- wird dynamisch per JavaScript befüllt -->
       </div>
 
       <div class="table-wrapper" id="ki-image-list">
@@ -31,8 +38,9 @@
 
       <div class="details-card">
         <h2 data-i18n-key="info_title">Info</h2>
-        <p data-i18n-key="info_text">Hier erscheinen alle hochgeladenen KI-Images.</p>
+        <p data-i18n-key="info_text">Hier erscheinen alle Logs der KI-Images.</p>
       </div>
+
     </div>
   </main>
 
@@ -43,4 +51,5 @@
   <script src="../scripts/dashboard.js?v=20250517"></script>
 
 </body>
+
 </html>
