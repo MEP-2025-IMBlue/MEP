@@ -115,3 +115,12 @@ class ContainerService:
             return result
         except DockerException as e:
             raise Exception(f"Failed to list containers: {str(e)}")
+    def get_container_logs(self, container_id_or_name: str, tail: int = 100) -> str:
+        """Gibt die letzten `tail` Zeilen der Logs eines Containers zurück."""
+        try:
+            container = self.client.containers.get(container_id_or_name)
+            return container.logs(tail=tail).decode("utf-8")
+        except NotFound:
+            raise Exception(f"Container '{container_id_or_name}' nicht gefunden.")
+        except DockerException as e:
+            raise Exception(f"Fehler beim Abrufen der Logs: {str(e)}")
