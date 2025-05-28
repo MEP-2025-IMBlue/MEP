@@ -56,10 +56,10 @@ services:
       - mep-network
 
   backend:
-    image: maimuna03/mep-backend:latest   
-    #build:
-    #  context: ./backend
-    #  dockerfile: Dockerfile
+    #image: maimuna03/mep-backend:latest   
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: mep-backend
     depends_on:
       imblue-db:
@@ -68,11 +68,14 @@ services:
         condition: service_started
     ports:
       - "8000:8000"
+      
     volumes:
       - ./backend:/app
       - ./storage/uploads:/tmp/uploads
       - ./storage/processed:/tmp/processed
+      - ./storage//logs:/tmp/logs
       - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
+    
     env_file:
       - ./backend/.env
     environment:
@@ -81,10 +84,10 @@ services:
       - mep-network
 
   frontend:
-    image: maimuna03/mep-frontend:latest
-    #build:
-    #  context: ./frontend
-    #  dockerfile: Dockerfile
+    #image: maimuna03/mep-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: mep-frontend
     depends_on:
       keycloak:

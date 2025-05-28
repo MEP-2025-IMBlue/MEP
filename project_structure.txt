@@ -1,0 +1,80 @@
+.
+├── README.md
+├── backend
+│   ├── Dockerfile
+│   ├── README.md
+│   ├── requirements.txt
+│   └── src
+│       ├── README.md
+│       ├── api
+│       │   ├── README.md
+│       │   ├── py_models
+│       │   └── routes
+│       ├── db
+│       │   ├── README.md
+│       │   ├── core
+│       │   ├── crud
+│       │   ├── database
+│       │   └── db_models
+│       ├── main.py
+│       ├── services
+│       │   ├── README.md
+│       │   ├── container_management
+│       │   ├── dicom
+│       │   └── image_upload
+│       └── tests
+│           ├── README.md
+│           └── api_tests
+├── database
+│   ├── README.md
+│   └── schemas
+│       └── init.sql
+├── docker-compose.yml
+├── frontend
+│   ├── Dockerfile
+│   ├── README.md
+│   └── src
+│       ├── assets
+│       │   └── README.md
+│       ├── index.html
+│       ├── index.js
+│       ├── layouts
+│       │   └── navbar.html
+│       ├── pages
+│       │   ├── README.md
+│       │   ├── container_upload.html
+│       │   ├── dashboard.html
+│       │   ├── dicom_upload.html
+│       │   ├── login.html
+│       │   ├── profil.html
+│       │   └── register.html
+│       ├── scripts
+│       │   ├── container_upload.js
+│       │   ├── dashboard.js
+│       │   ├── dicom_upload.js
+│       │   ├── global_script.js
+│       │   ├── register.js
+│       │   └── upload_status.js
+│       └── styles
+│           ├── README.md
+│           ├── container_upload.css
+│           ├── dashboard.css
+│           ├── dicom_upload.css
+│           ├── global_style.css
+│           ├── login.css
+│           └── profil.css
+├── keycloak
+│   ├── export-scripts
+│   │   ├── README.md
+│   │   ├── export-realm.ps1
+│   │   └── export-realm.sh
+│   └── keycloak-export
+│       └── imblue-realm-realm.json
+├── project_structure.txt
+└── storage
+    ├── processed
+    │   └── 55a4bb7afa3c0b6e451eafe21cc98fdaa0d391c616bb6c2f9c3d2b66cedb328c_anon.npy
+    └── uploads
+        └── 55a4bb7afa3c0b6e451eafe21cc98fdaa0d391c616bb6c2f9c3d2b66cedb328c_anon.dcm
+
+32 directories, 46 files

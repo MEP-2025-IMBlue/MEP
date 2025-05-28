@@ -19,6 +19,9 @@ import logging
 # Typisierung
 from typing import List, Optional
 
+# Strukturierter Logger (JSON)
+from src.utils.event_logger import log_event
+
 router = APIRouter(tags=["Container"])
 logger = logging.getLogger(__name__)
 docker_client = docker.from_env()
@@ -89,3 +92,23 @@ async def delete_container(container_id_or_name: str):
             raise HTTPException(status_code=404, detail="Container not found")
         logger.exception("Unexpected error during delete_container")
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+# ========================================
+# CPU- und Speicherinformationen eines Containers abrufen
+# ========================================
+@router.get("/containers/{container_id}/stats")
+async def get_container_stats(container_id: str):
+    """
+    Gibt CPU- und Speicherinformationen eines Containers zurück.
+    """
+    try:
+        return container_service.get_container_resource_usage(container_id)
+    except Exception as e:
+        # Loggt strukturierten Fehler im JSON-Format (event_logger.py)
+        from src.utils.event_logger import log_event
+        log_event(
+            event_type="ContainerStatsError",
+            source="get_container_stats",
+            message=f"Fehler beim Abrufen der Stats für Container {container_id}: {str(e)}"
+        )
+        logger.exception("Fehler bei get_container_stats")
+        raise HTTPException(status_code=500, detail="Container-Ressourcen konnten nicht abgerufen werden.")
