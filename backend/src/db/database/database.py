@@ -16,7 +16,7 @@ load_dotenv(dotenv_path="./backend/.env")
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Erstelle die SQLAlchemy Engine für die Verbindung zur Datenbank
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"host": "db"})
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 # Erstelle eine SessionFactory (SessionLocal), um Sessions mit der DB zu erzeugen
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
