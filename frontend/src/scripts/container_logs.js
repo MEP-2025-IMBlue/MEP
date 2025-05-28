@@ -1,39 +1,39 @@
-// Lädt die Liste aller laufenden Container beim Laden der Seite
+// Wird ausgeführt, sobald das DOM vollständig geladen ist
 window.addEventListener("DOMContentLoaded", () => {
+  // Referenz auf das <select>-Element
   const select = document.getElementById("container-select");
 
+  // Abruf der Containerliste vom FastAPI-Backend
   fetch("http://localhost:8000/containers/list")
-    .then((res) => res.json())
+    .then((res) => res.json()) // Antwort in JSON umwandeln
     .then((containers) => {
-      select.innerHTML = ""; // Entfernt die Ladeoption
-      containers.forEach((c) => {
+      // Vorherige Optionen zurücksetzen
+      select.innerHTML = "";
+
+      // Erste, nicht auswählbare Platzhalter-Option
+      const defaultOption = document.createElement("option");
+      defaultOption.text = "Bitte Container wählen";
+      defaultOption.disabled = true;
+      defaultOption.selected = true;
+      select.appendChild(defaultOption);
+
+      // Container-IDs dynamisch als Optionen einfügen
+      containers.forEach((id) => {
         const option = document.createElement("option");
-        option.value = c.container_id;
-        option.textContent = c.container_id.substring(0, 12); // Zeigt nur die ersten 12 Zeichen der ID
+        option.value = id;
+        option.textContent = id;
         select.appendChild(option);
       });
     })
-    .catch((err) => {
-      select.innerHTML = "<option>Fehler beim Laden</option>";
-      console.error("Fehler beim Abrufen der Containerliste:", err);
+    .catch((error) => {
+      // Fehlerbehandlung: Auswahlfeld mit Fehlermeldung füllen
+      select.innerHTML = "";
+      const errorOption = document.createElement("option");
+      errorOption.text = "Fehler beim Laden der Containerliste";
+      errorOption.disabled = true;
+      select.appendChild(errorOption);
+
+      // Fehler in der Konsole ausgeben
+      console.error("Fehler beim Laden der Containerliste:", error);
     });
 });
-
-// Holt die Logs des ausgewählten Containers und zeigt sie an
-function loadLogs() {
-  const id = document.getElementById("container-select").value;
-  const output = document.getElementById("log-output");
-  output.textContent = "Lade Logs...";
-
-  fetch(`http://localhost:8000/containers/${id}/logs?tail=100`)
-    .then((res) => {
-      if (!res.ok) throw new Error("Serverfehler");
-      return res.json();
-    })
-    .then((data) => {
-      output.textContent = data.logs.join("\n");
-    })
-    .catch((err) => {
-      output.textContent = "Fehler: " + err;
-    });
-}

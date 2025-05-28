@@ -45,8 +45,10 @@ app.include_router(container_logs_router)
 def prepare_temp_dirs():
     upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
     processed_dir = os.getenv("PROCESSED_DIR", "/tmp/processed")
+    logs_dir=os.getenv("LOG_DIR","tmp/logs")
     os.makedirs(upload_dir, exist_ok=True)
     os.makedirs(processed_dir, exist_ok=True)
+    os.makedirs(logs_dir, exist_ok=True)
 
 # CORS aktivieren
 app.add_middleware(
