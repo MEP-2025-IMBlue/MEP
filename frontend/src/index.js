@@ -1,48 +1,47 @@
 // =========================
-// frontend/index.js
+// frontend/src/index.js
 // =========================
 
-// Initialisiert Keycloak-Instanz mit Realm und Client-ID
+// Initialisiere Keycloak-Instanz mit den Basisinformationen:
+// - URL des Keycloak-Servers
+// - Name des Realms
+// - ID des Clients, wie in Keycloak definiert (Typ: Public Client)
 const keycloak = new Keycloak({
-  url: 'http://localhost:8090/',
-  realm: 'imblue-realm',
-  clientId: 'mep-frontend'
+  url: 'http://localhost:8090',           // Keycloak-Serveradresse
+  realm: 'imblue-realm',                  // Dein Realm-Name (z. B. mRay)
+  clientId: 'mep-frontend'                // Dein Frontend-Client (in Keycloak konfiguriert)
 });
 
-// Starte Keycloak-Session mit Loginpflicht
+// Initialisiere die Authentifizierung über Keycloak:
+// - 'login-required': Weiterleitung zur Loginseite, wenn nicht eingeloggt
+// - PKCE = Sicherheitsmechanismus für Public Clients (Code Flow)
+// - redirectUri = nach Login zurück auf index.html
 keycloak.init({
-  onLoad: 'login-required', // Benutzer muss eingeloggt sein, sonst Weiterleitung zur Loginseite
-  pkceMethod: 'S256', // Sicherheit bei der Tokenübertragung (Proof Key for Code Exchange)
-  redirectUri: window.location.origin + '/index.html' // Nach Login zurück zur Startseite
+  onLoad: 'login-required',
+  pkceMethod: 'S256',
+  redirectUri: window.location.origin + '/index.html'
 }).then(authenticated => {
-  if (!authenticated) {
-    console.warn("Benutzer ist nicht authentifiziert.");
-    return;
-  }
+  // Falls Benutzer sich nicht eingeloggt hat, breche hier ab
+  if (!authenticated) return;
 
-  // Extrahiere Rollen aus dem Token
-  const roles = keycloak.tokenParsed?.realm_access?.roles || [];
-
-  // Weiterleitung je nach Benutzerrolle
-  redirectToRolePage(roles);
-
-  // Entfernt Token-Parameter aus der URL (Aufräumen)
+  // Entferne alle Keycloak-URL-Parameter nach erfolgreichem Login (code, state, session_state)
   window.history.replaceState({}, document.title, window.location.pathname);
 
-}).catch(err => {
-  console.error("Fehler bei Keycloak-Initialisierung:", err);
-});
+  // Extrahiere die Rollen des Benutzers aus dem JWT-Token
+  const roles = keycloak.tokenParsed?.realm_access?.roles || [];
 
-// Weiterleitungslogik basierend auf spezifischer Rollenprüfung
-function redirectToRolePage(roles) {
-  if (roles.includes('admin')) {
-    window.location.href = '/src/pages/dashboard.html';
-  } else if (roles.includes('provider')) {
-    window.location.href = '/src/pages/dashboard.html';
+  // Leite Benutzer je nach Rolle auf die passende Seite weiter:
+  // - admin oder provider → Dashboard
+  // - user → DICOM Upload
+  // - keine gültige Rolle → Logout + zurück zur Loginseite
+  if (roles.includes('admin') || roles.includes('provider')) {
+    window.location.href = '/pages/dashboard.html';
   } else if (roles.includes('user')) {
-    window.location.href = '/src/pages/dicom_upload.html';
+    window.location.href = '/pages/dicom_upload.html';
   } else {
-    alert("Keine gültige Rolle gefunden. Sie werden jetzt ausgeloggt.");
-    keycloak.logout({ redirectUri: window.location.origin + '/index.html' });
+    alert("Keine gültige Rolle gefunden. Sie werden ausgeloggt.");
+    window.location.href = keycloak.createLogoutUrl({
+      redirectUri: 'http://localhost:8080/index.html'
+    });
   }
-}
+}).catch(console.error); // Bei Authentifizierungsfehlern Konsolenmeldung
