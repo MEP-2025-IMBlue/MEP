@@ -3,47 +3,48 @@ import json
 from datetime import datetime
 import os
 
-# Erstellt automatisch das Verzeichnis "logs", falls es nicht existiert
-os.makedirs("logs", exist_ok=True)
+# Verzeichnis für Logdateien (Standard: /tmp/logs, wird von Docker gemountet)
+log_verzeichnis = os.getenv("LOG_DIR", "/tmp/logs")
+os.makedirs(log_verzeichnis, exist_ok=True)
 
-# Benennt die Logdatei nach dem aktuellen UTC-Datum (z. B. logs/2025-05-28.log)
-log_filename = f"logs/{datetime.utcnow().strftime('%Y-%m-%d')}.log"
+# Dateiname im Format YYYY-MM-DD.log im LOG_DIR
+log_filename = os.path.join(log_verzeichnis, f"{datetime.utcnow().strftime('%Y-%m-%d')}.log")
 
-# Konfiguriert den Logger für strukturierte JSON-Ausgaben
+# Konfiguriert den Logger
 logger = logging.getLogger("event_logger")
-logger.setLevel(logging.DEBUG)  # DEBUG dahil tüm seviyeleri göster
+logger.setLevel(logging.DEBUG)  # DEBUG, INFO, WARNING, ERROR erlauben
 
-# Formatter: Reine JSON-Zeile pro Eintrag
+# Formatter: JSON-Zeile pro Eintrag
 formatter = logging.Formatter('%(message)s')
 
-# FileHandler: Log-Datei
+# Datei-Handler: schreibt in log_filename
 file_handler = logging.FileHandler(log_filename)
 file_handler.setFormatter(formatter)
 
-# StreamHandler: Konsole (stdout)
+# Konsolen-Handler: schreibt auf stdout
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 
-# Handler nur einmal hinzufügen (z. B. bei Hot Reload vermeiden)
+# Verhindert doppelte Handler bei mehrfacher Initialisierung (z. B. Hot Reload)
 if not logger.handlers:
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
 def log_event(event_type: str, source: str, message: str, level: str = "ERROR"):
     """
-    Protokolliert ein strukturiertes Ereignis mit Zeitstempel, Typ, Quelle und Nachricht.
+    Protokolliert ein strukturiertes Ereignis im JSON-Format.
 
     Parameter:
-        event_type (str): Kategorie des Ereignisses (z. B. "Fehler", "System", "Aktion")
+        event_type (str): Kategorie (z. B. "Fehler", "System", "Upload")
         source (str): Ursprungsmodul oder Funktion
-        message (str): Beschreibende Nachricht
+        message (str): Beschreibung des Ereignisses
         level (str): Log-Level ("DEBUG", "INFO", "WARNING", "ERROR")
 
-    Ausgabe:
-        JSON-formatierte Logzeile in einer Datei im logs/-Verzeichnis und in der Konsole
+    Ergebnis:
+        Der Logeintrag wird als JSON-Zeile in eine Datei im LOG_DIR geschrieben und auf der Konsole ausgegeben.
     """
 
-    log_entry = {
+    log_eintrag = {
         "timestamp": datetime.utcnow().isoformat(),
         "type": event_type.upper(),
         "source": source,
@@ -52,10 +53,10 @@ def log_event(event_type: str, source: str, message: str, level: str = "ERROR"):
 
     level = level.upper()
     if level == "DEBUG":
-        logger.debug(json.dumps(log_entry))
+        logger.debug(json.dumps(log_eintrag))
     elif level == "INFO":
-        logger.info(json.dumps(log_entry))
+        logger.info(json.dumps(log_eintrag))
     elif level == "WARNING":
-        logger.warning(json.dumps(log_entry))
+        logger.warning(json.dumps(log_eintrag))
     else:
-        logger.error(json.dumps(log_entry))
+        logger.error(json.dumps(log_eintrag))

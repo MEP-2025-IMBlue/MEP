@@ -68,12 +68,14 @@ services:
         condition: service_started
     ports:
       - "8000:8000"
+      
     volumes:
       - ./backend:/app
       - ./storage/uploads:/tmp/uploads
       - ./storage/processed:/tmp/processed
-      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
       - ./storage//logs:/tmp/logs
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
+    
     env_file:
       - ./backend/.env
     environment:
