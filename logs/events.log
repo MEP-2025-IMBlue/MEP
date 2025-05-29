@@ -1,0 +1,14 @@
+{"timestamp": "2025-05-29T22:57:46.924061", "level": "DEBUG", "source": "DEBUG", "action": "get_container_logs", "message": "Rufe Logs ab f\u00fcr Container: mep-backend | tail=5, stdout=True, stderr=True, timestamps=True"}
+{"timestamp": "2025-05-29T22:57:46.936667", "level": "INFO", "source": "CONTAINER", "action": "get_container_logs", "message": "Logs erfolgreich abgerufen f\u00fcr: mep-backend"}
+{"timestamp": "2025-05-29T22:57:46.945294", "level": "DEBUG", "source": "DEBUG", "action": "get_container_resource_usage", "message": "Fetching resource usage: mep-backend"}
+{"timestamp": "2025-05-29T22:57:46.955810", "level": "WARNING", "source": "WARNING", "action": "get_container_resource_usage", "message": "Container is not running: mep-backend", "container_id": "mep-backend"}
+{"timestamp": "2025-05-29T22:57:46.965372", "level": "DEBUG", "source": "DEBUG", "action": "get_container_status_and_health", "message": "Rufe Status & Health ab: mep-backend"}
+{"timestamp": "2025-05-29T22:57:46.970642", "level": "INFO", "source": "CONTAINER", "action": "get_container_status_and_health", "message": "Container: mep-backend | Status: exited, Health: nicht definiert"}
+{"timestamp": "2025-05-29T22:57:46.979039", "level": "DEBUG", "source": "DEBUG", "action": "list_containers", "message": "Suche alle Container"}
+{"timestamp": "2025-05-29T22:57:47.056664", "level": "INFO", "source": "CONTAINER", "action": "list_containers", "message": "5 Container insgesamt gefunden: ['mep-backend', 'mep-frontend', 'mep-keycloak', 'kc_imblue-db', 'imblue-db']"}
+{"timestamp": "2025-05-29T22:57:47.065046", "level": "DEBUG", "source": "DEBUG", "action": "list_running_containers", "message": "Suche laufende Container"}
+{"timestamp": "2025-05-29T22:57:47.098444", "level": "INFO", "source": "CONTAINER", "action": "list_running_containers", "message": "2 laufende Container gefunden: ['mep-keycloak', 'kc_imblue-db']"}
+{"timestamp": "2025-05-29T22:57:47.107050", "level": "DEBUG", "source": "DEBUG", "action": "start_container", "message": "Versuche Container zu starten: container_does_not_exist"}
+{"timestamp": "2025-05-29T22:57:47.110971", "level": "ERROR", "source": "ERROR", "action": "start_container", "message": "Container nicht gefunden: container_does_not_exist"}
+{"timestamp": "2025-05-29T22:57:47.119450", "level": "DEBUG", "source": "DEBUG", "action": "stop_container", "message": "Versuche Container zu stoppen: container_does_not_exist"}
+{"timestamp": "2025-05-29T22:57:47.122224", "level": "WARNING", "source": "WARNING", "action": "stop_container", "message": "Container nicht gefunden (vielleicht bereits gestoppt?): container_does_not_exist"}

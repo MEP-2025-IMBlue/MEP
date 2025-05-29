@@ -1,3 +1,18 @@
+// Frontend-Logging-Funktion – schickt Fehler an das Backend-Endpoint /frontend-log
+function logFrontendError(action, message, level = "ERROR") {
+  fetch("/frontend-log", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: action,
+      message: message,
+      level: level
+    }),
+  }).catch((err) => {
+    console.error("Fehler beim Senden des Logs an das Backend:", err);
+  });
+}
+
 // Führt die Log-Anzeige und Statusabfrage für einen ausgewählten Container aus
 async function loadLogs() {
   const containerId = document.getElementById("container-select").value;
@@ -5,10 +20,10 @@ async function loadLogs() {
   const statusField = document.getElementById("container-status");
   const healthField = document.getElementById("container-health");
 
-  // Überprüfung, ob ein gültiger Container ausgewählt wurde
   if (!containerId || containerId === "Please select a container") {
     alert("Please select a valid container.");
     logOutput.textContent = "No container selected.";
+    logFrontendError("LogFetch", "No container selected.");
     return;
   }
 
@@ -17,10 +32,8 @@ async function loadLogs() {
   const timestamps = document.getElementById("chk-timestamps").checked;
   const tail = parseInt(document.getElementById("log-tail").value, 10) || 100;
 
-  // Setzt den Ladehinweis für das Log-Ausgabefeld
   logOutput.textContent = "Loading logs...";
 
-  // Holt den Containerstatus und den Gesundheitszustand vom Backend
   try {
     const statusRes = await fetch(`/containers/${containerId}/status`);
     const statusData = await statusRes.json();
@@ -40,9 +53,9 @@ async function loadLogs() {
     statusField.textContent = "Error";
     healthField.textContent = "Error";
     console.error("Error while fetching container status:", err);
+    logFrontendError("StatusFetch", err.message);
   }
 
-  // Holt die Logs des Containers vom Backend
   try {
     const url = `/containers/${containerId}/logs?tail=${tail}&stdout=${stdout}&stderr=${stderr}&timestamps=${timestamps}`;
     const res = await fetch(url);
@@ -53,10 +66,11 @@ async function loadLogs() {
   } catch (err) {
     logOutput.textContent = "Error while fetching logs.";
     console.error("Log fetch error:", err);
+    logFrontendError("LogFetch", err.message);
   }
 }
 
-// Lädt die Containerliste beim ersten Laden der Seite
+// Containerliste beim ersten Laden abrufen
 document.addEventListener("DOMContentLoaded", async () => {
   const select = document.getElementById("container-select");
 
@@ -66,14 +80,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     select.innerHTML = "";
 
-    // Fügt eine nicht auswählbare Platzhalteroption hinzu
     const placeholder = document.createElement("option");
     placeholder.text = "Please select a container";
     placeholder.disabled = true;
     placeholder.selected = true;
     select.appendChild(placeholder);
 
-    // Fügt alle Container-IDs als Optionen hinzu
     data.forEach(id => {
       const opt = document.createElement("option");
       opt.value = id;
@@ -88,5 +100,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     select.appendChild(errorOption);
 
     console.error("Error loading container list:", err);
+    logFrontendError("ContainerListLoad", err.message);
   }
 });

@@ -1,0 +1,73 @@
+{"timestamp": "2025-05-29T14:24:14.053245", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T14:24:14.053724", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T14:28:47.145826", "level": "DEBUG", "source": "DEBUG", "action": "list_running_containers", "message": "Suche laufende Container"}
+{"timestamp": "2025-05-29T14:28:47.233302", "level": "INFO", "source": "CONTAINER", "action": "list_running_containers", "message": "5 laufende Container gefunden"}
+{"timestamp": "2025-05-29T14:28:47.234072", "level": "INFO", "source": "CONTAINER", "action": "list_containers", "message": "Laufende Container erfolgreich abgerufen"}
+{"timestamp": "2025-05-29T14:33:37.370143", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T14:33:37.370639", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T14:35:13.679811", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T14:35:13.680225", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T14:40:49.352594", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T14:40:49.353198", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T14:56:58.327161", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T14:56:58.327507", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T14:58:24.323556", "level": "DEBUG", "source": "DEBUG", "action": "list_running_containers", "message": "Suche laufende Container"}
+{"timestamp": "2025-05-29T14:58:24.418396", "level": "INFO", "source": "CONTAINER", "action": "list_running_containers", "message": "5 laufende Container gefunden"}
+{"timestamp": "2025-05-29T14:58:24.418688", "level": "INFO", "source": "CONTAINER", "action": "list_containers", "message": "Laufende Container erfolgreich abgerufen"}
+{"timestamp": "2025-05-29T14:59:17.268132", "level": "DEBUG", "source": "DEBUG", "action": "list_running_containers", "message": "Suche laufende Container"}
+{"timestamp": "2025-05-29T14:59:17.351411", "level": "INFO", "source": "CONTAINER", "action": "list_running_containers", "message": "5 laufende Container gefunden"}
+{"timestamp": "2025-05-29T14:59:17.351749", "level": "INFO", "source": "CONTAINER", "action": "list_containers", "message": "Laufende Container erfolgreich abgerufen"}
+{"timestamp": "2025-05-29T15:35:32.628874", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T15:35:32.629316", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T16:03:51.273404", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T16:03:51.273898", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T16:05:52.297928", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T16:05:52.298325", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T16:06:24.584986", "level": "ERROR", "source": "KI_IMAGE", "action": "load_failed", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T16:27:40.296864", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T16:27:40.297278", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T18:46:28.985854", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:46:29.016709", "level": "ERROR", "source": "KI_IMAGE", "action": "load_failed", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:46:29.017061", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:46:34.709202", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:46:34.734099", "level": "ERROR", "source": "KI_IMAGE", "action": "load_failed", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:46:34.734401", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:47:04.507678", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:47:04.532168", "level": "ERROR", "source": "KI_IMAGE", "action": "load_failed", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:47:04.532454", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:47:10.462933", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:47:10.487545", "level": "ERROR", "source": "KI_IMAGE", "action": "load_failed", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:47:10.487873", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:47:29.553673", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:47:29.574763", "level": "ERROR", "source": "KI_IMAGE", "action": "load_failed", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:47:29.575030", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "unrecognized image format"}
+{"timestamp": "2025-05-29T18:50:48.712499", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:50:51.794829", "level": "INFO", "source": "KI_IMAGE", "action": "import_success", "message": "mep-backend:latest erfolgreich importiert"}
+{"timestamp": "2025-05-29T18:50:51.817590", "level": "INFO", "source": "KI_IMAGE", "action": "db_entry_success", "message": "In Datenbank gespeichert: mep-backend:latest"}
+{"timestamp": "2025-05-29T18:52:48.568055", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:52:51.578203", "level": "INFO", "source": "KI_IMAGE", "action": "import_success", "message": "mep-backend:latest erfolgreich importiert"}
+{"timestamp": "2025-05-29T18:52:51.584364", "level": "INFO", "source": "KI_IMAGE", "action": "db_entry_success", "message": "In Datenbank gespeichert: mep-backend:latest"}
+{"timestamp": "2025-05-29T18:55:07.262038", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: test.tar"}
+{"timestamp": "2025-05-29T18:55:10.301657", "level": "INFO", "source": "KI_IMAGE", "action": "import_success", "message": "mep-backend:latest erfolgreich importiert"}
+{"timestamp": "2025-05-29T18:55:10.307622", "level": "INFO", "source": "KI_IMAGE", "action": "db_entry_success", "message": "In Datenbank gespeichert: mep-backend:latest"}
+{"timestamp": "2025-05-29T18:57:06.381413", "level": "INFO", "source": "KI_IMAGE", "action": "upload_start", "message": "Dateiname: 55a4bb7afa3c0b6e451eafe21cc98fdaa0d391c616bb6c2f9c3d2b66cedb328c_anon.dcm"}
+{"timestamp": "2025-05-29T18:57:07.925901", "level": "ERROR", "source": "KI_IMAGE", "action": "load_failed", "message": "archive/tar: invalid tar header"}
+{"timestamp": "2025-05-29T18:57:07.926274", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "archive/tar: invalid tar header"}
+{"timestamp": "2025-05-29T19:00:53.872071", "level": "INFO", "source": "KI_IMAGE", "action": "pull_start", "message": "Referenz: hello-world:latest"}
+{"timestamp": "2025-05-29T19:00:56.005963", "level": "INFO", "source": "KI_IMAGE", "action": "pull_success", "message": "hello-world:latest erfolgreich gepullt"}
+{"timestamp": "2025-05-29T19:00:56.012730", "level": "INFO", "source": "KI_IMAGE", "action": "db_entry_success", "message": "In Datenbank gespeichert: hello-world:latest"}
+{"timestamp": "2025-05-29T19:02:02.071307", "level": "INFO", "source": "KI_IMAGE", "action": "pull_start", "message": "Referenz: invalid-image-name:latest"}
+{"timestamp": "2025-05-29T19:02:02.952286", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "404 Client Error for http+docker://localhost/v1.47/images/create?tag=latest&fromImage=invalid-image-name: Not Found (\"pull access denied for invalid-image-name, repository does not exist or may require 'docker login'\")"}
+{"timestamp": "2025-05-29T19:13:22.139949", "level": "INFO", "source": "KI_IMAGE", "action": "pull_start", "message": "Referenz: asdfasdf:123"}
+{"timestamp": "2025-05-29T19:13:23.021996", "level": "ERROR", "source": "KI_IMAGE", "action": "unexpected_error", "message": "404 Client Error for http+docker://localhost/v1.47/images/create?tag=123&fromImage=asdfasdf: Not Found (\"pull access denied for asdfasdf, repository does not exist or may require 'docker login'\")"}
+{"timestamp": "2025-05-29T19:14:02.967158", "level": "INFO", "source": "KI_IMAGE", "action": "list_success", "message": "4 Eintr\u00e4ge geladen"}
+{"timestamp": "2025-05-29T19:34:20.211961", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T19:34:20.212595", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T19:35:50.840734", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T19:35:50.841256", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T19:40:23.247170", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T19:40:23.247864", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T19:43:44.694313", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T19:43:44.694805", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-05-29T20:00:36.735530", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-05-29T20:00:36.736107", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}

@@ -2,11 +2,11 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse 
 from pydantic import BaseModel
 from typing import List
-import logging
 from docker.errors import NotFound, APIError
 from src.services.container_management.service_container import ContainerService
+from src.utils.event_logger import log_event  # JSON-basiertes Logging
 
-# Pydantic response models
+# Pydantic-Modelle für API-Antworten
 class LogResponse(BaseModel):
     logs: List[str]
 
@@ -14,33 +14,21 @@ class StatusResponse(BaseModel):
     status: str
     health: str
 
-# Router Setup
+# Router-Konfiguration
 router = APIRouter(prefix="/containers", tags=["Container Logs"])
-logger = logging.getLogger(__name__)
 container_service = ContainerService()
 
-@router.get(
-    "/{container_id_or_name}/logs",
-    response_model=LogResponse,
-    description="Gibt die letzten Log-Zeilen eines Containers zurück.",
-    responses={
-        200: {"description": "Log erfolgreich zurückgegeben"},
-        404: {"description": "Container nicht gefunden"},
-        500: {"description": "Interner Serverfehler während der Log-Auswertung"}
-    }
-)
+# Route: Gibt die Logs eines Containers zurück
+@router.get("/{container_id_or_name}/logs", response_model=LogResponse)
 async def get_container_logs(
     container_id_or_name: str,
     tail: int = Query(100, ge=1, le=1000),
-    stdout: bool = Query(True, description="Nur stdout loggen"),
-    stderr: bool = Query(True, description="Nur stderr loggen"),
-    timestamps: bool = Query(True, description="Zeitstempel anzeigen")
+    stdout: bool = Query(True),
+    stderr: bool = Query(True),
+    timestamps: bool = Query(True)
 ):
-    """
-    Gibt die letzten `tail` Zeilen der Logs eines Docker-Containers zurück.
-    Optionale Filter: stdout, stderr, timestamps.
-    """
     try:
+        # Container-Logs abrufen
         logs = container_service.get_container_logs(
             container_id_or_name,
             tail=tail,
@@ -48,110 +36,88 @@ async def get_container_logs(
             stderr=stderr,
             timestamps=timestamps
         )
+        # Erfolgreiches Loggen des Abrufs
+        log_event("CONTAINER", "get_container_logs", f"Logs von {container_id_or_name} erfolgreich abgerufen", level="INFO")
         return {"logs": logs.splitlines()}
     except NotFound:
+        # Fehler: Container nicht gefunden
+        log_event("ERROR", "get_container_logs", f"Container nicht gefunden: {container_id_or_name}", level="ERROR")
         raise HTTPException(status_code=404, detail=f"Container '{container_id_or_name}' nicht gefunden.")
     except APIError as e:
-        logger.error(f"[ContainerLogs] Docker API error bei {container_id_or_name}: {str(e)}")
+        # Fehler: Docker API-Problem
+        log_event("ERROR", "get_container_logs", f"Docker API Fehler: {str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail="Docker API-Fehler")
     except Exception as e:
-        logger.exception(f"[ContainerLogs] Unbekannter Fehler bei {container_id_or_name}")
+        # Fehler: Unbekannter Fehler beim Abruf
+        log_event("ERROR", "get_container_logs", f"Unbekannter Fehler: {str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail="Interner Serverfehler")
 
-# Route: Status und Health eines Containers
-@router.get(
-    "/{container_id_or_name}/status",
-    response_model=StatusResponse,
-    description="Gibt den Status und Health-Zustand eines Containers zurück.",
-    responses={
-        200: {"description": "Status erfolgreich zurückgegeben"},
-        500: {"description": "Fehler beim Statusabruf"}
-    }
-)
+# Route: Gibt Status- und Gesundheitsinformationen eines Containers zurück
+@router.get("/{container_id_or_name}/status", response_model=StatusResponse)
 async def get_status_and_health(container_id_or_name: str):
-    """
-    Gibt den aktuellen Docker-Status (z. B. running, exited) und
-    den Health-Status (z. B. healthy, unhealthy) eines Containers zurück.
-    """
     try:
+        # Statusinformationen abrufen
         result = container_service.get_container_status_and_health(container_id_or_name)
+        # Erfolgreiches Loggen des Statusabrufs
+        log_event("CONTAINER", "get_status_and_health", f"Status für {container_id_or_name} erfolgreich abgefragt", level="INFO")
         return result
     except Exception as e:
-        logger.exception("[ContainerStatus] Fehler beim Statusabruf")
+        # Fehler beim Statusabruf loggen
+        log_event("ERROR", "get_status_and_health", f"Fehler beim Statusabruf: {str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Route: Liste aller laufenden Container
-@router.get(
-    "/list",
-    response_model=List[str],
-    description="Gibt eine Liste aller laufenden Container zurück.",
-    responses={
-        200: {"description": "Containerliste erfolgreich zurückgegeben"},
-        500: {"description": "Fehler beim Abrufen der Containerliste"}
-    }
-)
+# Route: Gibt nur laufende Container zurück
+@router.get("/list", response_model=List[str])
 async def list_containers():
-    """
-    Gibt eine Liste aller laufenden Container zurück.
-    """
     try:
-        return container_service.list_running_containers()
+        # Laufende Container abrufen
+        result = container_service.list_running_containers()
+        # Erfolgreiches Loggen der Containerliste
+        log_event("CONTAINER", "list_containers", "Laufende Container erfolgreich abgerufen", level="INFO")
+        return result
     except Exception as e:
-        logger.exception("[ContainerList] Fehler beim Abrufen der Container")
+        # Fehler beim Abrufen der Containerliste loggen
+        log_event("ERROR", "list_containers", f"Fehler beim Abrufen der Containerliste: {str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Containerliste")
-@router.post(
-    "/{container_id_or_name}/stop",
-    summary="Stoppt einen Container",
-    response_description="Information über den gestoppten Container",
-    responses={
-        200: {"description": "Container erfolgreich gestoppt"},
-        404: {"description": "Container nicht gefunden"},
-        500: {"description": "Fehler beim Stoppen des Containers"}
-    }
-)
+
+# Route: Stoppt einen laufenden Container
+@router.post("/{container_id_or_name}/stop")
 async def stop_container_route(container_id_or_name: str):
-    """
-    Stoppt einen Docker-Container mit gegebener ID oder Name.
-    """
     try:
+        # Container stoppen
         result = container_service.stop_container(container_id_or_name)
+        # Erfolgreiches Loggen des Stop-Vorgangs
+        log_event("CONTAINER", "stop_container_route", f"Container {container_id_or_name} erfolgreich gestoppt", level="INFO")
         return JSONResponse(content=result)
     except Exception as e:
-        logger.exception("[ContainerStop] Fehler beim Stoppen")
+        # Fehler beim Stoppen loggen
+        log_event("ERROR", "stop_container_route", f"Fehler beim Stoppen des Containers {container_id_or_name}: {str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(e))
-@router.get(
-    "/{container_id_or_name}/resources",
-    summary="Live-Ressourcennutzung eines Containers",
-    description="Zeigt CPU- und Speicherverbrauch eines Containers an.",
-    responses={
-        200: {"description": "Ressourcennutzung erfolgreich abgerufen"},
-        404: {"description": "Container nicht gefunden"},
-        500: {"description": "Fehler beim Ressourcenabruf"}
-    }
-)
+
+# Route: Gibt Ressourceninformationen (CPU, RAM) eines Containers zurück
+@router.get("/{container_id_or_name}/resources")
 async def get_container_resources(container_id_or_name: str):
     try:
+        # Ressourceninformationen abrufen
         result = container_service.get_container_resource_usage(container_id_or_name)
+        # Erfolgreiches Loggen der Ressourcennutzung
+        log_event("CONTAINER", "get_container_resources", f"Ressourcen für Container {container_id_or_name} erfolgreich abgerufen", level="INFO")
         return JSONResponse(content=result)
     except Exception as e:
-        logger.exception("[ContainerResources] Fehler beim Abrufen")
+        # Fehler beim Abrufen der Ressourcen loggen
+        log_event("ERROR", "get_container_resources", f"Fehler beim Abrufen der Ressourcen: {str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(e))
-@router.get(
-    "/all",
-    summary="Liste aller Container (laufend + gestoppt)",
-    description="Gibt eine Liste aller vorhandenen Container zurück – egal ob laufend oder gestoppt.",
-    responses={
-        200: {"description": "Alle Container erfolgreich zurückgegeben"},
-        500: {"description": "Fehler beim Abrufen der Container"}
-    }
-)
+
+# Route: Gibt alle Container (laufend und gestoppt) zurück
+@router.get("/all")
 async def list_all_containers():
-    """
-    Gibt eine Liste aller Docker-Container zurück – unabhängig vom Status.
-    """
     try:
+        # Alle Container abrufen
         result = container_service.list_containers()
+        # Erfolgreiches Loggen aller Container
+        log_event("CONTAINER", "list_all_containers", "Alle Container erfolgreich abgerufen", level="INFO")
         return JSONResponse(content=result)
     except Exception as e:
-        logger.exception("[ContainerListAll] Fehler beim Abrufen aller Container")
+        # Fehler beim Abrufen aller Container loggen
+        log_event("ERROR", "list_all_containers", f"Fehler beim Abrufen aller Container: {str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail="Fehler beim Abrufen aller Container")
