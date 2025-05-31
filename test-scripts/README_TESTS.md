@@ -18,6 +18,8 @@ Dieses Verzeichnis enthält zwei Skripte, um automatisierte Tests im Docker-Cont
 cd test-scripts
 ./run_tests.ps1
 ```
+Wenn Fehlermeldung, dass Script nicht signiert ist dann: 
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 ### Bash (Linux/macOS/WSL)
 
