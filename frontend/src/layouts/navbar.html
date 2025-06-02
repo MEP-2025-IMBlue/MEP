@@ -1,15 +1,22 @@
-<!-- frontend/src/layouts/navbar.html -->
 <nav class="navbar">
   <div class="logo">
-    <a style="text-decoration: none; color: inherit;" href="/pages/dashboard.html">mRay AIR</a>
+    <a style="text-decoration: none; color: inherit;" href="/pages/dashboard.html" data-i18n-key="navbar_logo">mRay AIR</a>
   </div>
   <div class="nav-links">
-    <a href="/pages/dashboard.html">Dashboard</a>
-    <a href="/pages/container_upload.html">Container hochladen</a>
-    <a href="/pages/dicom_upload.html">DICOM hochladen</a>
-    <a href="/pages/profil.html">Profil</a>
+    <a href="/pages/dashboard.html" data-i18n-key="navbar_dashboard">Dashboard</a>
+    <a href="/pages/container_upload.html" data-i18n-key="navbar_container_upload">Container hochladen</a>
+    <a href="/pages/dicom_upload.html" data-i18n-key="navbar_dicom_upload">DICOM hochladen</a>
+    <a href="/pages/profil.html" data-i18n-key="navbar_profile">Profil</a>
   </div>
+  
   <div class="logout">
-    <a href="/pages/login.html">Logout</a>
+    <a href="/pages/login.html" data-i18n-key="navbar_logout">Logout</a>
   </div>
+  <div class="lang-toggle">
+    <button id="lang-toggle">EN</button>
+  </div>
+  
+  <script src="../scripts/i18n.js"></script>
+  <script src="../scripts/global_script.js"></script>
+
 </nav>
