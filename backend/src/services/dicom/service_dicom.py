@@ -80,13 +80,12 @@ def receive_file(file: UploadFile = File(...)):
 def upload_dicom(tmp_filepath:str) -> UploadResultItem:
     """Führt den vollständigen Upload-Workflow für eine DICOM-Datei durch:
     - Validierung
-    - Anonymisierung
     - Extraktion von Pixeldaten und dessen Speicherung
     - Rückgabe von Ergebnisdaten (z. B. für API-Response)"""
 
     ds = load_dicom_file(tmp_filepath)
     validate_dicom(ds)
-    ds = anonymize_dicom(ds)
+    #ds = anonymize_dicom(ds)
     pixel_array = extract_pixel_array(ds)
     #metadata = extract_metadata(ds) -> TODO: eher für Maimuna relevant
     return store_dicom_and_data(ds, pixel_array)
