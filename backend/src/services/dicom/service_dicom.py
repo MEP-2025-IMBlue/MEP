@@ -46,11 +46,3 @@ def read_dicom(file_path: str) -> Dict:
         return {"status": "error", "message": "Ungültige DICOM-Datei."}
     except Exception as e:
         return {"status": "error", "message": f"Fehler beim Einlesen: {str(e)}"}
-
-# Beispiel: Teste eine Datei
-#file_path = "/Users/maimuna/Desktop/DICOM-Files/series-00000/image-00000.dcm"  # Ersetze mit deinem Dateipfad
-#file_path = "/Users/maimuna/Desktop/DICOM-Files/Siemens-MRI-Magnetom-Vida-3T_Large-FOV_1800000004364898/Vida_Abdomen_T1_VIBE_Dixon_W_Vi001_SL95.dcm"  # Ersetze mit deinem Dateipfad
-#file_path = "/Users/maimuna/Desktop/DICOM-Files/0002.dcm"
-#file_path = "/Users/maimuna/Desktop/DICOM-Files/0003.dcm"
-#result = read_dicom(file_path)
-#print(result)

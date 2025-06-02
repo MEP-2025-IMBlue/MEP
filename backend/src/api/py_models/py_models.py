@@ -75,7 +75,7 @@ class DICOMMetadata(BaseModel):
     dicom_photometric_interpretation: Optional[str] = None
     dicom_transfer_syntax_uid: Optional[str] = None
     dicom_file_path: Optional[str] = None
-    dicom_created_at: datetime  # ✅ NEU hinzugefügt
+    dicom_created_at: datetime  # NEU hinzugefügt
 
 
     class Config:
