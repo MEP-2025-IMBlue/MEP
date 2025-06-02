@@ -1,136 +1,102 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
 from src.main import app
-from backend.src.api.py_models.py_models import *
-from src.api.routes import *
-from src.services.image_upload.service_KIImage import fake_db
+from src.db.db_models.db_models import Base
+from src.db.database.database import get_db
 
-client = TestClient(app)
+# --------------------------------------------
+# In-Memory-Datenbank für FastAPI-Testclient
+@pytest.fixture(scope="function")
+def test_client():
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base.metadata.create_all(bind=engine)
+    db = TestingSessionLocal()
 
-# ------------------------------------------------------------
-# Abschnitt: Hilfsfunktionen
+    def override_get_db():
+        try:
+            yield db
+        finally:
+            db.close()
 
-def setup_function():
-    fake_db.clear()
+    app.dependency_overrides[get_db] = override_get_db
+    client = TestClient(app)
 
-def add_sample_ki_image():
-    response = client.post("/ki-images", json={
-        "image_id": "string",
-        "image_name": "string",
-        "tag": "string",
-        "repository": "path",
-        "created_at": "2025-04-15T",
-        "size": 16,
-        "architecture": None,
-        "os": "linux"
+    yield client
+
+    app.dependency_overrides.clear()
+    Base.metadata.drop_all(bind=engine)
+
+# --------------------------------------------
+# Hilfsfunktion: Hub-Upload simulieren
+def add_sample_ki_image(client):
+    response = client.post("/ki-images/hub", data={
+        "image_reference": "ubuntu:latest"
     })
     assert response.status_code == 200
-    assert response.json() == {
-        "image_id": "string", 
-        "image_name": "string", 
-        "tag": "string", 
-        "repository": "path", 
-        "created_at": "2025-04-15T", 
-        "size": 16, 
-        "architecture": None, 
-        "os": "linux"
-    }
-    return response
+    return response.json()
 
-# ------------------------------------------------------------
-# Abschnitt: Tests für GET
-
-def test_get_ki_images_list_empty():
-    response = client.get("/ki-images")
+# --------------------------------------------
+# GET-Tests
+def test_get_ki_images_list_empty(test_client):
+    response = test_client.get("/ki-images")
     assert response.status_code == 404
-    assert response.json() == {"detail": "Es befinden sich noch keine KI-Images in der Datenbank."}
+    assert "keine ki-bilder in der datenbank" in response.json()["detail"].lower()
 
-def test_get_ki_images_list_after_post():
-    add_sample_ki_image()
-    response = client.get("/ki-images")
-    assert response.status_code == 200 
-    assert any(item["image_id"] == "string" for item in response.json())
+def test_get_ki_images_list_after_post(test_client):
+    add_sample_ki_image(test_client)
+    response = test_client.get("/ki-images")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert len(response.json()) == 1
 
-# ------------------------------------------------------------
-# Abschnitt: Tests für POST
+# --------------------------------------------
+# POST-Tests
+def test_post_ki_image_valid_and_duplicate(test_client):
+    data = {"image_reference": "ubuntu:latest"}
 
-def test_post_ki_image_valid_and_duplicate():
-    response_first = client.post("/ki-images", json={
-        "image_id": "string",
-        "image_name": "string",
-        "tag": "string",
-        "repository": "path",
-        "created_at": "2025-04-15T",
-        "size": 16,
-        "architecture": None
-    })
-    assert response_first.status_code == 200
-    assert response_first.json() == {
-        "image_id": "string", 
-        "image_name": "string", 
-        "tag": "string", 
-        "repository": "path", 
-        "created_at": "2025-04-15T", 
-        "size": 16, 
-        "architecture": None, 
-        "os": None
-    }
+    response1 = test_client.post("/ki-images/hub", data=data)
+    assert response1.status_code == 200
+    assert response1.json()["image_reference"] == "ubuntu:latest"
 
-    response_second = client.post("/ki-images", json={
-        "image_id": "string",
-        "image_name": "string", 
-        "tag": "string", 
-        "repository": "path", 
-        "created_at": "2025-04-15T", 
-        "size": 16, 
-        "architecture": None, 
-        "os": "linux"
-    })
-    assert response_second.status_code == 400
-    assert response_second.json() == {"detail": "Ein Bild mit der ID string existiert bereits."}
+    response2 = test_client.post("/ki-images/hub", data=data)
+    assert response2.status_code == 200
+    assert response2.json()["image_reference"] == "ubuntu:latest"
 
-def test_post_ki_image_invalid_fields():
-    response = client.post("/ki-images", json={"image_id": 123})
-    assert response.status_code == 422  
-    assert "detail" in response.json()
+def test_post_ki_image_invalid_missing_fields(test_client):
+    response = test_client.post("/ki-images/hub", data={})
+    assert response.status_code == 422  # Formfeld fehlt
 
-def test_post_ki_image_invalid_enum():
-    response = client.post("/ki-images", json={
-        "image_id": "string",
-        "image_name": "string",
-        "tag": "string",
-        "repository": "path",
-        "created_at": "2025-04-15T",
-        "size": 16,
-        "architecture": "invalid architecture"
-    })
-    assert response.status_code == 422
-    assert "detail" in response.json()
+# --------------------------------------------
+# DELETE-Tests
+def test_delete_ki_image_success(test_client):
+    image = add_sample_ki_image(test_client)
+    image_id = image["image_id"]
 
-# ------------------------------------------------------------
-# Abschnitt: Tests für DELETE
+    response = test_client.delete(f"/ki-images/{image_id}")
+    assert response.status_code == 200
+    assert f"{image_id}" in response.json()["message"]
 
-def test_delete_ki_image():
-    add_sample_ki_image()
-    response_delete = client.delete("/ki-images/string")
-    assert response_delete.status_code == 200
-
-    response_check = client.get("/ki-images")
+    # sicherstellen, dass gelöscht
+    response_check = test_client.get("/ki-images")
     assert response_check.status_code == 404
 
-def test_delete_ki_image_invalid_id():
-    add_sample_ki_image()
-    response = client.delete("/ki-images/wrong_id")
+def test_delete_ki_image_not_found(test_client):
+    response = test_client.delete("/ki-images/99999")
     assert response.status_code == 404
-    assert response.json() == {"detail": "KI-Image mit der ID wrong_id wurde nicht gefunden."}
-    assert any(item.image_id == "string" for item in fake_db)
+    assert "nicht gefunden" in response.json()["detail"].lower()
 
-# ------------------------------------------------------------
-# Abschnitt: Tests für PUT (noch offen)
-
-# ------------------------------------------------------------
-# Abschnitt: Unzugeordnete Tests
-
-def test_home():
-    response = client.get("/")
+# --------------------------------------------
+# Root-Endpunkt
+def test_home(test_client):
+    response = test_client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome"}
+    assert response.json() == {"message": "Welcome to mRay AIR Backend!"}
