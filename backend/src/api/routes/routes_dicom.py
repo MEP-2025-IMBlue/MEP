@@ -25,7 +25,7 @@ router = APIRouter(tags=["DICOM"])
 @router.post("/dicoms/uploads", response_model=UploadDICOMResponseModel)
 async def post_upload_dicom(file: UploadFile = File(...)):
     try:
-        return service_dicom.receive_file(file)
+        return receive_file(file)
     except DICOMValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DICOMProcessingError as e:
@@ -40,7 +40,7 @@ async def post_upload_dicom(file: UploadFile = File(...)):
 @router.delete("/dicoms/uploads/{sop_uid}")
 async def delete_upload_dicom(sop_uid):
     try:
-        service_dicom.delete_upload_dicom(sop_uid)
+        delete_upload_dicom(sop_uid)
         return {"message": f"{sop_uid}_anon.dcm wurde gelöscht"}
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -50,7 +50,7 @@ async def delete_upload_dicom(sop_uid):
 # ========================================
 @router.get("/dicoms/uploads")
 async def get_all_stored_dicom():
-    result = service_dicom.get_all_stored_dicom()
+    result = get_all_stored_dicom()
     if not result:
         return {"message": "Es wurden noch keine DICOM_Dateien hochgeladen."}
     return result
