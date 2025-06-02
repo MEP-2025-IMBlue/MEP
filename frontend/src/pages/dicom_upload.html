@@ -2,9 +2,11 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title data-i18n-key="navbar_dicom_upload">DICOM Upload – mRay AIR</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DICOM Upload – mRay AIR</title>
+  <!-- Keycloak + Auth Schutz -->
+  <script src="https://cdn.jsdelivr.net/npm/keycloak-js@24.0.1/dist/keycloak.min.js"></script>
+  <script src="../scripts/auth.js" defer></script>
   <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/dicom_upload.css" />
 </head>
@@ -36,9 +38,10 @@
   </main>
 
   <footer>© mRay</footer>
-  
+
   <script src="../scripts/i18n.js"></script>
   <script src="../scripts/global_script.js"></script>
   <script src="../scripts/dicom_upload.js"></script>
+  
 </body>
 </html>
