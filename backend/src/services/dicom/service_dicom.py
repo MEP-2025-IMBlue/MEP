@@ -1,90 +1,56 @@
-#TO DO: Alle Funktionalitäten für den DICOM-Upload (NICHT Datenbank!!) hier in dieser Datei zusammenführen
-
-import os
-from dotenv import load_dotenv
-import hashlib
-import numpy as np
 import pydicom
+import numpy as np
 from pydicom.errors import InvalidDicomError
-from sqlalchemy.orm import Session
-import logging
-from fastapi import HTTPException
+from typing import Dict
 
-# Logging-Konfiguration
-logging.basicConfig(level=logging.INFO)
-
-# DICOM-spezifische Services
-from services.dicom.anonymizer import anonymize_dicom_fields
-from services.dicom.hasher import generate_dicom_hash
-from services.dicom.extractor import extract_pixel_array
-from services.dicom.metadata import extract_metadata
-from services.dicom.validation import run_full_validation
-
-# Datenbank-Zugriff
-from db.crud import crud_dicom
-from db.database.database import get_db
-
-# Verarbeitet eine einzelne DICOM-Datei: Validierung → Anonymisierung → Speicherung
-def handle_dicom_upload(file_path: str) -> dict:
-    db: Session = get_db().__next__()
-
+# ===========================================
+# DICOM Datei lesen (Metadaten und Bildinfo)
+# ===========================================
+def read_dicom(file_path: str) -> Dict:
+    """
+    Liest eine DICOM-Datei und extrahiert DSGVO-konforme Metadaten und Bildinformationen.
+    """
     try:
-        ds = pydicom.dcmread(file_path)
-        logging.info(f"[Upload] DICOM-Datei erfolgreich gelesen: {file_path}")
+        # DICOM-Datei einlesen
+        dicom = pydicom.dcmread(file_path)
+        
+        # DSGVO-konforme Metadaten extrahieren (keine personenbezogenen Daten)
+        metadata = {
+            "dicom_modality": getattr(dicom, "Modality", "N/A"),
+            "dicom_sop_class_uid": getattr(dicom, "SOPClassUID", "N/A"),
+            "dicom_manufacturer": getattr(dicom, "Manufacturer", "N/A"),
+            "dicom_rows": getattr(dicom, "Rows", None),
+            "dicom_columns": getattr(dicom, "Columns", None),
+            "dicom_bits_allocated": getattr(dicom, "BitsAllocated", None),
+            "dicom_photometric_interpretation": getattr(dicom, "PhotometricInterpretation", "N/A"),
+            "dicom_transfer_syntax_uid": getattr(dicom.file_meta, "TransferSyntaxUID", "N/A"),
+            "dicom_file_path": file_path
+        }
+        
+        # Bilddaten extrahieren
+        pixel_array = dicom.pixel_array
+        image_info = {
+            "shape": pixel_array.shape,
+            "data_type": str(pixel_array.dtype),
+            "min_pixel_value": np.min(pixel_array),
+            "max_pixel_value": np.max(pixel_array)
+        }
+        
+        return {
+            "status": "success",
+            "metadata": metadata,
+            "image_info": image_info
+        }
+    
     except InvalidDicomError:
-        logging.error(f"[Upload] Ungültige DICOM-Datei: {file_path}")
-        raise ValueError(f"Datei ist kein gültiges DICOM-Format: {file_path}")
+        return {"status": "error", "message": "Ungültige DICOM-Datei."}
     except Exception as e:
-        logging.error(f"[Upload] Allgemeiner Fehler beim Lesen der Datei: {file_path} → {str(e)}")
-        raise
+        return {"status": "error", "message": f"Fehler beim Einlesen: {str(e)}"}
 
-    ds = anonymize_dicom_fields(ds)
-    logging.info("[Anonymisierung] Anonymisierung abgeschlossen.")
-
-    run_full_validation(ds, file_path)
-    logging.info("[Validation] Validierung abgeschlossen.")
-
-    # dicom_hash = generate_dicom_hash(ds)
-    # logging.info(f"[Hash] Hash generiert: {dicom_hash}")
-
-    upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
-    os.makedirs(upload_dir, exist_ok=True)
-    #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
-    anon_path = os.path.join(upload_dir, f"{dicom_hash}_anon.dcm")
-
-    try:
-        ds.save_as(anon_path)
-        logging.info(f"[Datei] Anonymisierte Datei gespeichert: {anon_path}")
-    except Exception as e:
-        logging.error(f"[Datei] Fehler beim Speichern der anonymisierten Datei: {anon_path} → {str(e)}")
-        raise RuntimeError(f"Fehler beim Speichern der anonymisierten Datei: {str(e)}")
-
-    try:
-        #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
-        npy_path = extract_pixel_array(ds, dicom_hash)
-        logging.info(f"[PixelData] Pixel-Array gespeichert unter: {npy_path}")
-    except Exception as e:
-        logging.error(f"[PixelData] Fehler beim Speichern des Pixel-Arrays: {str(e)}")
-        raise RuntimeError(f"Fehler beim Speichern des Pixel-Arrays: {str(e)}")
-
-    #TO DO: nur für die Datenbank, also noch nicht relevant
-    #metadata = extract_metadata(ds)
-
-    #TO DO: Speciherung der Metadaten in der Datenbank
-    # try:
-    #     #TO DO: Benutzung von create_dicom aus crud_dicom.py
-    #     #crud_dicom.create_or_replace_dicom_metadata(db, metadata)
-    #     logging.info("[DB] Metadaten erfolgreich in die Datenbank gespeichert.")
-    # except Exception as e:
-    #     logging.error(f"[Upload] Fehler bei DB-Speicherung: {e}")
-    #     raise HTTPException(
-    #         status_code=500,
-    #         detail="Fehler beim Erstellen eines DICOM-Metadatensatzes."
-    #     )
-
-    return {
-        "anonymized_file": anon_path,
-        "pixel_array_file": npy_path
-
-        #"metadata": metadata
-    }
+# Beispiel: Teste eine Datei
+#file_path = "/Users/maimuna/Desktop/DICOM-Files/series-00000/image-00000.dcm"  # Ersetze mit deinem Dateipfad
+#file_path = "/Users/maimuna/Desktop/DICOM-Files/Siemens-MRI-Magnetom-Vida-3T_Large-FOV_1800000004364898/Vida_Abdomen_T1_VIBE_Dixon_W_Vi001_SL95.dcm"  # Ersetze mit deinem Dateipfad
+#file_path = "/Users/maimuna/Desktop/DICOM-Files/0002.dcm"
+#file_path = "/Users/maimuna/Desktop/DICOM-Files/0003.dcm"
+#result = read_dicom(file_path)
+#print(result)

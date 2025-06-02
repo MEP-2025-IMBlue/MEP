@@ -4,8 +4,8 @@
 # für die FastAPI-Endpunkte
 
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, field_validator
+from typing import Optional, List
+from pydantic import BaseModel, field_validator, Field
 
 
 # ========================================
@@ -43,26 +43,11 @@ class KIImageUpdate(BaseModel):
     class Config:
         from_attributes = True
 
-
-# ========================================
-# DICOMMetadata: DICOM-Modell aus db_models.py
-# ========================================
-#TO DO: Attribute ändern, also final entscheiden, was wir in der Datenbank ZUR STATISTIK specihern wollen 
-class DICOMMetadata(BaseModel):
-    dicom_id: int
-    dicom_uuid: str
-    dicom_modality: Optional[str] = None
-
-    class Config:
-        from_attributes = True
-
-
 # ========================================
 # ImageUpload 
 # ========================================
 class ImageUpload(BaseModel):
     image_data: str
-
 
 # ========================================
 # ContainerResponse 
@@ -71,22 +56,44 @@ class ContainerResponse(BaseModel):
 
     container_id: str
     status: str
-# ========================================
-# UploadResultItem: Ergebnis für eine einzelne DICOM-Datei
-# ========================================
-from typing import List, Optional
-from pydantic import Field
 
+# ========================================
+# DICOMMetadata: DICOM-Modell
+# ========================================
+#TO DO: Attribute ändern, also final entscheiden, was wir in der Datenbank ZUR STATISTIK specihern wollen 
+class DICOMMetadata(BaseModel):
+    """
+    Pydantic-Modell für DSGVO-konforme DICOM-Metadaten.
+    """
+    dicom_id: int
+    dicom_modality: Optional[str] = None
+    dicom_sop_class_uid: Optional[str] = None
+    dicom_manufacturer: Optional[str] = None
+    dicom_rows: Optional[int] = None
+    dicom_columns: Optional[int] = None
+    dicom_bits_allocated: Optional[int] = None
+    dicom_photometric_interpretation: Optional[str] = None
+    dicom_transfer_syntax_uid: Optional[str] = None
+    dicom_file_path: Optional[str] = None
+    dicom_created_at: datetime  # ✅ NEU hinzugefügt
+
+
+    class Config:
+        from_attributes = True
+
+# ==================================================
+# UploadResultItem: Upload-Modell der DICOM-Datei
+# ==================================================
 class UploadResultItem(BaseModel):
-    anonymized_file: Optional[str] = Field(None, description="Pfad zur anonymisierten DICOM-Datei")
-    pixel_array_file: Optional[str] = Field(None, description="Pfad zur gespeicherten .npy-Datei")
-    file: Optional[str] = Field(None, description="Dateiname der Originaldatei (bei Fehlern)")
-    error: Optional[str] = Field(None, description="Fehlermeldung, falls Verarbeitung fehlgeschlagen ist")
+    """
+    Ergebnis für eine einzelne DICOM-Datei.
+    """
+    file: Optional[str] = Field(None, description="Dateiname der Originaldatei")
+    error: Optional[str] = Field(None, description="Fehlermeldung, falls Verarbeitung fehlgeschlagen")
 
-# ========================================
-# UploadDICOMResponseModel: Antwortmodell für Upload-Endpunkt
-# ========================================
-#TO DO: final entscheiden, was wir dem User alles als Antwort nach dem Upload geben möchten
 class UploadDICOMResponseModel(BaseModel):
+    """
+    Antwortmodell für den Upload-Endpunkt.
+    """
     message: str = Field(..., description="Statusmeldung zur Verarbeitung")
     data: List[UploadResultItem] = Field(..., description="Liste der Ergebnisse pro Datei")
