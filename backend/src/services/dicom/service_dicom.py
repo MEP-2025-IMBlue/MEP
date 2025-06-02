@@ -19,20 +19,6 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-
-
-
-# # DICOM-spezifische Services
-# from services.dicom.anonymizer import anonymize_dicom_fields
-# from services.dicom.hasher import generate_dicom_hash
-# from services.dicom.extractor import extract_pixel_array
-# from services.dicom.metadata import extract_metadata
-# from services.dicom.validation import run_full_validation
-
-# # Datenbank-Zugriff
-# from db.crud import crud_dicom
-# from db.database.database import get_db
-
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 PROCESSED_DIR = os.getenv("PROCESSED_DIR", "/tmp/processed")
 UPLOAD_TMP_DIR = os.getenv("UPLOAD_TMP_DIR", "storage/tmp")
@@ -126,12 +112,6 @@ def check_required_tags(ds: Dataset) -> None:
     if missing_tags:
         #logging.error(f"[Validation] Fehlende Pflichtfelder (Type 1): {fehlende_typ1}")
         raise MissingRequiredTagError(f"Fehlende Pflichtfelder: {', '.join(missing_tags)}")
-
-        # value = getattr(ds, tag)
-        # if tag_typ == 1 and (value is None or str(value).strip() == ""):
-        #     fehlende_typ1.append(tag)
-        # elif tag_typ == 2 and (value is None or str(value).strip() == ""):
-        #     logging.warning(f"[Validation] {tag} ist leer – erlaubt, aber protokolliert.")
 
 def check_pixeldata(ds: Dataset) -> None:
     """Prüft, ob PixelData vorhanden ist."""
@@ -277,138 +257,6 @@ def get_all_stored_dicom() -> list:
         result.append(filename)
     return result        
     
-             
-            
-
-
-
-  
-    
-
-    
-    
-    #pass
-    #db: Session = get_db().__next__()
-
-    # try:
-    #     ds = pydicom.dcmread(file_path)
-    #     logging.info(f"[Upload] DICOM-Datei erfolgreich gelesen: {file_path}")
-    # except InvalidDicomError:
-    #     logging.error(f"[Upload] Ungültige DICOM-Datei: {file_path}")
-    #     raise ValueError(f"Datei ist kein gültiges DICOM-Format: {file_path}")
-    # except Exception as e:
-    #     logging.error(f"[Upload] Allgemeiner Fehler beim Lesen der Datei: {file_path} → {str(e)}")
-    #     raise
-
-    # ds = anonymize_dicom_fields(ds)
-    # logging.info("[Anonymisierung] Anonymisierung abgeschlossen.")
-
-    # run_full_validation(ds, file_path)
-    # logging.info("[Validation] Validierung abgeschlossen.")
-
-    # # dicom_hash = generate_dicom_hash(ds)
-    # # logging.info(f"[Hash] Hash generiert: {dicom_hash}")
-
-    # upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
-    # os.makedirs(upload_dir, exist_ok=True)
-    # #TODO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
-    # anon_path = os.path.join(upload_dir, f"{dicom_hash}_anon.dcm")
-
-    # try:
-    #     ds.save_as(anon_path)
-    #     logging.info(f"[Datei] Anonymisierte Datei gespeichert: {anon_path}")
-    # except Exception as e:
-    #     logging.error(f"[Datei] Fehler beim Speichern der anonymisierten Datei: {anon_path} → {str(e)}")
-    #     raise RuntimeError(f"Fehler beim Speichern der anonymisierten Datei: {str(e)}")
-
-    # try:
-    #     #TODO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
-    #     npy_path = extract_pixel_array(ds, dicom_hash)
-    #     logging.info(f"[PixelData] Pixel-Array gespeichert unter: {npy_path}")
-    # except Exception as e:
-    #     logging.error(f"[PixelData] Fehler beim Speichern des Pixel-Arrays: {str(e)}")
-    #     raise RuntimeError(f"Fehler beim Speichern des Pixel-Arrays: {str(e)}")
-
-    # #TO DO: nur für die Datenbank, also noch nicht relevant
-    # #metadata = extract_metadata(ds)
-
-    # #TO DO: Speciherung der Metadaten in der Datenbank
-    # # try:
-    # #     #TO DO: Benutzung von create_dicom aus crud_dicom.py
-    # #     #crud_dicom.create_or_replace_dicom_metadata(db, metadata)
-    # #     logging.info("[DB] Metadaten erfolgreich in die Datenbank gespeichert.")
-    # # except Exception as e:
-    # #     logging.error(f"[Upload] Fehler bei DB-Speicherung: {e}")
-    # #     raise HTTPException(
-    # #         status_code=500,
-    # #         detail="Fehler beim Erstellen eines DICOM-Metadatensatzes."
-    # #     )
-
-    # return {
-    #     "anonymized_file": anon_path,
-    #     "pixel_array_file": npy_path
-
-    #     #"metadata": metadata
-    # }
-
-
-
-
-#TODO: Tag "modaltity" soll geprüft werden, 
-#obs befüllt ist, aber dessen Inhalt auch, 
-#aber soll nicht crashen, wenn die Modalität nicht in Valid_Modalities drin ist 
-#TODO: Diskutieren, wozu überhaupt dann checken, 
-# wenn sowieso alles durchgelassen werden, oder parsen wir diese Info für die Matching Logik?
-# def check_modality(ds: Dataset) -> None:
-#     """Prüft, ob Modalität unterstützt ist (z. B. CT, MR, etc.)."""
-#     VALID_MODALITIES = {"CT", "MR", "XR", "US", "NM", "PT", "DX", "MG", "CR"}
-
-#     modality = getattr(ds, "Modality", "").upper()
-#     if modality and modality not in VALID_MODALITIES:
-#         #logging.error(f"[Validation] Unbekannte oder ungültige Modalität: {modality}")
-#         raise HTTPException(status_code=422, detail=f"Unbekannte oder ungültige Modalität: {modality}.")
-
-    
-
-
-
-
-
-# def run_full_validation(ds: Dataset, filename: str) -> None:
-#     #logging.info(f"[Validation] Starte Validierung der DICOM-Metadaten für Datei: {filename}")
-#     #check_compliance(ds, filename)
-
-#     # TODO: Final entscheiden welche Pflichtfelder validiert werden
-#     required_tags = {
-#         # "PatientID": 2,
-#         # "PatientName": 2,
-#         # "StudyInstanceUID": 2,
-#         # "SeriesInstanceUID": 2,
-#         "SOPInstanceUID": 1,
-#         "SOPClassUID": 1,
-#         "Modality": 1,
-#         # "InstanceNumber": 2,
-#         # "StudyDate": 2,
-#         # "FrameOfReferenceUID": 2,
-#         # "SamplesPerPixel": 2,
-#         # "PhotometricInterpretation": 2,
-#     }
-
-#     # if ds.Modality in {"CT", "MR", "PT"}:
-#     #     required_tags["ImagePositionPatient"] = 2
-#     #     required_tags["ImageOrientationPatient"] = 2
-#     #     required_tags["PixelSpacing"] = 2
-
-#     check_required_tags(ds, required_tags)
-#     #check_date_fields(ds)
-#     #check_uid_formats(ds)
-#     check_modality(ds)
-#     check_pixeldata_presence(ds, filename)
-#     #check_transfer_syntax(ds)
-#     #log_private_tags(ds, filename)
-#     logging.info(f"[Validation] DICOM-Metadaten erfolgreich validiert für Datei: {filename}")
-
-
 
 
 
