@@ -2,12 +2,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const hubForm = document.getElementById("hub-upload-form");
   const localForm = document.getElementById("local-upload-form");
 
-  // Fehlermeldung interpretieren
+   // Funktion zur Interpretation und Formatierung von Fehlermeldungen
   function interpretErrorMessage(rawMsg, source = "") {
     if (!rawMsg) return "\u{1F4C4} Ein unbekannter Fehler ist aufgetreten.";
 
     const msg = rawMsg.toLowerCase();
-
+   // Spezielle Formate für typische Fehlermeldungen
     if (source === "local" && msg.includes("file") && msg.includes("invalid")) {
       return "\u{1F4C4} Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
     }
@@ -31,8 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return `\u{1F4C4} Fehler: ${rawMsg}`;
   }
 
-  // DockerHub Upload
+   // ---------- DockerHub-Upload ----------
   if (hubForm) {
+    //Spinner für Ladeanimation
     const spinner = document.createElement("div");
     spinner.id = "hub-spinner";
     spinner.innerHTML = `<div class="spinner"></div><span>Verarbeitung läuft...</span>`;
@@ -40,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     spinner.style.marginTop = "10px";
     hubForm.appendChild(spinner);
 
+    // Upload per Fetch-API senden
     hubForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -76,8 +78,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  //  Lokaler Upload mit Drag-and-Drop + Vorschau + Fortschritt
+  
+  // ---------- Lokaler Upload (.tar) ----------
   if (localForm) {
+    // Fortschrittsbalken initialisieren
     const progress = document.createElement("progress");
     progress.id = "local-progress";
     progress.value = 0;
@@ -85,7 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
     progress.style.width = "100%";
     progress.style.display = "none";
     localForm.appendChild(progress);
-
+    
+    // Prozentanzeige neben Fortschrittsbalken
     const percentLabel = document.createElement("span");
     percentLabel.id = "local-progress-label";
     percentLabel.textContent = "0%";
@@ -95,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     percentLabel.style.display = "none";
     localForm.appendChild(percentLabel);
 
+    // Spinner bei Verarbeitungsstatus
     const spinner = document.createElement("div");
     spinner.id = "local-spinner";
     spinner.innerHTML = `<div class="spinner"></div><span>Verarbeitung läuft...</span>`;
@@ -102,22 +108,25 @@ document.addEventListener("DOMContentLoaded", () => {
     spinner.style.marginTop = "10px";
     localForm.appendChild(spinner);
 
-    // Drag-and-Drop Vorschau
+    // Drag-and-Drop Bereich konfigurieren
     const dropZone = document.getElementById("drop-local");
     const fileInput = document.getElementById("fileInput-local");
     const previewText = document.createElement("div");
     previewText.className = "preview-text";
     dropZone.appendChild(previewText);
 
+    // Dragover-Effekt aktivieren
     dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
       dropZone.style.borderColor = "#00cc66";
     });
 
+    // Farbe zurücksetzen beim Verlassen
     dropZone.addEventListener("dragleave", () => {
       dropZone.style.borderColor = "#ffd700";
     });
 
+    // Datei bei Drop übernehmen
     dropZone.addEventListener("drop", (e) => {
       e.preventDefault();
       dropZone.style.borderColor = "#ffd700";
@@ -128,8 +137,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Klick auf Zone öffnet Dateiauswahl
     dropZone.addEventListener("click", () => fileInput.click());
 
+    // Vorschau anzeigen bei manuellem Auswählen
     fileInput.addEventListener("change", () => {
       if (fileInput.files.length) {
         previewText.textContent = `\u{1F4C4} ${fileInput.files[0].name}`;
@@ -138,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    //  Upload
+    // Formular absenden (lokaler Upload)
     localForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
@@ -154,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Fortschrittsanzeige starten
       progress.value = 0;
       progress.style.display = "block";
       percentLabel.style.display = "inline";
@@ -167,6 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "http://localhost:8000/ki-images/local");
 
+        // Fortschritts-Event des Uploads
         xhr.upload.addEventListener("progress", (event) => {
           if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
@@ -176,6 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
               percentLabel.textContent = `${percent}%`;
               fakeProgress = percent;
             } else {
+              // Fake-Progress für letzte 5%
               clearInterval(slowInterval);
               slowInterval = setInterval(() => {
                 if (fakeProgress < 99) {
@@ -189,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
         });
-
+        
         xhr.onload = () => {
           clearInterval(slowInterval);
           progress.value = 100;
