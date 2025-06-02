@@ -5,7 +5,7 @@ import pydicom
 import numpy as np
 from pydicom.errors import InvalidDicomError
 import logging
-from fastapi import File, UploadFile
+from fastapi import File, UploadFile, Depends
 from pydicom.dataset import Dataset
 from api.py_models.py_models import UploadDICOMResponseModel, UploadResultItem
 from db.core.exceptions import *
@@ -13,6 +13,7 @@ import shutil, os, uuid, zipfile
 import tempfile
 from typing import Dict
 from src.db.crud.crud_dicom import *
+from src.db.database.database import get_db
 
 
 # Logging-Konfiguration
@@ -107,7 +108,7 @@ def receive_file(file: UploadFile = File(...)):
         if os.path.exists(tmp_filepath):
             os.remove(tmp_filepath)
 
-def upload_dicom(tmp_filepath:str) -> UploadResultItem:
+def upload_dicom(tmp_filepath:str, db: Session = Depends(get_db)) -> UploadResultItem:
     """Führt den vollständigen Upload-Workflow für eine DICOM-Datei durch:
     - Validierung
     - Extraktion von Pixeldaten und dessen Speicherung in einem Verzeichnis
@@ -119,7 +120,8 @@ def upload_dicom(tmp_filepath:str) -> UploadResultItem:
     #ds = anonymize_dicom(ds) -> Funktion wird erstmal nicht angewendet
     pixel_array = extract_pixel_array(ds)
     metadata = extract_metadata(ds)
-    store_dicom_metadata(db,metadata)
+    #Weiterleitung an einer Funktion aus crud_dicom.py
+    store_dicom_metadata(db ,metadata)
     return store_dicom_and_pixelarray(ds, pixel_array)
     
 def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
