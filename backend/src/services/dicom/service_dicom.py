@@ -12,38 +12,47 @@ from db.core.exceptions import *
 import shutil, os, uuid, zipfile
 import tempfile
 from typing import Dict
+from src.db.crud.crud_dicom import *
 
 
 # Logging-Konfiguration
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
+PROCESSED_DIR = os.getenv("PROCESSED_DIR", "/tmp/processed")
+UPLOAD_TMP_DIR = os.getenv("UPLOAD_TMP_DIR", "storage/tmp")
+
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(PROCESSED_DIR, exist_ok=True)
+os.makedirs(UPLOAD_TMP_DIR, exist_ok=True)
+
 # ===========================================
 # DICOM Datei lesen (Metadaten und Bildinfo)
 # ===========================================
-def read_dicom(file_path: str) -> Dict:
+def extract_metadata(ds: Dataset) -> Dict:
     """
     Liest eine DICOM-Datei und extrahiert DSGVO-konforme Metadaten und Bildinformationen.
     """
     try:
-        # DICOM-Datei einlesen
-        dicom = pydicom.dcmread(file_path)
+        # # DICOM-Datei einlesen
+        # dicom = pydicom.dcmread(file_path)
         
         # DSGVO-konforme Metadaten extrahieren (keine personenbezogenen Daten)
         metadata = {
-            "dicom_modality": getattr(dicom, "Modality", "N/A"),
-            "dicom_sop_class_uid": getattr(dicom, "SOPClassUID", "N/A"),
-            "dicom_manufacturer": getattr(dicom, "Manufacturer", "N/A"),
-            "dicom_rows": getattr(dicom, "Rows", None),
-            "dicom_columns": getattr(dicom, "Columns", None),
-            "dicom_bits_allocated": getattr(dicom, "BitsAllocated", None),
-            "dicom_photometric_interpretation": getattr(dicom, "PhotometricInterpretation", "N/A"),
-            "dicom_transfer_syntax_uid": getattr(dicom.file_meta, "TransferSyntaxUID", "N/A"),
-            "dicom_file_path": file_path
+            "dicom_modality": getattr(ds, "Modality", "N/A"),
+            "dicom_sop_class_uid": getattr(ds, "SOPClassUID", "N/A"),
+            "dicom_manufacturer": getattr(ds, "Manufacturer", "N/A"),
+            "dicom_rows": getattr(ds, "Rows", None),
+            "dicom_columns": getattr(ds, "Columns", None),
+            "dicom_bits_allocated": getattr(ds, "BitsAllocated", None),
+            "dicom_photometric_interpretation": getattr(ds, "PhotometricInterpretation", "N/A"),
+            "dicom_transfer_syntax_uid": getattr(ds.file_meta, "TransferSyntaxUID", "N/A"),
+            #TODO: filepath holen "dicom_file_path": file_path
         }
         
         # Bilddaten extrahieren
-        pixel_array = dicom.pixel_array
+        pixel_array = ds.pixel_array
         image_info = {
             "shape": pixel_array.shape,
             "data_type": str(pixel_array.dtype),
@@ -57,19 +66,10 @@ def read_dicom(file_path: str) -> Dict:
             "image_info": image_info
         }
     
-    except InvalidDicomError:
-        return {"status": "error", "message": "Ungültige DICOM-Datei."}
+    # except InvalidDicomError:
+    #     return {"status": "error", "message": "Ungültige DICOM-Datei."}
     except Exception as e:
         return {"status": "error", "message": f"Fehler beim Einlesen: {str(e)}"}
-
-
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
-PROCESSED_DIR = os.getenv("PROCESSED_DIR", "/tmp/processed")
-UPLOAD_TMP_DIR = os.getenv("UPLOAD_TMP_DIR", "storage/tmp")
-
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs(PROCESSED_DIR, exist_ok=True)
-os.makedirs(UPLOAD_TMP_DIR, exist_ok=True)
 
 def receive_file(file: UploadFile = File(...)):
     """Empfängt eine Datei, prüft Endung (.dcm/.zip),
@@ -110,15 +110,17 @@ def receive_file(file: UploadFile = File(...)):
 def upload_dicom(tmp_filepath:str) -> UploadResultItem:
     """Führt den vollständigen Upload-Workflow für eine DICOM-Datei durch:
     - Validierung
-    - Extraktion von Pixeldaten und dessen Speicherung
-    - Rückgabe von Ergebnisdaten (z. B. für API-Response)"""
+    - Extraktion von Pixeldaten und dessen Speicherung in einem Verzeichnis
+    - Extraktion der DICOM Metadaten und dessen Speicherung in die Datenbank
+    - Rückgabe von Ergebnisdaten (z.B. für API-Response)"""
 
     ds = load_dicom_file(tmp_filepath)
     validate_dicom(ds)
-    #ds = anonymize_dicom(ds)
+    #ds = anonymize_dicom(ds) -> Funktion wird erstmal nicht angewendet
     pixel_array = extract_pixel_array(ds)
-    #metadata = extract_metadata(ds) -> TODO: eher für Maimuna relevant
-    return store_dicom_and_data(ds, pixel_array)
+    metadata = extract_metadata(ds)
+    store_dicom_metadata(db,metadata)
+    return store_dicom_and_pixelarray(ds, pixel_array)
     
 def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
     #Schaue nach, ob die Datei DICOM konform ist
@@ -140,8 +142,6 @@ def validate_dicom(ds: Dataset) -> None:
 
     check_pixeldata(ds)
     check_required_tags(ds)
-    #TODO: final entscheiden ob check_modality nötig ist
-    #check_modality(ds)
 
 def check_required_tags(ds: Dataset) -> None:
     """Prüft, ob alle benötigten Tags vorhanden sind."""
@@ -164,7 +164,7 @@ def check_pixeldata(ds: Dataset) -> None:
         #logging.error(f"[Validation] Fehlender 'PixelData' in Datei: {filename}")
         raise MissingPixelData("DICOM-File hat keine Pixeldata")
 
-#TODO: final entschieden, was wirklich anonymisiert wird 
+#Aktuell wird diese Funktion nicht verwendet
 def anonymize_dicom(ds: pydicom.Dataset) -> pydicom.Dataset:
     """
     Entfernt oder ersetzt sensible Patientendaten im DICOM-Datensatz.
@@ -195,12 +195,6 @@ def extract_pixel_array(ds: pydicom.Dataset):
     """
     Wandelt das DICOM-Bild in ein NumPy-Array um und speichert es im .npy-Format.
     """
-    # if output_dir is None:
-    #     output_dir = os.getenv("PROCESSED_DIR", "/tmp/processed")
-    #     logging.info(f"[Extractor] Verwende Standardverzeichnis: {output_dir}")
-
-    # os.makedirs(output_dir, exist_ok=True)
-
     try:
         pixel_array = ds.pixel_array.astype(np.float32)
         logging.info(f"[Extractor] Pixel-Array erfolgreich extrahiert")
@@ -210,17 +204,9 @@ def extract_pixel_array(ds: pydicom.Dataset):
     
     return pixel_array
 
-    # out_path = os.path.join(output_dir, f"{hash_name}_anon.npy")
-    # np.save(out_path, array)
-    # logging.info(f"[Extractor] Pixel-Array gespeichert unter: {out_path}")
-    # return out_path
-
-def store_dicom_and_data(ds: pydicom.Dataset, pixel_array) -> UploadResultItem:
+def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array) -> UploadResultItem:
     """Speicherung der DICOM-Datei und die extrahierte Pixelarray."""
 
-    #upload_dir = os.getenv("UPLOAD_DIR", "/tmp/uploads")
-    #os.makedirs(upload_dir, exist_ok=True)
-    #TO DO: hier statt dicom_hash, die SOPInstanceUID der Datei verwenden
     sop_uid = ds.SOPInstanceUID
     anon_path = os.path.join(UPLOAD_DIR, f"{sop_uid}_anon.dcm")
     npy_path = os.path.join(PROCESSED_DIR, f"{sop_uid}_anon.npy")
