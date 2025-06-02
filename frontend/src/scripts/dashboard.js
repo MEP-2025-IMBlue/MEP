@@ -297,39 +297,55 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.testContainer = testContainer;
 
   // Initiales Laden
-  fetchKIImages();
+  await fetchKIImages();
 
-    // 🧠 System-Logs unterhalb anzeigen (nach "Info")
-    async function fetchAndDisplaySystemLogs() {
-      const infoSection = document.querySelector(".details-card:last-of-type"); // Info-Box im Dashboard
-      if (!infoSection) return;
+  async function fetchAndDisplaySystemLogs() {
+    const infoSection = document.querySelector(".details-card:last-of-type");
+    if (!infoSection) return;
   
-      const logContainer = document.createElement("pre");
-      logContainer.id = "system-log-output";
-      logContainer.style.maxHeight = "200px";
-      logContainer.style.overflowY = "auto";
-      logContainer.style.backgroundColor = "#1c1c1c";
-      logContainer.style.color = "#00ffcc";
-      logContainer.style.padding = "1rem";
-      logContainer.style.fontSize = "0.85rem";
-      logContainer.style.border = "1px solid #444";
-      logContainer.style.borderRadius = "6px";
-      logContainer.textContent = "⏳ Lade Logs...";
+    const logContainer = document.createElement("pre");
+    logContainer.id = "system-log-output";
+    logContainer.style.maxHeight = "200px";
+    logContainer.style.overflowY = "auto";
+    logContainer.style.backgroundColor = "#1c1c1c";
+    logContainer.style.color = "#00ffcc";
+    logContainer.style.padding = "1rem";
+    logContainer.style.fontSize = "0.85rem";
+    logContainer.style.border = "1px solid #444";
+    logContainer.style.borderRadius = "6px";
+    logContainer.textContent = "⏳ Lade Logs...";
+    infoSection.appendChild(logContainer);
   
-      infoSection.appendChild(logContainer);
+    console.log("🧠 Logfunktion gestartet");
   
-      try {
-        const res = await fetch("http://localhost:8000/logs?tail=50");
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        logContainer.textContent = data.logs.length > 0 ? data.logs.join("\n") : "ℹ️ Keine Logs gefunden.";
-      } catch (err) {
-        logContainer.textContent = "❌ Fehler beim Laden der Logs: " + err.message;
-      }
+    // Warten bis allData gefüllt ist
+    if (!Array.isArray(allData) || allData.length === 0) {
+      logContainer.textContent = "⚠️ Keine Containerinformationen verfügbar.";
+      return;
     }
   
+    // Suche ersten Container mit laufendem Zustand
+    const activeImage = allData.find((img) => !!img.running_container_id);
+    if (!activeImage) {
+      logContainer.textContent = "ℹ️ Kein aktiver Container vorhanden.";
+      return;
+    }
+  
+    const containerId = activeImage.running_container_id;
+    console.log("🚀 Aktiver Container:", containerId);
+  
+    try {
+      const res = await fetch(`http://localhost:8000/containers/${containerId}/logs?tail=50`);
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      logContainer.textContent = data.logs.length > 0 ? data.logs.join("\n") : "ℹ️ Keine Logs gefunden.";
+    } catch (err) {
+      logContainer.textContent = "❌ Fehler beim Laden der Logs: " + err.message;
+    }
+  }
+  
     // Logs sofort beim Laden abrufen
-    fetchAndDisplaySystemLogs();
+    await fetchAndDisplaySystemLogs();
   
 
 });
