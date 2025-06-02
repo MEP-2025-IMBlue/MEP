@@ -1,20 +1,27 @@
+from datetime import timezone
+from typing import List
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, UploadResultItem
 from db.database.database import get_db
-from db.crud import crud_dicom
+from db.crud.crud_dicom import store_dicom_metadata, delete_dicom_metadata, list_dicom_metadata
 from db.core.exceptions import *
-from src.services.dicom import service_dicom
+from services.dicom.service_dicom import *
+import os, logging
 import shutil, os, uuid, zipfile
 import logging
+
 
 # Logging konfigurieren
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-
 router = APIRouter(tags=["DICOM"])
 
+# ========================================
+# Lädt DICOM-Datei Temporär hoch
+# TODO: HIER DIE SACHEN von maimuna rein wegen Metadaten Extraktion
+# ========================================
 @router.post("/dicoms/uploads", response_model=UploadDICOMResponseModel)
 async def post_upload_dicom(file: UploadFile = File(...)):
     try:
@@ -26,6 +33,9 @@ async def post_upload_dicom(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Unbekannter Fehler: " + str(e))
 
+# ========================================
+# Löscht DICOM-Datei 
+# ========================================
 #TODO: DICOM-Dateien löschen, wenn sie vor X Tagen hochgeladen wurden
 @router.delete("/dicoms/uploads/{sop_uid}")
 async def delete_upload_dicom(sop_uid):
@@ -35,6 +45,9 @@ async def delete_upload_dicom(sop_uid):
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+# ========================================
+# Holt DICOM-Datei
+# ========================================
 @router.get("/dicoms/uploads")
 async def get_all_stored_dicom():
     result = service_dicom.get_all_stored_dicom()
@@ -42,47 +55,127 @@ async def get_all_stored_dicom():
         return {"message": "Es wurden noch keine DICOM_Dateien hochgeladen."}
     return result
 
+# ========================================
+# Speichert DICOM-Datei Temporär ab
+# ========================================
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 
-#TO DO: Post Routen trennen: 1.Post-Route nur Upload, 2.Post-Route (also diese hier) nur Datenbank
-@router.post("dicoms/database")
+async def save_file(upload_file: UploadFile) -> str:
+    """
+    Speichert die hochgeladene Datei temporär und gibt den Dateipfad zurück.
+    """
+    file_path = f"{UPLOAD_DIR}/{upload_file.filename}"
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, "wb") as f:
+        f.write(upload_file.file.read())
+    return file_path
 
-# Liefert eine Liste aller verfügbaren DICOM-Datensätze
-@router.get("/dicoms")
+# ========================================
+# Speichert DICOM-Metadaten in der Datenbank
+# ========================================
+@router.post("/dicoms/database", response_model=UploadDICOMResponseModel)
+async def upload_dicom(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Lädt eine DICOM-Datei hoch, extrahiert DSGVO-konforme Metadaten und speichert sie in der Datenbank.
+    
+    Args:
+        file (UploadFile): Hochgeladene DICOM-Datei.
+        db (Session): SQLAlchemy-Datenbanksitzung.
+    
+    Returns:
+        UploadDICOMResponseModel: Status und Ergebnisse der Verarbeitung.
+    
+    Raises:
+        HTTPException: Bei ungültigen Dateien oder Datenbankfehlern.
+    """
+    try:
+        # Datei speichern
+        file_path = await save_file(file)
+        
+        # DICOM-Datei lesen
+        result = read_dicom(file_path)
+        if result["status"] != "success":
+            return UploadDICOMResponseModel(
+                message="Fehler bei der Verarbeitung",
+                data=[UploadResultItem(file=file.filename, error=result["message"])]
+            )
+        
+        # Metadaten in der Datenbank speichern
+        db_result = store_dicom_metadata(db, result["metadata"])
+        logging.info(f"[API] DICOM-Metadaten für {file.filename} gespeichert: {db_result}")
+        
+        return UploadDICOMResponseModel(
+            message="DICOM-Datei erfolgreich verarbeitet und Metadaten gespeichert.",
+            data=[UploadResultItem(file=file.filename, error=None)]
+        )
+    
+    except Exception as e:
+        logging.error(f"[API] Fehler beim Verarbeiten von {file.filename}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Fehler beim Verarbeiten: {str(e)}")
+    finally:
+        # Temporäre Datei löschen (DSGVO-konform)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+
+# ========================================
+# Listet DICOM-Metadaten in der Datenbank
+# ========================================
+@router.get("/dicoms/database", response_model=List[DICOMMetadata])
 async def list_dicoms(db: Session = Depends(get_db)):
+    """
+    Listet alle DICOM-Metadatensätze aus der Datenbank.
+    
+    Args:
+        db (Session): SQLAlchemy-Datenbanksitzung.
+    
+    Returns:
+        List[DICOMMetadata]: Liste aller DICOM-Metadatensätze.
+    
+    Raises:
+        HTTPException: Bei Datenbankfehlern.
+    """
     try:
-        return crud_dicom.get_all_dicoms(db)
-    except NoDICOMInTheList as e:
-        logger.warning(f"No DICOMs found: {str(e)}")
-        raise HTTPException(status_code=404, detail=str(e))
+        dicom_metadata = list_dicom_metadata(db)
+
+        # Konvertiere dicom_created_at zu UTC mit ISO-Format
+        for dicom in dicom_metadata:
+            dicom.dicom_created_at = dicom.dicom_created_at.astimezone(timezone.utc).isoformat()
+ 
+        return dicom_metadata
     except DatabaseError as e:
-        logger.error(f"Database error while listing DICOMs: {str(e)}")
+        logging.error(f"[API] Fehler beim Abrufen der DICOM-Metadaten: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# Gibt einen spezifischen DICOM-Datensatz anhand der ID zurück
-@router.get("/dicoms/{dicom_id}", response_model=DICOMMetadata)
-async def get_dicom(dicom_id: int, db: Session = Depends(get_db)):
-    try:
-        return crud_dicom.get_dicom_by_id(db, dicom_id)
-    except DICOMNotFound as e:
-        logger.warning(f"DICOM not found: ID {dicom_id}")
-        raise HTTPException(status_code=404, detail=str(e))
-    except DatabaseError as e:
-        logger.error(f"Database error while retrieving DICOM {dicom_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Löscht einen DICOM-Datensatz anhand der ID
-@router.delete("/dicoms/{dicom_id}")
+    
+# ========================================
+# Löscht DICOM-Metadaten in der Datenbank
+# ========================================
+@router.delete("/dicoms/database/{dicom_id}", response_model=dict)
 async def delete_dicom(dicom_id: int, db: Session = Depends(get_db)):
+    """
+    Löscht einen DICOM-Metadatensatz anhand der dicom_id.
+    
+    Args:
+        dicom_id (int): ID des zu löschenden DICOM-Eintrags.
+        db (Session): SQLAlchemy-Datenbanksitzung.
+    
+    Returns:
+        dict: Status und Nachricht zur Löschung.
+    
+    Raises:
+        HTTPException: Bei ungültiger ID oder Datenbankfehlern.
+    """
     try:
-        deleted_dicom = crud_dicom.delete_dicom(db, dicom_id)
-        logger.info(f"DICOM with ID {dicom_id} deleted.")
-        return {"message": f"DICOM mit der ID {dicom_id} wurde gelöscht."}
+        deleted = delete_dicom_metadata(db, dicom_id)
+        if deleted:
+            logging.info(f"[API] DICOM-Eintrag mit ID {dicom_id} gelöscht.")
+            return {"status": "success", "message": f"DICOM-Eintrag mit ID {dicom_id} gelöscht."}
     except DICOMNotFound as e:
-        logger.warning(f"Cannot delete DICOM {dicom_id}: Not found")
+        logging.error(f"[API] Fehler beim Löschen: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
     except DatabaseError as e:
-        logger.error(f"Database error while deleting DICOM {dicom_id}: {str(e)}")
+        logging.error(f"[API] Fehler beim Löschen: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
 
 

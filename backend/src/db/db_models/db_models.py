@@ -1,5 +1,3 @@
-# db_models.py
-# -------------------------
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -26,21 +24,29 @@ class KIImage(Base):
     def __repr__(self):
         return f"<KIImage(id={self.image_id}, name='{self.image_name}', tag='{self.image_tag}')>"
 
-
 # -----------------------------
 # Modell: DICOMMetadata (DICOM-Metadaten)
 # -----------------------------
 #TO DO: dieses Model an py_model Variante anpassen
 class DICOMMetadata(Base):
     """
-    Tabelle 'dicom_metadata' für die Speicherung von DICOM-Metadaten.
-    Alle Spalten haben den Prefix 'dicom_'.
+    Tabelle 'dicom_metadata' für DSGVO-konforme DICOM-Metadaten zur Statistik.
     """
     __tablename__ = "dicom_metadata"
 
     dicom_id = Column(Integer, primary_key=True, index=True)
-    dicom_uuid = Column(String(128), unique=True, nullable=False)
-    dicom_modality = Column(String(50), nullable=True)
+    dicom_modality = Column(String(10), nullable=True)
+    dicom_sop_class_uid = Column(String(64), nullable=True)
+    dicom_manufacturer = Column(String(100), nullable=True)
+    dicom_rows = Column(Integer, nullable=True)
+    dicom_columns = Column(Integer, nullable=True)
+    dicom_bits_allocated = Column(Integer, nullable=True)
+    dicom_photometric_interpretation = Column(String(20), nullable=True)
+    dicom_transfer_syntax_uid = Column(String(64), nullable=True)
+    dicom_file_path = Column(String(255), nullable=True)
+    dicom_created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
 
     def __repr__(self):
-        return f"<DICOMMetadata(id={self.dicom_id}, uuid='{self.dicom_uuid}', modality='{self.dicom_modality}')>"
+        return (f"<DICOMMetadata(id={self.dicom_id}, modality='{self.dicom_modality}', "
+                f"sop_class_uid='{self.dicom_sop_class_uid}')>")
