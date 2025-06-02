@@ -5,15 +5,55 @@ from sqlalchemy.orm import Session
 from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, UploadResultItem
 from db.database.database import get_db
 from db.crud.crud_dicom import store_dicom_metadata, delete_dicom_metadata, list_dicom_metadata
-from db.core.exceptions import DICOMNotFound, DatabaseError
-from services.dicom.service_dicom import read_dicom
+from db.core.exceptions import *
+from services.dicom.service_dicom import *
 import os, logging
+import shutil, os, uuid, zipfile
+import logging
+
 
 # Logging konfigurieren
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(tags=["DICOM"])
+
+# ========================================
+# Lädt DICOM-Datei Temporär hoch
+# TODO: HIER DIE SACHEN von maimuna rein wegen Metadaten Extraktion
+# ========================================
+@router.post("/dicoms/uploads", response_model=UploadDICOMResponseModel)
+async def post_upload_dicom(file: UploadFile = File(...)):
+    try:
+        return service_dicom.receive_file(file)
+    except DICOMValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except DICOMProcessingError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Unbekannter Fehler: " + str(e))
+
+# ========================================
+# Löscht DICOM-Datei 
+# ========================================
+#TODO: DICOM-Dateien löschen, wenn sie vor X Tagen hochgeladen wurden
+@router.delete("/dicoms/uploads/{sop_uid}")
+async def delete_upload_dicom(sop_uid):
+    try:
+        service_dicom.delete_upload_dicom(sop_uid)
+        return {"message": f"{sop_uid}_anon.dcm wurde gelöscht"}
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# ========================================
+# Holt DICOM-Datei
+# ========================================
+@router.get("/dicoms/uploads")
+async def get_all_stored_dicom():
+    result = service_dicom.get_all_stored_dicom()
+    if not result:
+        return {"message": "Es wurden noch keine DICOM_Dateien hochgeladen."}
+    return result
 
 # ========================================
 # Speichert DICOM-Datei Temporär ab
@@ -76,6 +116,7 @@ async def upload_dicom(file: UploadFile = File(...), db: Session = Depends(get_d
         # Temporäre Datei löschen (DSGVO-konform)
         if os.path.exists(file_path):
             os.remove(file_path)
+
 
 # ========================================
 # Listet DICOM-Metadaten in der Datenbank

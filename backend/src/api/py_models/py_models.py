@@ -84,16 +84,19 @@ class DICOMMetadata(BaseModel):
 # ==================================================
 # UploadResultItem: Upload-Modell der DICOM-Datei
 # ==================================================
-class UploadResultItem(BaseModel):
-    """
+"""
     Ergebnis für eine einzelne DICOM-Datei.
     """
-    file: Optional[str] = Field(None, description="Dateiname der Originaldatei")
-    error: Optional[str] = Field(None, description="Fehlermeldung, falls Verarbeitung fehlgeschlagen")
+class UploadResultItem(BaseModel):
+    sop_instance_uid: str
+    saved_dicom_path: str
+    saved_pixel_array_path: str
+
 
 class UploadDICOMResponseModel(BaseModel):
     """
     Antwortmodell für den Upload-Endpunkt.
     """
-    message: str = Field(..., description="Statusmeldung zur Verarbeitung")
-    data: List[UploadResultItem] = Field(..., description="Liste der Ergebnisse pro Datei")
+    message: str
+    data: list[UploadResultItem]
+
