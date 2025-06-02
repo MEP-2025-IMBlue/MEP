@@ -298,4 +298,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Initiales Laden
   fetchKIImages();
+
+    // 🧠 System-Logs unterhalb anzeigen (nach "Info")
+    async function fetchAndDisplaySystemLogs() {
+      const infoSection = document.querySelector(".details-card:last-of-type"); // Info-Box im Dashboard
+      if (!infoSection) return;
+  
+      const logContainer = document.createElement("pre");
+      logContainer.id = "system-log-output";
+      logContainer.style.maxHeight = "200px";
+      logContainer.style.overflowY = "auto";
+      logContainer.style.backgroundColor = "#1c1c1c";
+      logContainer.style.color = "#00ffcc";
+      logContainer.style.padding = "1rem";
+      logContainer.style.fontSize = "0.85rem";
+      logContainer.style.border = "1px solid #444";
+      logContainer.style.borderRadius = "6px";
+      logContainer.textContent = "⏳ Lade Logs...";
+  
+      infoSection.appendChild(logContainer);
+  
+      try {
+        const res = await fetch("http://localhost:8000/logs?tail=50");
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        logContainer.textContent = data.logs.length > 0 ? data.logs.join("\n") : "ℹ️ Keine Logs gefunden.";
+      } catch (err) {
+        logContainer.textContent = "❌ Fehler beim Laden der Logs: " + err.message;
+      }
+    }
+  
+    // Logs sofort beim Laden abrufen
+    fetchAndDisplaySystemLogs();
+  
+
 });
