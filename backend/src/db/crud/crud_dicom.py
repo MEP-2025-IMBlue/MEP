@@ -6,6 +6,7 @@ Pfad: backend/src/db/crud/crud_dicom.py
 """
 
 import logging
+from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from src.db.db_models.db_models import DICOMMetadata
@@ -18,7 +19,7 @@ def create_dicom(db: Session, metadata: dict) -> DICOMMetadata:
 
     - Gibt das erstellte DICOMMetadata-Objekt zurück.
     - Loggt den Vorgang.
-    - Wirft Exception bei Fehlern (nicht typisiert).
+    - Wirft DatabaseError bei Fehlern.
     """
     try:
         dicom_entry = DICOMMetadata(**metadata)
@@ -27,18 +28,15 @@ def create_dicom(db: Session, metadata: dict) -> DICOMMetadata:
         db.refresh(dicom_entry)
         logging.info(f"[DB] Neuer DICOM-Eintrag erstellt: {dicom_entry}")
         return dicom_entry
-    except Exception as e:
+    except SQLAlchemyError as e:
+        db.rollback()
         logging.error(f"[DB] Fehler beim Erstellen des DICOM-Eintrags: {e}")
-        raise
+        raise DatabaseError(f"Fehler beim Erstellen des DICOM-Eintrags: {str(e)}")
 
 
 def get_dicom_metadata_by_uuid(db: Session, uuid: str) -> DICOMMetadata:
     """
     Ruft einen DICOM-Metadatensatz anhand der UUID ab.
-
-    - Gibt das DICOMMetadata-Objekt zurück.
-    - Wirft DICOMNotFound, wenn kein Eintrag existiert.
-    - Wirft DatabaseError bei SQLAlchemy-Fehlern.
     """
     try:
         entry = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_uuid == uuid).first()
@@ -55,10 +53,6 @@ def get_dicom_metadata_by_uuid(db: Session, uuid: str) -> DICOMMetadata:
 def update_dicom_metadata(db: Session, uuid: str, updates: dict) -> DICOMMetadata:
     """
     Aktualisiert bestimmte Felder eines vorhandenen DICOM-Metadatensatzes.
-
-    - Gibt das aktualisierte Objekt zurück.
-    - Wirft DICOMNotFound, wenn kein Eintrag mit der UUID existiert.
-    - Wirft DatabaseError bei SQLAlchemy-Fehlern.
     """
     try:
         entry = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_uuid == uuid).first()
@@ -79,13 +73,9 @@ def update_dicom_metadata(db: Session, uuid: str, updates: dict) -> DICOMMetadat
         raise DatabaseError("Fehler beim Aktualisieren eines DICOM-Eintrags.") from e
 
 
-def delete_dicom_metadata(db: Session, uuid: str) -> bool:
+def delete_dicom_metadata_by_uuid(db: Session, uuid: str) -> bool:
     """
     Löscht einen DICOM-Metadatensatz anhand der UUID.
-
-    - Gibt True bei erfolgreichem Löschen zurück.
-    - Wirft DICOMNotFound, wenn kein Eintrag existiert.
-    - Wirft DatabaseError bei SQLAlchemy-Fehlern.
     """
     try:
         entry = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_uuid == uuid).first()
@@ -102,14 +92,42 @@ def delete_dicom_metadata(db: Session, uuid: str) -> bool:
         raise DatabaseError("Fehler beim Löschen eines DICOM-Eintrags.") from e
 
 
+def delete_dicom_metadata_by_id(db: Session, dicom_id: int) -> bool:
+    """
+    Löscht einen DICOM-Metadatensatz anhand der numerischen ID.
+    """
+    try:
+        entry = db.query(DICOMMetadata).filter(DICOMMetadata.dicom_id == dicom_id).first()
+        if not entry:
+            logging.error(f"[DB] DICOM-Eintrag mit ID {dicom_id} nicht gefunden.")
+            raise DICOMNotFound(f"DICOM-Metadaten mit ID {dicom_id} nicht gefunden.")
+        
+        db.delete(entry)
+        db.commit()
+        logging.info(f"[DB] DICOM-Eintrag mit ID {dicom_id} gelöscht.")
+        return True
+    except SQLAlchemyError as e:
+        db.rollback()
+        logging.error(f"[DB] Fehler beim Löschen des DICOM-Eintrags: {e}")
+        raise DatabaseError(f"Fehler beim Löschen des DICOM-Eintrags: {str(e)}")
+
+
+def list_dicom_metadata(db: Session) -> List[DICOMMetadata]:
+    """
+    Listet alle DICOM-Metadatensätze aus der Datenbank.
+    """
+    try:
+        entries = db.query(DICOMMetadata).all()
+        logging.info(f"[DB] {len(entries)} DICOM-Metadatensätze abgerufen.")
+        return entries
+    except SQLAlchemyError as e:
+        logging.error(f"[DB] Fehler beim Abrufen der DICOM-Metadaten: {e}")
+        raise DatabaseError(f"Fehler beim Abrufen der DICOM-Metadaten: {str(e)}")
+
+
 def create_or_replace_dicom_metadata(db: Session, metadata: dict) -> DICOMMetadata:
     """
     Erstellt einen neuen DICOM-Metadatensatz oder ersetzt einen vorhandenen mit derselben UUID.
-
-    - Gibt das neu angelegte Objekt zurück.
-    - Falls vorhanden, wird der alte Datensatz gelöscht.
-    - Rollback bei Fehlern.
-    - Wirft DatabaseError bei allen Ausnahmen.
     """
     try:
         existing = db.query(DICOMMetadata).filter_by(dicom_uuid=metadata["dicom_uuid"]).first()
