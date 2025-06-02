@@ -9,34 +9,34 @@ class ContainerService:
         # Docker-Client initialisieren
         self.client = docker.from_env()
 
-    # Container starten
-    def start_container(self, container_id_or_name):
+     # Container starten
+    def start_container(self, container_id_or_name, user_id=None):
         try:
-            log_event("DEBUG", "start_container", f"Versuche Container zu starten: {container_id_or_name}", level="DEBUG")
+            log_event("CONTAINER", "start_container", f"Versuche Container zu starten: {container_id_or_name}", level="DEBUG", container_id=container_id_or_name, user_id=user_id)
             container = self.client.containers.get(container_id_or_name)
             container.start()
-            log_event("CONTAINER", "start_container", f"Container {container_id_or_name} erfolgreich gestartet", level="INFO")
+            log_event("CONTAINER", "start_container", f"Container {container_id_or_name} erfolgreich gestartet", level="INFO", container_id=container_id_or_name, user_id=user_id)
             return {"message": f"Container {container_id_or_name} gestartet"}
         except NotFound:
-            log_event("ERROR", "start_container", f"Container nicht gefunden: {container_id_or_name}", level="ERROR")
+            log_event("CONTAINER", "start_container", f"Container nicht gefunden: {container_id_or_name}", level="ERROR", container_id=container_id_or_name, user_id=user_id)
             raise
         except Exception as e:
-            log_event("ERROR", "start_container", f"Allgemeiner Fehler: {str(e)}", level="ERROR")
+            log_event("CONTAINER", "start_container", f"Allgemeiner Fehler: {str(e)}", level="ERROR", container_id=container_id_or_name, user_id=user_id)
             raise
 
     # Container stoppen
-    def stop_container(self, container_id_or_name):
+    def stop_container(self, container_id_or_name, user_id=None):
         try:
-            log_event("DEBUG", "stop_container", f"Versuche Container zu stoppen: {container_id_or_name}", level="DEBUG")
+            log_event("CONTAINER", "stop_container", f"Versuche Container zu stoppen: {container_id_or_name}", level="DEBUG", container_id=container_id_or_name, user_id=user_id)
             container = self.client.containers.get(container_id_or_name)
             container.stop()
-            log_event("CONTAINER", "stop_container", f"Container {container_id_or_name} erfolgreich gestoppt", level="INFO")
+            log_event("CONTAINER", "stop_container", f"Container {container_id_or_name} erfolgreich gestoppt", level="INFO", container_id=container_id_or_name, user_id=user_id)
             return {"message": f"Container {container_id_or_name} gestoppt"}
         except NotFound:
-            log_event("WARNING", "stop_container", f"Container nicht gefunden (vielleicht bereits gestoppt?): {container_id_or_name}", level="WARNING")
+            log_event("CONTAINER", "stop_container", f"Container nicht gefunden (vielleicht bereits gestoppt?): {container_id_or_name}", level="WARNING", container_id=container_id_or_name, user_id=user_id)
             raise
         except Exception as e:
-            log_event("ERROR", "stop_container", f"Fehler beim Stoppen des Containers: {str(e)}", level="ERROR")
+            log_event("CONTAINER", "stop_container", f"Fehler beim Stoppen des Containers: {str(e)}", level="ERROR", container_id=container_id_or_name, user_id=user_id)
             raise
 
     # Container-Logs abrufen

@@ -82,5 +82,8 @@
 
   "upload_progress_percent": "Uploading... {percent}%",
   "upload_starting": "⏳ Upload started...",
-  "upload_error_connection": "❌ Upload failed (connection error)"
+  "upload_error_connection": "❌ Upload failed (connection error)",
+
+  "log_button_more": "🔁 Show more"
+
 }

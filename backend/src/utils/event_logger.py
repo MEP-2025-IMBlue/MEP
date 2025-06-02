@@ -24,10 +24,10 @@ def json_formatter(record):
     }
 
     # Diese optionalen Felder werden nur hinzugefügt, wenn sie vorhanden sind
-    for attr in ["container_id", "cpu", "ram"]:
+    for attr in ["container_id", "cpu", "ram", "user_id"]:
         value = getattr(record, attr, None)
         if value is not None:
-            base[attr] = value
+             base[attr] = value
 
     return json.dumps(base)
 
@@ -50,15 +50,16 @@ logger.addHandler(stream_handler)
 
 # Funktion zum Loggen eines strukturierten Ereignisses
 # Unterstützt die Level: DEBUG, INFO, WARNING, ERROR
-def log_event(source: str, action: str, message: str, level: str = "INFO", container_id=None, cpu=None, ram=None):
+def log_event(source: str, action: str, message: str, level: str = "INFO", container_id=None, cpu=None, ram=None, user_id=None):
     extra = {
         "source": source,
         "action": action,
         "container_id": container_id,
         "cpu": cpu,
-        "ram": ram
+        "ram": ram,
+        "user_id": user_id
     }
-
+    
     if level == "DEBUG":
         logger.debug(message, extra=extra)
     elif level == "INFO":

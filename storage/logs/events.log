@@ -71,3 +71,7 @@
 {"timestamp": "2025-05-29T19:43:44.694805", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
 {"timestamp": "2025-05-29T20:00:36.735530", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
 {"timestamp": "2025-05-29T20:00:36.736107", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-06-02T21:18:31.933162", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-06-02T21:18:31.933162", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-06-02T21:18:31.934418", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-06-02T21:18:31.934418", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}

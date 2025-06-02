@@ -30,7 +30,8 @@ async function loadLogs() {
   const stdout = document.getElementById("chk-stdout").checked;
   const stderr = document.getElementById("chk-stderr").checked;
   const timestamps = document.getElementById("chk-timestamps").checked;
-  const tail = parseInt(document.getElementById("log-tail").value, 10) || 100;
+  const tailInput = document.getElementById("log-tail");
+  let tail = parseInt(tailInput.value, 10) || 100;
 
   logOutput.textContent = "Loading logs...";
 
@@ -63,6 +64,18 @@ async function loadLogs() {
 
     const data = await res.json();
     logOutput.textContent = data.logs.length > 0 ? data.logs.join("\n") : "No logs found.";
+
+    // Zeige "Mehr Anzeigen" Button, wenn Logs vorhanden sind
+    const moreBtn = document.getElementById("load-more-logs");
+    if (data.logs.length > 0 && moreBtn) {
+      moreBtn.style.display = "inline-block";
+      moreBtn.onclick = () => {
+        tail += 100;
+        tailInput.value = tail;
+        loadLogs();
+      };
+    }
+
   } catch (err) {
     logOutput.textContent = "Error while fetching logs.";
     console.error("Log fetch error:", err);
@@ -92,6 +105,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       opt.textContent = id;
       select.appendChild(opt);
     });
+
+    // Mehr-Anzeigen Button dynamisch erzeugen und ans DOM anhängen
+    const logOutputEl = document.getElementById("log-output");
+    if (logOutputEl && !document.getElementById("load-more-logs")) {
+      const loadMoreBtn = document.createElement("button");
+      loadMoreBtn.id = "load-more-logs";
+      loadMoreBtn.style.display = "none";
+      loadMoreBtn.style.marginTop = "10px";
+      loadMoreBtn.setAttribute("data-i18n-key", "log_button_more");
+      loadMoreBtn.textContent = i18n.translations["log_button_more"] || "🔁 Mehr anzeigen";
+      logOutputEl.parentNode.insertBefore(loadMoreBtn, logOutputEl.nextSibling);
+    }
+
   } catch (err) {
     select.innerHTML = "";
     const errorOption = document.createElement("option");
