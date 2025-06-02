@@ -12,15 +12,15 @@ from fastapi import HTTPException
 logging.basicConfig(level=logging.INFO)
 
 # DICOM-spezifische Services
-from services.dicom.anonymizer import anonymize_dicom_fields
-from services.dicom.hasher import generate_dicom_hash
-from services.dicom.extractor import extract_pixel_array
-from services.dicom.metadata import extract_metadata
-from services.dicom.validation import run_full_validation
+from src.services.dicom.anonymizer import anonymize_dicom_fields
+from src.services.dicom.hasher import generate_dicom_hash
+from src.services.dicom.extractor import extract_pixel_array
+from src.services.dicom.metadata import extract_metadata
+from src.services.dicom.validation import run_full_validation
 
 # Datenbank-Zugriff
-from db.crud import crud_dicom
-from db.database.database import get_db
+from src.db.crud import crud_dicom
+from src.db.database.database import get_db
 
 # Verarbeitet eine einzelne DICOM-Datei: Validierung → Anonymisierung → Speicherung
 def handle_dicom_upload(file_path: str) -> dict:

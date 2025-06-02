@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from fastapi import HTTPException
 from pydicom.dataset import Dataset
-from services.dicom.compliance_checker import check_compliance
+from src.services.dicom.compliance_checker import check_compliance
 
 # Logging-Konfiguration
 logging.basicConfig(level=logging.INFO)

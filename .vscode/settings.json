@@ -1,7 +1,16 @@
+// {
+//     "python.testing.pytestArgs": [
+//         "backend"
+//     ],
+//     "python.testing.unittestEnabled": false,
+//     "python.testing.pytestEnabled": true
+// }
+
 {
+    "python.envFile": "${workspaceFolder}/.env.test",
     "python.testing.pytestArgs": [
-        "backend"
+      "backend/src/tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true
-}
+  }
