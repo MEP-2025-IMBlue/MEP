@@ -1,20 +1,19 @@
 document.addEventListener("DOMContentLoaded", async () => {
   await i18n.loadTranslations(i18n.currentLang);
-  i18n.applyTranslations(); // Alle data-i18n-key-Texte initial setzen
+  i18n.applyTranslations();
 
   const hubForm = document.getElementById("hub-upload-form");
   const localForm = document.getElementById("local-upload-form");
 
+  // ---------- Fehlerbehandlung ----------
   function interpretErrorMessage(rawMsg, source = "") {
-    if (!rawMsg) return `📄 ${i18n.translations.upload_error_generic}`;
+    if (!rawMsg) return i18n.translations.upload_error_generic;
     const msg = rawMsg.toLowerCase();
 
     if (source === "local" && msg.includes("file") && msg.includes("invalid")) {
       return i18n.translations.upload_error_invalid_tar;
     }
-    if (source === "hub" && (
-      msg.includes("invalid") || msg.includes("format") || msg.includes("reference") || msg.includes("tag")
-    )) {
+    if (source === "hub" && (msg.includes("invalid") || msg.includes("format") || msg.includes("reference"))) {
       return i18n.translations.upload_error_invalid_hub;
     }
     if (msg.includes("missing") || msg.includes("required") || msg.includes("feld fehlt")) {
@@ -30,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${i18n.translations.upload_error_prefix}${rawMsg}`;
   }
 
-  // ---------- DockerHub Upload ----------
+  // ---------- Docker Hub Upload ----------
   if (hubForm) {
     const spinner = document.createElement("div");
     spinner.id = "hub-spinner";
@@ -70,7 +69,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           } catch {
             errText = await res.text();
           }
-
           statusDiv.textContent = interpretErrorMessage(errText, "hub");
           statusDiv.className = "upload-status error";
         }
@@ -82,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ---------- Lokaler Upload (.tar) ----------
+  // ---------- Lokaler Upload ----------
   if (localForm) {
     const progress = document.createElement("progress");
     progress.id = "local-progress";
@@ -110,6 +108,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const dropZone = document.getElementById("drop-local");
     const fileInput = document.getElementById("fileInput-local");
+    const dropLabel = document.querySelector("#drop-local span");
+    const statusDiv = document.getElementById("local-status");
+
     const previewText = document.createElement("div");
     previewText.className = "preview-text";
     dropZone.appendChild(previewText);
@@ -129,7 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (e.dataTransfer.files.length) {
         const file = e.dataTransfer.files[0];
         fileInput.files = e.dataTransfer.files;
-        previewText.removeAttribute("data-i18n-key");
         previewText.textContent = `📄 ${file.name}`;
       }
     });
@@ -138,19 +138,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     fileInput.addEventListener("change", () => {
       if (fileInput.files.length) {
-        previewText.removeAttribute("data-i18n-key");
         previewText.textContent = `📄 ${fileInput.files[0].name}`;
       } else {
-        previewText.setAttribute("data-i18n-key", "drop_zone_text");
-        i18n.applyTranslations();
+        previewText.textContent = "";
       }
     });
 
     localForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const file = fileInput.files[0];
-      const statusDiv = document.getElementById("local-status");
-
       statusDiv.textContent = "";
       statusDiv.className = "upload-status";
 
@@ -210,8 +206,8 @@ document.addEventListener("DOMContentLoaded", async () => {
               statusDiv.textContent = `${i18n.translations.upload_success}${result.image_name || result.id}`;
               statusDiv.className = "upload-status success";
               localForm.reset();
-              previewText.setAttribute("data-i18n-key", "drop_zone_text");
-              i18n.applyTranslations();
+              previewText.textContent = "";
+              dropLabel.textContent = i18n.translations.container_upload_drag_drop_local;
             } else {
               statusDiv.textContent = interpretErrorMessage(xhr.responseText, "local");
               statusDiv.className = "upload-status error";
@@ -239,6 +235,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         statusDiv.textContent = interpretErrorMessage(err.message, "local");
         statusDiv.className = "upload-status error";
       }
+    });
+
+    // 🔁 Sprachwechsel
+    document.addEventListener("languageChanged", () => {
+      i18n.applyTranslations();
+
+      const dropLabel = document.querySelector("#drop-local span");
+      if (dropLabel) {
+        dropLabel.textContent = i18n.translations.container_upload_drag_drop_local;
+      }
+
+      spinner.querySelector("span").textContent = i18n.translations.upload_processing;
     });
   }
 });
