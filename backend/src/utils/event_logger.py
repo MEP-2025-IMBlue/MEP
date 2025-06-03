@@ -6,7 +6,10 @@ import sys  # für stdout
 
 # Log-Verzeichnis aus Umgebungsvariable oder Standardwert
 LOG_DIR = os.getenv("LOG_DIR", "logs")
-LOG_FILE = os.path.join(LOG_DIR, "events.log")
+#Automatisch tägliche Log-Dateien erstellen
+today_str = datetime.now().strftime("%Y-%m-%d")
+LOG_FILE = os.path.join(LOG_DIR, f"{today_str}.log")
+#LOG_FILE = os.path.join(LOG_DIR, "events.log") #events.log 
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # Logger konfigurieren
