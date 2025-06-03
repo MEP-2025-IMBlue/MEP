@@ -1,0 +1,8 @@
+Relevante Metadaten für Statistiken (DSGVO-konform)
+Modality: Z. B. CT, MR, XA – für Statistiken über Bildtypen.
+SOPClassUID: Gibt die Art des DICOM-Objekts an (z. B. CT Image Storage) – für Analyse der Bildkategorien.
+Manufacturer: Gerätehersteller – für Statistiken über verwendete Geräte.
+Rows und Columns: Bildgröße – für technische Statistiken.
+BitsAllocated: Bit-Tiefe der Bilddaten – für Analyse der Bildqualität.
+PhotometricInterpretation: Z. B. MONOCHROME2 – für Bildformat-Statistiken.
+TransferSyntaxUID: Kompressionsart – für Analyse der Dateiformate.

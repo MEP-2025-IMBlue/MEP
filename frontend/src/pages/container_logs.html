@@ -1,3 +1,18 @@
+// Frontend-Logging-Funktion – schickt Fehler an das Backend-Endpoint /frontend-log
+function logFrontendError(action, message, level = "ERROR") {
+  fetch("/frontend-log", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: action,
+      message: message,
+      level: level
+    }),
+  }).catch((err) => {
+    console.error("Fehler beim Senden des Logs an das Backend:", err);
+  });
+}
+
 // Führt die Log-Anzeige und Statusabfrage für einen ausgewählten Container aus
 async function loadLogs() {
   const containerId = document.getElementById("container-select").value;
@@ -5,22 +20,21 @@ async function loadLogs() {
   const statusField = document.getElementById("container-status");
   const healthField = document.getElementById("container-health");
 
-  // Überprüfung, ob ein gültiger Container ausgewählt wurde
   if (!containerId || containerId === "Please select a container") {
     alert("Please select a valid container.");
     logOutput.textContent = "No container selected.";
+    logFrontendError("LogFetch", "No container selected.");
     return;
   }
 
   const stdout = document.getElementById("chk-stdout").checked;
   const stderr = document.getElementById("chk-stderr").checked;
   const timestamps = document.getElementById("chk-timestamps").checked;
-  const tail = parseInt(document.getElementById("log-tail").value, 10) || 100;
+  const tailInput = document.getElementById("log-tail");
+  let tail = parseInt(tailInput.value, 10) || 100;
 
-  // Setzt den Ladehinweis für das Log-Ausgabefeld
   logOutput.textContent = "Loading logs...";
 
-  // Holt den Containerstatus und den Gesundheitszustand vom Backend
   try {
     const statusRes = await fetch(`/containers/${containerId}/status`);
     const statusData = await statusRes.json();
@@ -40,9 +54,9 @@ async function loadLogs() {
     statusField.textContent = "Error";
     healthField.textContent = "Error";
     console.error("Error while fetching container status:", err);
+    logFrontendError("StatusFetch", err.message);
   }
 
-  // Holt die Logs des Containers vom Backend
   try {
     const url = `/containers/${containerId}/logs?tail=${tail}&stdout=${stdout}&stderr=${stderr}&timestamps=${timestamps}`;
     const res = await fetch(url);
@@ -50,13 +64,26 @@ async function loadLogs() {
 
     const data = await res.json();
     logOutput.textContent = data.logs.length > 0 ? data.logs.join("\n") : "No logs found.";
+
+    // Zeige "Mehr Anzeigen" Button, wenn Logs vorhanden sind
+    const moreBtn = document.getElementById("load-more-logs");
+    if (data.logs.length > 0 && moreBtn) {
+      moreBtn.style.display = "inline-block";
+      moreBtn.onclick = () => {
+        tail += 100;
+        tailInput.value = tail;
+        loadLogs();
+      };
+    }
+
   } catch (err) {
     logOutput.textContent = "Error while fetching logs.";
     console.error("Log fetch error:", err);
+    logFrontendError("LogFetch", err.message);
   }
 }
 
-// Lädt die Containerliste beim ersten Laden der Seite
+// Containerliste beim ersten Laden abrufen
 document.addEventListener("DOMContentLoaded", async () => {
   const select = document.getElementById("container-select");
 
@@ -66,20 +93,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     select.innerHTML = "";
 
-    // Fügt eine nicht auswählbare Platzhalteroption hinzu
     const placeholder = document.createElement("option");
     placeholder.text = "Please select a container";
     placeholder.disabled = true;
     placeholder.selected = true;
     select.appendChild(placeholder);
 
-    // Fügt alle Container-IDs als Optionen hinzu
     data.forEach(id => {
       const opt = document.createElement("option");
       opt.value = id;
       opt.textContent = id;
       select.appendChild(opt);
     });
+
+    // Mehr-Anzeigen Button dynamisch erzeugen und ans DOM anhängen
+    const logOutputEl = document.getElementById("log-output");
+    if (logOutputEl && !document.getElementById("load-more-logs")) {
+      const loadMoreBtn = document.createElement("button");
+      loadMoreBtn.id = "load-more-logs";
+      loadMoreBtn.style.display = "none";
+      loadMoreBtn.style.marginTop = "10px";
+      loadMoreBtn.setAttribute("data-i18n-key", "log_button_more");
+      loadMoreBtn.textContent = i18n.translations["log_button_more"] || "🔁 Mehr anzeigen";
+      logOutputEl.parentNode.insertBefore(loadMoreBtn, logOutputEl.nextSibling);
+    }
+
   } catch (err) {
     select.innerHTML = "";
     const errorOption = document.createElement("option");
@@ -88,5 +126,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     select.appendChild(errorOption);
 
     console.error("Error loading container list:", err);
+    logFrontendError("ContainerListLoad", err.message);
   }
 });

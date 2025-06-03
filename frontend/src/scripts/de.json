@@ -83,5 +83,7 @@
 
   "upload_progress_percent": "Wird hochgeladen... {percent}%",
   "upload_starting": "⏳ Upload gestartet...",
-  "upload_error_connection": "❌ Upload fehlgeschlagen (Verbindungsfehler)"
+  "upload_error_connection": "❌ Upload fehlgeschlagen (Verbindungsfehler)",
+
+   "log_button_more": "🔁 Mehr anzeigen"
 }

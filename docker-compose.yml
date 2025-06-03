@@ -1,4 +1,23 @@
+version: "3.9"
+
 services:
+  frontend:
+    # Buildet das Frontend lokal aus dem ./frontend-Verzeichnis
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mep-frontend
+    depends_on:
+      # Wartet auf Backend und Keycloak, bevor es startet
+      - backend
+      - keycloak
+    ports:
+      - "8080:8080"
+    volumes:
+      # Ermöglicht Hot-Reload beim Entwickeln
+      - ./frontend/src:/app
+    networks:
+      - mep-network
 
   imblue-db:
     image: postgres:16
@@ -9,9 +28,9 @@ services:
     env_file:
       - ./database/.env
     volumes:
-      # Speichert die PostgreSQL-Daten persistent außerhalb des Containers → Daten bleiben erhalten, auch wenn der Container neu gestartet oder gelöscht wird
+      # Speichert die PostgreSQL-Daten persistent außerhalb des Containers
       - imblue_data:/var/lib/postgresql/data
-      # Führt einmalig beim allerersten Start das SQL-Initialisierungsskript aus (nicht mehr bei späteren Starts, wenn Daten schon da sind)
+      # Führt einmalig beim allerersten Start das SQL-Initialisierungsskript aus
       - ./database/schemas/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U imblue_user -d imblue_db"]
@@ -40,8 +59,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: mep-keycloak
-    # Startet Keycloak im Entwickler-Modus (kein HTTPS, schnelleres Setup) & Importiert einmalig beim ersten Start den Realm aus der Datei im Volume
-    # Wichtig: Der Import passiert nur, wenn dieser Realm im Keycloak noch nicht existiert. Wenn du z. B. den Container löschst oder das Volume entfernst, wird er beim nächsten Start erneut importiert.
+    # Startet Keycloak im Developer-Modus und importiert Realm beim ersten Start
     command: start-dev --import-realm
     env_file:
       - ./keycloak/.env
@@ -56,7 +74,7 @@ services:
       - mep-network
 
   backend:
-    #image: maimuna03/mep-backend:latest   
+    # Buildet das Backend lokal
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -68,32 +86,17 @@ services:
         condition: service_started
     ports:
       - "8000:8000"
-      
     volumes:
+      # Bind-Mounts für Backend-Code und Datenverarbeitung
       - ./backend:/app
       - ./storage/uploads:/tmp/uploads
       - ./storage/processed:/tmp/processed
       - ./storage//logs:/tmp/logs
-      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
-    
+      - /var/run/docker.sock:/var/run/docker.sock  # Ermöglicht Docker-Kommandos innerhalb des Containers
     env_file:
       - ./backend/.env
     environment:
       - PYTHONPATH=/app/src
-    networks:
-      - mep-network
-
-  frontend:
-    #image: maimuna03/mep-frontend:latest
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: mep-frontend
-    depends_on:
-      keycloak:
-        condition: service_started
-    ports:
-      - "8080:8080"
     networks:
       - mep-network
 

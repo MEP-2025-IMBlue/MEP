@@ -1,39 +1,95 @@
-// Wird ausgeführt, sobald das DOM vollständig geladen ist
-window.addEventListener("DOMContentLoaded", () => {
-  // Referenz auf das <select>-Element
+// Frontend-Logging-Funktion – schickt Fehler als JSON an das Backend-Endpoint /frontend-log
+function logFrontendError(action, message, level = "ERROR") {
+  fetch("/frontend-log", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      source: "container_logs.js",
+      action: action,
+      message: message,
+      level: level,
+    }),
+  }).catch((err) => {
+    console.error("Fehler beim Senden des Frontend-Logs:", err);
+  });
+}
+
+// Führt die Log-Anzeige und Statusabfrage für einen ausgewählten Container aus
+async function loadLogs() {
+  const containerId = document.getElementById("container-select").value;
+  const logOutput = document.getElementById("log-output");
+  const statusField = document.getElementById("container-status");
+  const healthField = document.getElementById("container-health");
+
+  if (!containerId || containerId === "Please select a container") {
+    alert("Please select a valid container.");
+    logOutput.textContent = "No container selected.";
+    logFrontendError("LogFetch", "No container selected.");
+    return;
+  }
+
+  const stdout = document.getElementById("chk-stdout").checked;
+  const stderr = document.getElementById("chk-stderr").checked;
+  const timestamps = document.getElementById("chk-timestamps").checked;
+  const tail = parseInt(document.getElementById("log-tail").value, 10) || 100;
+
+  logOutput.textContent = "Loading logs...";
+
+  // Containerstatus abrufen
+  try {
+    const statusRes = await fetch(`/containers/${containerId}/status`);
+    const statusData = await statusRes.json();
+
+    statusField.textContent = statusData.status || "unknown";
+    healthField.textContent = statusData.health || "undefined";
+
+    const healthEl = document.getElementById("container-health");
+    if (statusData.health === "healthy") {
+      healthEl.style.color = "green";
+    } else if (statusData.health === "unhealthy") {
+      healthEl.style.color = "red";
+    } else {
+      healthEl.style.color = "gray";
+    }
+  } catch (err) {
+    statusField.textContent = "Error";
+    healthField.textContent = "Error";
+    console.error("Error while fetching container status:", err);
+    logFrontendError("StatusFetch", err.message);
+  }
+
+  // Containerlogs abrufen
+  try {
+    const url = `/containers/${containerId}/logs?tail=${tail}&stdout=${stdout}&stderr=${stderr}&timestamps=${timestamps}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch logs.");
+
+    const data = await res.json();
+    logOutput.textContent = data.logs.length > 0 ? data.logs.join("\n") : "No logs found.";
+  } catch (err) {
+    logOutput.textContent = "Error while fetching logs.";
+    console.error("Log fetch error:", err);
+    logFrontendError("LogFetch", err.message);
+  }
+}
+
+// Containerliste beim ersten Laden abrufen
+document.addEventListener("DOMContentLoaded", async () => {
   const select = document.getElementById("container-select");
 
-  // Abruf der Containerliste vom FastAPI-Backend
-  fetch("http://localhost:8000/containers/list")
-    .then((res) => res.json()) // Antwort in JSON umwandeln
-    .then((containers) => {
-      // Vorherige Optionen zurücksetzen
-      select.innerHTML = "";
+  try {
+    const res = await fetch("/containers/list");
+    if (!res.ok) throw new Error("Backend-Antwort ist nicht OK");
 
-      // Erste, nicht auswählbare Platzhalter-Option
-      const defaultOption = document.createElement("option");
-      defaultOption.text = "Bitte Container wählen";
-      defaultOption.disabled = true;
-      defaultOption.selected = true;
-      select.appendChild(defaultOption);
+    const data = await res.json();
 
-      // Container-IDs dynamisch als Optionen einfügen
-      containers.forEach((id) => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = id;
-        select.appendChild(option);
-      });
-    })
-    .catch((error) => {
-      // Fehlerbehandlung: Auswahlfeld mit Fehlermeldung füllen
-      select.innerHTML = "";
-      const errorOption = document.createElement("option");
-      errorOption.text = "Fehler beim Laden der Containerliste";
-      errorOption.disabled = true;
-      select.appendChild(errorOption);
+    select.innerHTML = "";
 
-      // Fehler in der Konsole ausgeben
-      console.error("Fehler beim Laden der Containerliste:", error);
-    });
-});
+    const placeholder = document.createElement("option");
+    placeholder.text = "Please select a container";
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+
+    data.forEach(id => {
+      const opt = document.createEle

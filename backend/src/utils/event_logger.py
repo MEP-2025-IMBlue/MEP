@@ -2,61 +2,71 @@ import logging
 import json
 from datetime import datetime
 import os
+import sys  # für stdout 
 
-# Verzeichnis für Logdateien (Standard: /tmp/logs, wird von Docker gemountet)
-log_verzeichnis = os.getenv("LOG_DIR", "/tmp/logs")
-os.makedirs(log_verzeichnis, exist_ok=True)
+# Log-Verzeichnis aus Umgebungsvariable oder Standardwert
+LOG_DIR = os.getenv("LOG_DIR", "logs")
+LOG_FILE = os.path.join(LOG_DIR, "events.log")
+os.makedirs(LOG_DIR, exist_ok=True)
 
-# Dateiname im Format YYYY-MM-DD.log im LOG_DIR
-log_filename = os.path.join(log_verzeichnis, f"{datetime.utcnow().strftime('%Y-%m-%d')}.log")
-
-# Konfiguriert den Logger
+# Logger konfigurieren
 logger = logging.getLogger("event_logger")
-logger.setLevel(logging.DEBUG)  # DEBUG, INFO, WARNING, ERROR erlauben
+logger.setLevel(logging.DEBUG)  # Unterstützt DEBUG, INFO, WARNING, ERROR
 
-# Formatter: JSON-Zeile pro Eintrag
-formatter = logging.Formatter('%(message)s')
-
-# Datei-Handler: schreibt in log_filename
-file_handler = logging.FileHandler(log_filename)
-file_handler.setFormatter(formatter)
-
-# Konsolen-Handler: schreibt auf stdout
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-
-# Verhindert doppelte Handler bei mehrfacher Initialisierung (z. B. Hot Reload)
-if not logger.handlers:
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
-
-def log_event(event_type: str, source: str, message: str, level: str = "ERROR"):
-    """
-    Protokolliert ein strukturiertes Ereignis im JSON-Format.
-
-    Parameter:
-        event_type (str): Kategorie (z. B. "Fehler", "System", "Upload")
-        source (str): Ursprungsmodul oder Funktion
-        message (str): Beschreibung des Ereignisses
-        level (str): Log-Level ("DEBUG", "INFO", "WARNING", "ERROR")
-
-    Ergebnis:
-        Der Logeintrag wird als JSON-Zeile in eine Datei im LOG_DIR geschrieben und auf der Konsole ausgegeben.
-    """
-
-    log_eintrag = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "type": event_type.upper(),
-        "source": source,
-        "message": message
+# --- Formatter für strukturierte JSON-Logs ---
+def json_formatter(record):
+    base = {
+        "timestamp": datetime.fromtimestamp(record.created).isoformat(),
+        "level": record.levelname,
+        "source": getattr(record, "source", None),
+        "action": getattr(record, "action", None),
+        "message": record.getMessage()
     }
 
-    level = level.upper()
+    # Diese optionalen Felder werden nur hinzugefügt, wenn sie vorhanden sind
+    for attr in ["container_id", "cpu", "ram", "user_id"]:
+        value = getattr(record, attr, None)
+        if value is not None:
+             base[attr] = value
+
+    return json.dumps(base)
+
+# Benutzerdefinierter Formatter mit JSON-Ausgabe
+class JSONLogFormatter(logging.Formatter):
+    def format(self, record):
+        return json_formatter(record)
+
+# --- File Handler: schreibt Logs in Datei ---
+file_handler = logging.FileHandler(LOG_FILE)
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(JSONLogFormatter())
+logger.addHandler(file_handler)
+
+# --- Stream Handler: schreibt Logs in stdout (Konsole) ---
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.DEBUG)
+stream_handler.setFormatter(JSONLogFormatter())
+logger.addHandler(stream_handler)
+
+# Funktion zum Loggen eines strukturierten Ereignisses
+# Unterstützt die Level: DEBUG, INFO, WARNING, ERROR
+def log_event(source: str, action: str, message: str, level: str = "INFO", container_id=None, cpu=None, ram=None, user_id=None):
+    extra = {
+        "source": source,
+        "action": action,
+        "container_id": container_id,
+        "cpu": cpu,
+        "ram": ram,
+        "user_id": user_id
+    }
+    
     if level == "DEBUG":
-        logger.debug(json.dumps(log_eintrag))
+        logger.debug(message, extra=extra)
     elif level == "INFO":
-        logger.info(json.dumps(log_eintrag))
+        logger.info(message, extra=extra)
     elif level == "WARNING":
-        logger.warning(json.dumps(log_eintrag))
+        logger.warning(message, extra=extra)
+    elif level == "ERROR":
+        logger.error(message, extra=extra)
     else:
-        logger.error(json.dumps(log_eintrag))
+        logger.info(message, extra=extra)

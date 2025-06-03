@@ -1,4 +1,5 @@
 from src.api.py_models.py_models import KIImageMetadata
+from src.utils.event_logger import log_event 
 import docker
 import tempfile, os
 import logging
@@ -17,10 +18,14 @@ def import_local_image(file_bytes: bytes) -> dict:
         temp_file.write(file_bytes)
         temp_file_path = temp_file.name
         logger.info(f"Temp file saved at {temp_file_path}")
-    
-    with open(temp_file_path, "rb") as f:
-        images = docker_client.images.load(f.read())
-        imported_image = images[0]
+    try:
+        with open(temp_file_path, "rb") as f:
+            images = docker_client.images.load(f.read())
+            imported_image = images[0]
+    except Exception as e:
+        # Fehlerlog in zentrale Datei + Konsole
+        log_event("KI_IMAGE", "load_failed", str(e), "ERROR")
+        raise  # Fehler erneut werfen für FastAPI
 
     repo_tags = imported_image.attrs.get("RepoTags", [])
     if repo_tags:

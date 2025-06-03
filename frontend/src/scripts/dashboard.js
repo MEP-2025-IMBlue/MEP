@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const searchInput = document.getElementById("searchInput");
   const filterSelect = document.getElementById("filterSelect");
   const infoBox = document.getElementById("dashboard-info");
+  const logOutput = document.getElementById("system-log-output");
+  const logCountInput = document.getElementById("log-count");
+  const refreshButton = document.getElementById("refresh-logs");
   let allData = []; // globale Liste aller KI-Images
 
   // Daten vom Backend laden
@@ -122,153 +125,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${berlinDate.toLocaleDateString("de-DE")}, ${timeStr} Uhr`;
   }
 
-  // Event Listener für Start/Stop Button
-  container.addEventListener("click", async (event) => {
-    if (event.target.classList.contains("btn-toggle")) {
-      const btn = event.target;
-      const imageId = btn.dataset.id;
-      const imageName = btn.dataset.name;
-      const currentStatus = btn.dataset.status;
-      let containerId = btn.dataset.containerId;
+  // Systemlogs anzeigen (nach Tail Count)
+  async function fetchAndDisplaySystemLogs(count = 5) {
+    if (!logOutput) return;
+    logOutput.textContent = "⏳ Lade Logs...";
 
-      try {
-        const img = allData.find((i) => i.image_id === parseInt(imageId));
-        const userId = img.image_provider_id;
-        if (!userId) throw new Error("Benutzer-ID nicht verfügbar");
-
-        if (currentStatus === "stopped") {
-          // Container STARTEN
-          const formData = new FormData();
-          formData.append("user_id", userId);
-          formData.append("image_id", imageId);
-
-          const res = await fetch("http://localhost:8000/containers/start", {
-            method: "POST",
-            body: formData,
-          });
-          if (!res.ok) throw new Error(await res.text());
-
-          const result = await res.json();
-          containerId = result.container_id;
-
-          btn.textContent = "\u23F9 Stoppen";
-          btn.dataset.status = "running";
-          btn.dataset.containerId = containerId;
-
-          // Lokalen Status anpassen
-          img.running_container_id = containerId;
-
-          alert("\u2705 Container gestartet (ID: " + containerId + ")");
-          renderInfoBox(allData);
-
-        } else {
-          // Container STOPPEN
-
-          if (!containerId) throw new Error("Container-ID fehlt");
-
-          // ⏳ Ladeanzeige im Statusfeld
-          const statusElement = document.getElementById("test-status-" + imageId);
-          if (statusElement) {
-            statusElement.innerHTML = `
-            <span class="status-badge status-running">
-              ⏳ Wird gestoppt...
-              <div class="progress-bar"></div>
-            </span>
-          `;
-          }
-
-          // Stop-Anfrage
-          const stopRes = await fetch(`http://localhost:8000/containers/${containerId}/stop`, {
-            method: "POST",
-          });
-          if (!stopRes.ok) throw new Error(await stopRes.text());
-
-          // Button anpassen
-          btn.textContent = "\u25B6 Starten";
-          btn.dataset.status = "stopped";
-          delete btn.dataset.containerId;
-
-          // Lokalen Status zurücksetzen
-          img.running_container_id = null;
-
-          alert("\u26D4 Container gestoppt");
-
-          // Infobox neu berechnen
-          renderInfoBox(allData);
-
-          // Ladeanzeige wieder leeren
-          if (statusElement) statusElement.innerHTML = "";
-        }
-
-      } catch (err) {
-        alert("\u26A0 Fehler: " + err.message);
-        console.error("Fehler beim Start/Stopp:", err);
-      }
+    if (!Array.isArray(allData) || allData.length === 0) {
+      logOutput.textContent = "⚠️ Keine Containerinformationen verfügbar.";
+      return;
     }
-  });
 
+    const activeImage = allData.find((img) => !!img.running_container_id);
+    if (!activeImage) {
+      logOutput.textContent = "ℹ️ Kein aktiver Container vorhanden.";
+      return;
+    }
 
-  // Container testen (temporär starten → stoppen → löschen)
-  async function testContainer(imageId, imageName) {
-    const statusElement = document.getElementById("test-status-" + imageId);
-    const updateStatus = (message, status = "info", tooltip = "") => {
-      if (!statusElement) return;
-      statusElement.innerHTML = "";
-      const badge = document.createElement("span");
-      badge.className = "status-badge status-" + status;
-      badge.textContent = status === "running" ? "\u23F3 " + message : status === "success" ? "\u2705 " + message : "\u274C " + message;
-      statusElement.appendChild(badge);
-    };
-
+    const containerId = activeImage.running_container_id;
     try {
-      const img = allData.find((i) => i.image_id === parseInt(imageId));
-      const userId = img.image_provider_id;
-
-      updateStatus("Container wird gestartet...", "running");
-      await new Promise((r) => setTimeout(r, 1000));
-
-      const formData = new FormData();
-      formData.append("user_id", userId);
-      formData.append("image_id", imageId);
-
-      const startRes = await fetch("http://localhost:8000/containers/start", {
-        method: "POST",
-        body: formData,
-      });
-      if (!startRes.ok) throw new Error(await startRes.text());
-
-      const startResult = await startRes.json();
-      const containerId = startResult.container_id;
-
-      updateStatus("Container läuft...", "running");
-      await new Promise((r) => setTimeout(r, 5000));
-
-      await fetch(`http://localhost:8000/containers/${containerId}/stop`, {
-        method: "POST",
-      });
-      await fetch(`http://localhost:8000/containers/${containerId}`, {
-        method: "DELETE",
-      });
-
-      updateStatus("Test erfolgreich", "success", "Container-ID: " + containerId);
+      const res = await fetch(`http://localhost:8000/containers/${containerId}/logs?tail=${count}`);
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      logOutput.textContent = data.logs.length > 0 ? data.logs.join("\n") : "ℹ️ Keine Logs gefunden.";
     } catch (err) {
-      updateStatus("Test fehlgeschlagen", "error", err.message);
+      logOutput.textContent = "❌ Fehler beim Laden der Logs: " + err.message;
     }
   }
 
-  // Container löschen mit Bestätigung
-  async function deleteImage(id) {
-    if (!confirm("Soll das KI-Image mit ID " + id + " wirklich gelöscht werden?")) return;
-    try {
-      const res = await fetch("http://localhost:8000/ki-images/" + id, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(await res.text());
-      alert("\u2705 Erfolgreich gelöscht!");
-      await fetchKIImages(); // Daten neu laden nach Löschen
-    } catch (err) {
-      alert("\u274C Fehler beim Löschen: " + err.message);
-    }
+  // Log-Refresh Button mit Tail Count verbinden
+  if (refreshButton && logCountInput) {
+    refreshButton.addEventListener("click", () => {
+      const count = parseInt(logCountInput.value, 10) || 5;
+      fetchAndDisplaySystemLogs(count);
+    });
   }
 
   // Filterfunktion für Suchleiste
@@ -298,54 +187,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Initiales Laden
   await fetchKIImages();
-
-  async function fetchAndDisplaySystemLogs() {
-    const infoSection = document.querySelector(".details-card:last-of-type");
-    if (!infoSection) return;
-  
-    const logContainer = document.createElement("pre");
-    logContainer.id = "system-log-output";
-    logContainer.style.maxHeight = "200px";
-    logContainer.style.overflowY = "auto";
-    logContainer.style.backgroundColor = "#1c1c1c";
-    logContainer.style.color = "#00ffcc";
-    logContainer.style.padding = "1rem";
-    logContainer.style.fontSize = "0.85rem";
-    logContainer.style.border = "1px solid #444";
-    logContainer.style.borderRadius = "6px";
-    logContainer.textContent = "⏳ Lade Logs...";
-    infoSection.appendChild(logContainer);
-  
-    console.log("🧠 Logfunktion gestartet");
-  
-    // Warten bis allData gefüllt ist
-    if (!Array.isArray(allData) || allData.length === 0) {
-      logContainer.textContent = "⚠️ Keine Containerinformationen verfügbar.";
-      return;
-    }
-  
-    // Suche ersten Container mit laufendem Zustand
-    const activeImage = allData.find((img) => !!img.running_container_id);
-    if (!activeImage) {
-      logContainer.textContent = "ℹ️ Kein aktiver Container vorhanden.";
-      return;
-    }
-  
-    const containerId = activeImage.running_container_id;
-    console.log("🚀 Aktiver Container:", containerId);
-  
-    try {
-      const res = await fetch(`http://localhost:8000/containers/${containerId}/logs?tail=50`);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      logContainer.textContent = data.logs.length > 0 ? data.logs.join("\n") : "ℹ️ Keine Logs gefunden.";
-    } catch (err) {
-      logContainer.textContent = "❌ Fehler beim Laden der Logs: " + err.message;
-    }
-  }
-  
-    // Logs sofort beim Laden abrufen
-    await fetchAndDisplaySystemLogs();
-  
-
+  await fetchAndDisplaySystemLogs();
 });
