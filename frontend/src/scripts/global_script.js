@@ -17,14 +17,8 @@ fetch('/layouts/navbar.html')
     const langBtn = document.getElementById("lang-toggle");
     if (langBtn) {
       langBtn.textContent = i18n.currentLang === "de" ? "EN" : "DE";
-
-      langBtn.replaceWith(langBtn.cloneNode(true));
-      const newLangBtn = document.getElementById("lang-toggle");
-
-      newLangBtn.addEventListener("click", () => {
+      langBtn.addEventListener("click", () => {
         i18n.toggleLang();
-        i18n.applyTranslations();
-        newLangBtn.textContent = i18n.currentLang === "de" ? "EN" : "DE";
       });
     }
   })

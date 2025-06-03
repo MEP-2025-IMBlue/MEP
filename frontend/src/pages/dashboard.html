@@ -5,6 +5,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n-key="navbar_dashboard">mRay Dashboard</title>
+  <!-- i18next + Plugins einbinden -->
+  <script src="https://unpkg.com/i18next@23.6.16/i18next.min.js"></script>
+  <script src="https://unpkg.com/i18next-browser-languagedetector/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="https://unpkg.com/i18next-http-backend/i18nextHttpBackend.min.js"></script>
 
   <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
@@ -24,8 +28,7 @@
           <option value="image_tag" data-i18n-key="dashboard_filter_tag">Tag</option>
           <option value="created_at" data-i18n-key="dashboard_filter_created">Hochgeladen am</option>
         </select>
-        <input type="text" id="searchInput" placeholder="🔎 Suchbegriff eingeben..."
-          data-i18n-key-placeholder="dashboard_search_placeholder" />
+        <input type="text" id="searchInput" placeholder="" data-i18n-key="dashboard_filter_placeholder" />
       </div>
 
       <div id="dashboard-info" class="details-card">

@@ -4,34 +4,40 @@ const i18n = {
 
   async loadTranslations(lang) {
     try {
-      console.log(`Lade Übersetzungen für: ${lang}`);
       const res = await fetch(`../scripts/${lang}.json`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       this.translations = await res.json();
       this.currentLang = lang;
       localStorage.setItem("lang", lang);
-      // Übersetzungen nur anwenden, wenn Navbar schon im DOM ist
-      if (document.getElementById('navbar')) {
-        this.applyTranslations();
-      }
+      this.applyTranslations();
+
+      // Update Toggle-Button-Text immer korrekt
+      const btn = document.getElementById("lang-toggle");
+      if (btn) btn.textContent = lang === "de" ? "EN" : "DE";
     } catch (e) {
       console.error("Fehler beim Laden der Übersetzungen:", e);
     }
   },
 
   applyTranslations() {
-    console.log("Übersetzungen anwenden");
     document.querySelectorAll("[data-i18n-key]").forEach(el => {
       const key = el.getAttribute("data-i18n-key");
-      if (this.translations[key]) {
-        el.textContent = this.translations[key];
-        console.log(`Übersetzt ${key} → ${this.translations[key]}`);
+      const value = this.translations[key];
+      if (!value) return;
+
+      if (el.tagName === "INPUT" || el.hasAttribute("data-i18n-key-placeholder")) {
+        el.placeholder = value;
+      } else {
+        el.textContent = value;
       }
     });
   },
 
+
   toggleLang() {
     const newLang = this.currentLang === "de" ? "en" : "de";
-    this.loadTranslations(newLang);
+    this.loadTranslations(newLang).then(() => {
+      document.dispatchEvent(new Event("languageChanged"));
+    });
   }
 };

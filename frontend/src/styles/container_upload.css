@@ -23,6 +23,20 @@
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+.upload-status {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: #ff4d4d;
+  display: block;
+  min-height: 20px;
+}
+.upload-status.success {
+  color: #00cc66;
+}
+.upload-status.error {
+  color: #ff4d4d;
+}
+
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
