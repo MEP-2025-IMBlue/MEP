@@ -1,13 +1,11 @@
+const BASE_URL = "http://localhost:8000";  // Backend URL
+
 // Frontend-Logging-Funktion – schickt Fehler an das Backend-Endpoint /frontend-log
 function logFrontendError(action, message, level = "ERROR") {
-  fetch("/frontend-log", {
+  fetch(`${BASE_URL}/frontend-log`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: action,
-      message: message,
-      level: level
-    }),
+    body: JSON.stringify({ action, message, level }),
   }).catch((err) => {
     console.error("Fehler beim Senden des Logs an das Backend:", err);
   });
@@ -36,20 +34,16 @@ async function loadLogs() {
   logOutput.textContent = "Loading logs...";
 
   try {
-    const statusRes = await fetch(`/containers/${containerId}/status`);
+    const statusRes = await fetch(`${BASE_URL}/containers/${containerId}/status`);
     const statusData = await statusRes.json();
 
     statusField.textContent = statusData.status || "unknown";
     healthField.textContent = statusData.health || "undefined";
 
-    const healthEl = document.getElementById("container-health");
-    if (statusData.health === "healthy") {
-      healthEl.style.color = "green";
-    } else if (statusData.health === "unhealthy") {
-      healthEl.style.color = "red";
-    } else {
-      healthEl.style.color = "gray";
-    }
+    healthField.style.color =
+      statusData.health === "healthy" ? "green" :
+      statusData.health === "unhealthy" ? "red" : "gray";
+
   } catch (err) {
     statusField.textContent = "Error";
     healthField.textContent = "Error";
@@ -58,14 +52,14 @@ async function loadLogs() {
   }
 
   try {
-    const url = `/containers/${containerId}/logs?tail=${tail}&stdout=${stdout}&stderr=${stderr}&timestamps=${timestamps}`;
+    const url = `${BASE_URL}/containers/${containerId}/logs?tail=${tail}&stdout=${stdout}&stderr=${stderr}&timestamps=${timestamps}`;
     const res = await fetch(url);
+
     if (!res.ok) throw new Error("Failed to fetch logs.");
 
     const data = await res.json();
     logOutput.textContent = data.logs.length > 0 ? data.logs.join("\n") : "No logs found.";
 
-    // Zeige "Mehr Anzeigen" Button, wenn Logs vorhanden sind
     const moreBtn = document.getElementById("load-more-logs");
     if (data.logs.length > 0 && moreBtn) {
       moreBtn.style.display = "inline-block";
@@ -88,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const select = document.getElementById("container-select");
 
   try {
-    const res = await fetch("/containers/list");
+    const res = await fetch(`${BASE_URL}/containers/list`);
     const data = await res.json();
 
     select.innerHTML = "";
@@ -106,7 +100,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       select.appendChild(opt);
     });
 
-    // Mehr-Anzeigen Button dynamisch erzeugen und ans DOM anhängen
     const logOutputEl = document.getElementById("log-output");
     if (logOutputEl && !document.getElementById("load-more-logs")) {
       const loadMoreBtn = document.createElement("button");
@@ -114,7 +107,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       loadMoreBtn.style.display = "none";
       loadMoreBtn.style.marginTop = "10px";
       loadMoreBtn.setAttribute("data-i18n-key", "log_button_more");
-      loadMoreBtn.textContent = i18n.translations["log_button_more"] || "🔁 Mehr anzeigen";
+      loadMoreBtn.textContent = (typeof i18n !== "undefined" && i18n.translations["log_button_more"]) || "🔁 Mehr anzeigen";
       logOutputEl.parentNode.insertBefore(loadMoreBtn, logOutputEl.nextSibling);
     }
 
@@ -128,4 +121,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error loading container list:", err);
     logFrontendError("ContainerListLoad", err.message);
   }
+
+  const refreshBtn = document.getElementById("refresh-logs");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", loadLogs);
+  }
+
+  window.loadLogs = loadLogs;
 });

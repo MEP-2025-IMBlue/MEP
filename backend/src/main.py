@@ -12,6 +12,7 @@ load_dotenv()
 # Log-System importieren
 from src.utils.event_logger import log_event
 
+
 # Datenbankverbindung & Modelle
 from src.db.database.database import engine
 from src.db.db_models import db_models
@@ -21,7 +22,7 @@ from src.api.routes import routes_kiImage
 from src.api.routes import routes_kiContainer
 from src.api.routes import routes_dicom
 from src.api.routes.routes_logsContainer import router as container_logs_router
-from src.api.routes.routes_logsFrontend import router as logging_frontend_router
+from src.api.routes.routes_logsFrontend import router as logs_router
 # FastAPI-App instanzieren
 app = FastAPI(
     title="mRay AIR Backend",
@@ -42,7 +43,8 @@ app.include_router(routes_kiImage.router)
 app.include_router(routes_kiContainer.router)
 app.include_router(routes_dicom.router)
 app.include_router(container_logs_router)
-app.include_router(logging_frontend_router)
+app.include_router(logs_router)
+
 
 # Erstelle temporäre Upload-/Verzeichnisse beim Start und logge
 @app.on_event("startup")

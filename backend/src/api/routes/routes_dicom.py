@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, UploadResultItem
 from db.database.database import get_db
-from db.crud.crud_dicom import store_dicom_metadata, delete_dicom_metadata, list_dicom_metadata
+#from db.crud.crud_dicom import store_dicom_metadata, delete_dicom_metadata, list_dicom_metadata
 from db.core.exceptions import *
 from services.dicom import service_dicom
 from services.dicom.service_dicom import *

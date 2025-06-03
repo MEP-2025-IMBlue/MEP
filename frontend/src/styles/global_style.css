@@ -1,4 +1,6 @@
-/* frontend/src/styles/styles.css */
+/*----------------------------------------------------*/
+/*                   Bestehender Stil                 */
+/*----------------------------------------------------*/
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -185,6 +187,7 @@ footer {
   height: 100%;
   cursor: pointer;
 }
+
 /*Für den Button Englisch-Deutsch*/
 .preview-text {
   margin-top: 8px;
@@ -204,3 +207,60 @@ footer {
   font-size: 0.9rem;
 }
 
+/*----------------------------------------------------*/
+/* 📋 Zusätzliche Stile für das Event-Log-Modul       */
+/*----------------------------------------------------*/
+
+.details-card {
+  background-color: #1a1a1a;
+  border-left: 4px solid #ffaa00;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 2rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Titel für das Logs-Modul */
+.details-card h2 {
+  color: #ffd700;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+/* Log-Anzeigebereich */
+.log-display {
+  background-color: #121212;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #00ffcc;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+/* Ladeanzeige im Log-Bereich */
+.log-display p {
+  color: #999;
+  font-style: italic;
+}
+
+/* Button zum Nachladen von Logs */
+#load-more-logs {
+  background-color: #ffd700;
+  color: #000;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+#load-more-logs:hover {
+  background-color: #ffcc00;
+}

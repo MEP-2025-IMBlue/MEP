@@ -5,7 +5,10 @@ from typing import List, Optional
 from docker.errors import NotFound, APIError
 from src.services.container_management.service_container import ContainerService
 from src.utils.event_logger import log_event  # JSON-basiertes Logging
-import os  # ← log okuma için gerekli
+from fastapi import Request 
+import os
+import re
+
 
 # Pydantic-Modelle für API-Antworten
 class LogResponse(BaseModel):
@@ -116,4 +119,41 @@ async def get_logs(limit: int = 5):
 
     # Letzte Zeilen abrufen (neuste zuerst)
     last_lines = lines[-limit:] if len(lines) > limit else lines
-    return {"logs": last_lines[::-1]}
+    last_lines = last_lines[::-1]  # Neuste zuerst
+
+    log_entries = []
+    log_pattern = re.compile(r"\[(.*?)\]\s+\[(.*?)\]\s+(.*)")
+
+    for line in last_lines:
+        match = log_pattern.match(line)
+        if match:
+            timestamp, stream, message = match.groups()
+            log_entries.append({
+                "timestamp": timestamp.strip(),
+                "stream": stream.strip().lower(),
+                "message": message.strip()
+            })
+        else:
+            # fallback: ungeparste Zeile zurückgeben
+            log_entries.append({
+                "timestamp": "Unbekannt",
+                "stream": "unknown",
+                "message": line.strip()
+            })
+
+    return {"logs": log_entries}
+
+@router.post("/frontend-log")
+async def receive_frontend_log(request: Request):
+    try:
+        data = await request.json()
+        log_event(
+            source="FRONTEND",
+            action=data.get("action", "Unknown"),
+            message=data.get("message", ""),
+            level=data.get("level", "INFO")
+        )
+        return {"message": "Frontend-Log received"}
+    except Exception as e:
+        log_event("ERROR", "receive_frontend_log", f"Fehler beim Empfangen des Frontend-Logs: {str(e)}", level="ERROR")
+        raise HTTPException(status_code=500, detail="Fehler beim Verarbeiten des Frontend-Logs")
