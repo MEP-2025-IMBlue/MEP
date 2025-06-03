@@ -1,131 +1,62 @@
-// Frontend-Logging-Funktion – schickt Fehler an das Backend-Endpoint /frontend-log
-function logFrontendError(action, message, level = "ERROR") {
-  fetch("/frontend-log", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: action,
-      message: message,
-      level: level
-    }),
-  }).catch((err) => {
-    console.error("Fehler beim Senden des Logs an das Backend:", err);
-  });
-}
+<!DOCTYPE html>
+<html lang="de">
 
-// Führt die Log-Anzeige und Statusabfrage für einen ausgewählten Container aus
-async function loadLogs() {
-  const containerId = document.getElementById("container-select").value;
-  const logOutput = document.getElementById("log-output");
-  const statusField = document.getElementById("container-status");
-  const healthField = document.getElementById("container-health");
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Container Logs</title>
+  <script src="https://cdn.jsdelivr.net/npm/keycloak-js@24.0.1/dist/keycloak.min.js"></script>
+  <script src="../scripts/auth.js" defer></script>
+  <link rel="stylesheet" href="../styles/global_style.css" />
+</head>
 
-  if (!containerId || containerId === "Please select a container") {
-    alert("Please select a valid container.");
-    logOutput.textContent = "No container selected.";
-    logFrontendError("LogFetch", "No container selected.");
-    return;
-  }
+<body>
+  <div id="navbar"></div>
 
-  const stdout = document.getElementById("chk-stdout").checked;
-  const stderr = document.getElementById("chk-stderr").checked;
-  const timestamps = document.getElementById("chk-timestamps").checked;
-  const tailInput = document.getElementById("log-tail");
-  let tail = parseInt(tailInput.value, 10) || 100;
+  <main>
+    <h1 class="section-title" data-i18n-key="logviewer_title">Log-Viewer</h1>
 
-  logOutput.textContent = "Loading logs...";
+    <div class="details-card">
+      <p data-i18n-key="logviewer_text">Hier kannst du Logs eines bestimmten Containers anzeigen.</p>
 
-  try {
-    const statusRes = await fetch(`/containers/${containerId}/status`);
-    const statusData = await statusRes.json();
+      <div style="margin-bottom: 1rem;">
+        <label for="container-select" data-i18n-key="logviewer_select">Container auswählen:</label>
+        <select id="container-select"></select>
+      </div>
 
-    statusField.textContent = statusData.status || "unknown";
-    healthField.textContent = statusData.health || "undefined";
+      <div style="margin-bottom: 1rem;">
+        <strong>Status:</strong> <span id="container-status">-</span> |
+        <strong>Health:</strong> <span id="container-health">-</span>
+      </div>
 
-    const healthEl = document.getElementById("container-health");
-    if (statusData.health === "healthy") {
-      healthEl.style.color = "green";
-    } else if (statusData.health === "unhealthy") {
-      healthEl.style.color = "red";
-    } else {
-      healthEl.style.color = "gray";
-    }
-  } catch (err) {
-    statusField.textContent = "Error";
-    healthField.textContent = "Error";
-    console.error("Error while fetching container status:", err);
-    logFrontendError("StatusFetch", err.message);
-  }
+      <div style="margin-bottom: 1rem;">
+        <label><input type="checkbox" id="chk-stdout" checked> STDOUT</label>
+        <label><input type="checkbox" id="chk-stderr" checked> STDERR</label>
+        <label><input type="checkbox" id="chk-timestamps"> Zeitstempel</label>
+        <label data-i18n-key="log_tail_label">Zeilen:
+          <input type="number" id="log-tail" value="100" min="10" max="1000" step="10" style="width: 80px;">
+        </label>
+        <button onclick="loadLogs()" data-i18n-key="logviewer_load_button">Logs laden</button>
+      </div>
 
-  try {
-    const url = `/containers/${containerId}/logs?tail=${tail}&stdout=${stdout}&stderr=${stderr}&timestamps=${timestamps}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Failed to fetch logs.");
+      <!-- Log-Ausgabe -->
+      <pre id="log-output"
+        style="max-height: 300px; overflow-y: auto; background-color: #1c1c1c; color: #00ffcc;
+               padding: 1rem; font-size: 0.85rem; border: 1px solid #444; border-radius: 6px;">
+      </pre>
 
-    const data = await res.json();
-    logOutput.textContent = data.logs.length > 0 ? data.logs.join("\n") : "No logs found.";
+      <!-- Mehr Anzeigen Button (wird dynamisch aktiviert) -->
+      <button id="load-more-logs"
+              style="display:none; margin-top:10px;"
+              data-i18n-key="log_button_more">🔁 Mehr anzeigen</button>
+    </div>
+  </main>
 
-    // Zeige "Mehr Anzeigen" Button, wenn Logs vorhanden sind
-    const moreBtn = document.getElementById("load-more-logs");
-    if (data.logs.length > 0 && moreBtn) {
-      moreBtn.style.display = "inline-block";
-      moreBtn.onclick = () => {
-        tail += 100;
-        tailInput.value = tail;
-        loadLogs();
-      };
-    }
+  <footer>© mRay</footer>
 
-  } catch (err) {
-    logOutput.textContent = "Error while fetching logs.";
-    console.error("Log fetch error:", err);
-    logFrontendError("LogFetch", err.message);
-  }
-}
+  <script src="../scripts/i18n.js"></script>
+  <script src="../scripts/global_script.js"></script>
+  <script src="../scripts/dashboard.js?v=20250602"></script>
+</body>
 
-// Containerliste beim ersten Laden abrufen
-document.addEventListener("DOMContentLoaded", async () => {
-  const select = document.getElementById("container-select");
-
-  try {
-    const res = await fetch("/containers/list");
-    const data = await res.json();
-
-    select.innerHTML = "";
-
-    const placeholder = document.createElement("option");
-    placeholder.text = "Please select a container";
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    select.appendChild(placeholder);
-
-    data.forEach(id => {
-      const opt = document.createElement("option");
-      opt.value = id;
-      opt.textContent = id;
-      select.appendChild(opt);
-    });
-
-    // Mehr-Anzeigen Button dynamisch erzeugen und ans DOM anhängen
-    const logOutputEl = document.getElementById("log-output");
-    if (logOutputEl && !document.getElementById("load-more-logs")) {
-      const loadMoreBtn = document.createElement("button");
-      loadMoreBtn.id = "load-more-logs";
-      loadMoreBtn.style.display = "none";
-      loadMoreBtn.style.marginTop = "10px";
-      loadMoreBtn.setAttribute("data-i18n-key", "log_button_more");
-      loadMoreBtn.textContent = i18n.translations["log_button_more"] || "🔁 Mehr anzeigen";
-      logOutputEl.parentNode.insertBefore(loadMoreBtn, logOutputEl.nextSibling);
-    }
-
-  } catch (err) {
-    select.innerHTML = "";
-    const errorOption = document.createElement("option");
-    errorOption.text = "Failed to load containers";
-    errorOption.disabled = true;
-    select.appendChild(errorOption);
-
-    console.error("Error loading container list:", err);
-    logFrontendError("ContainerListLoad", err.message);
-  }
-});
+</html>
