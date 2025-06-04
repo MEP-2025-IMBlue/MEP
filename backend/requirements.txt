@@ -1,12 +1,17 @@
-fastapi
-uvicorn
-httpx
-pytest
-docker
+fastapi # REST-API
+uvicorn #Server
+httpx #API
+pytest #Tests
+docker #Docker
 python-multipart
-sqlalchemy
+sqlalchemy #Datenbank
 psycopg2-binary # psycopg2 PostgreSQL-Adapter für Python
-pydantic
+pydantic 
 python-dotenv  # um .env-Daten lesen zu können
 numpy
-pydicom
+pydicom #DICOM
+pillow #DICOM
+pylibjpeg #DICOM
+pylibjpeg-openjpeg #DICOM
+python-gdcm #DICOM
+
