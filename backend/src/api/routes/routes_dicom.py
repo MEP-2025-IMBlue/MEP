@@ -2,7 +2,7 @@ from datetime import timezone
 from typing import List
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from sqlalchemy.orm import Session
-from api.py_models.py_models import DICOMMetadata, UploadDICOMResponseModel, UploadResultItem
+from api.py_models import py_models
 from db.database.database import get_db
 from db.crud.crud_dicom import store_dicom_metadata, delete_dicom_metadata, list_dicom_metadata
 from db.core.exceptions import *
@@ -23,9 +23,9 @@ router = APIRouter(tags=["DICOM"])
 # TODO: HIER DIE SACHEN von maimuna rein wegen Metadaten Extraktion
 # ========================================
 @router.post("/dicoms/uploads", response_model=UploadDICOMResponseModel)
-async def post_upload_dicom(file: UploadFile = File(...)):
+async def post_upload_dicom(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
-        return service_dicom.receive_file(file)
+        return service_dicom.receive_file(file, db)
     except DICOMValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DICOMProcessingError as e:
@@ -55,20 +55,20 @@ async def get_all_stored_dicom():
         return {"message": "Es wurden noch keine DICOM-Dateien hochgeladen."}
     return result
 
-# ========================================
-# TODO: Diese Funktion löschen, nach dem Extraktion der Metadaten in post1 eingegliedert wurde
-# ========================================
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
+# # ========================================
+# # TODO: Diese Funktion löschen, nach dem Extraktion der Metadaten in post1 eingegliedert wurde
+# # ========================================
+# UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 
-async def save_file(upload_file: UploadFile) -> str:
-    """
-    Speichert die hochgeladene Datei temporär und gibt den Dateipfad zurück.
-    """
-    file_path = f"{UPLOAD_DIR}/{upload_file.filename}"
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, "wb") as f:
-        f.write(upload_file.file.read())
-    return file_path
+# async def save_file(upload_file: UploadFile) -> str:
+#     """
+#     Speichert die hochgeladene Datei temporär und gibt den Dateipfad zurück.
+#     """
+#     file_path = f"{UPLOAD_DIR}/{upload_file.filename}"
+#     os.makedirs(os.path.dirname(file_path), exist_ok=True)
+#     with open(file_path, "wb") as f:
+#         f.write(upload_file.file.read())
+#     return file_path
 
 # ========================================
 # Speichert DICOM-Metadaten in der Datenbank
@@ -121,52 +121,52 @@ async def save_file(upload_file: UploadFile) -> str:
 # ========================================
 # Listet DICOM-Metadaten in der Datenbank
 # ========================================
-@router.get("/dicoms/database", response_model=List[DICOMMetadata])
+@router.get("/dicoms/database", response_model=List[py_models.DICOMMetadata])
 async def list_dicoms(db: Session = Depends(get_db)):
-    # """
-    # Listet alle DICOM-Metadatensätze aus der Datenbank.
-    
-    # Args:
-    #     db (Session): SQLAlchemy-Datenbanksitzung.
-    
-    # Returns:
-    #     List[DICOMMetadata]: Liste aller DICOM-Metadatensätze.
-    
-    # Raises:
-    #     HTTPException: Bei Datenbankfehlern.
-    # """
-    # try:
-    #     dicom_metadata = list_dicom_metadata(db)
-
-    #     # Konvertiere dicom_created_at zu UTC mit ISO-Format
-    #     for dicom in dicom_metadata:
-    #         dicom.dicom_created_at = dicom.dicom_created_at.astimezone(timezone.utc).isoformat()
- 
-    #     return dicom_metadata
-    # except DatabaseError as e:
-    #     logging.error(f"[API] Fehler beim Abrufen der DICOM-Metadaten: {str(e)}")
-    #     raise HTTPException(status_code=500, detail=str(e))
-
     """
-    Listet alle DICOM-Metadatensätze aus der Datenbank und wandelt sie in Pydantic-Modelle um.
+    Listet alle DICOM-Metadatensätze aus der Datenbank.
+    
+    Args:
+        db (Session): SQLAlchemy-Datenbanksitzung.
+    
+    Returns:
+        List[DICOMMetadata]: Liste aller DICOM-Metadatensätze.
+    
+    Raises:
+        HTTPException: Bei Datenbankfehlern.
     """
-     
     try:
         dicom_metadata = list_dicom_metadata(db)
 
-        # Konvertiere jeden SQLAlchemy-Eintrag in ein Pydantic-Modell
-        pydantic_entries = []
-        for entry in dicom_metadata:
-            # Konvertiere datetime in UTC-ISO, falls vorhanden
-            if hasattr(entry, "dicom_created_at") and entry.dicom_created_at:
-                entry.dicom_created_at = entry.dicom_created_at.astimezone(timezone.utc).isoformat()
-            # Wandelt das SQLAlchemy-Modell in ein Pydantic-Modell um
-            pydantic_entries.append(DICOMMetadata.model_validate(entry))
-        return pydantic_entries
-
+        # Konvertiere dicom_created_at zu UTC mit ISO-Format
+        for dicom in dicom_metadata:
+            dicom.dicom_created_at = dicom.dicom_created_at.astimezone(timezone.utc).isoformat()
+ 
+        return dicom_metadata
     except DatabaseError as e:
-        logging.error(f"[API] Fehler beim Abrufen der DICOM-Metadatenn: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+        logging.error(f"[API] Fehler beim Abrufen der DICOM-Metadaten: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # """
+    # Listet alle DICOM-Metadatensätze aus der Datenbank und wandelt sie in Pydantic-Modelle um.
+    # """
+     
+    # try:
+    #     dicom_metadata = list_dicom_metadata(db)
+
+    #     # Konvertiere jeden SQLAlchemy-Eintrag in ein Pydantic-Modell
+    #     pydantic_entries = []
+    #     for entry in dicom_metadata:
+    #         # Konvertiere datetime in UTC-ISO, falls vorhanden
+    #         if hasattr(entry, "dicom_created_at") and entry.dicom_created_at:
+    #             entry.dicom_created_at = entry.dicom_created_at.astimezone(timezone.utc).isoformat()
+    #         # Wandelt das SQLAlchemy-Modell in ein Pydantic-Modell um
+    #         pydantic_entries.append(DICOMMetadata.model_validate(entry))
+    #     return pydantic_entries
+
+    # except DatabaseError as e:
+    #     logging.error(f"[API] Fehler beim Abrufen der DICOM-Metadatenn: {str(e)}")
+    #     raise HTTPException(status_code=500, detail=str(e)) 
     
 # ========================================
 # Löscht DICOM-Metadaten in der Datenbank

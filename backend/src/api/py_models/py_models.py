@@ -98,5 +98,5 @@ class UploadDICOMResponseModel(BaseModel):
     Antwortmodell für den Upload-Endpunkt.
     """
     message: str
-    data: list[UploadResultItem]
+    data: List[UploadResultItem]
 

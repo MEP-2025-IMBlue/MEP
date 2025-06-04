@@ -6,7 +6,7 @@ from typing import List
 import logging
 
 # Speichert das DICOM-Metadaten in der Datenbank
-def store_dicom_metadata(db: Session, metadata: dict) -> DICOMMetadata:
+def store_dicom_metadata(db: Session, metadata: dict):
     """
     Erstellt einen neuen DICOM-Metadatensatz in der Datenbank.
     
@@ -26,7 +26,7 @@ def store_dicom_metadata(db: Session, metadata: dict) -> DICOMMetadata:
         db.commit()
         db.refresh(dicom_entry)
         logging.info(f"[DB] Neuer DICOM-Eintrag erstellt: {dicom_entry}")
-        return dicom_entry
+        #return dicom_entry
     except SQLAlchemyError as e:
         db.rollback()
         logging.error(f"[DB] Fehler beim Erstellen des DICOM-Eintrags: {e}")

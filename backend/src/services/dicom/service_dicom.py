@@ -72,7 +72,7 @@ def extract_metadata(ds: Dataset) -> Dict:
     except Exception as e:
         return {"status": "error", "message": f"Fehler beim Einlesen: {str(e)}"}
 
-def receive_file(file: UploadFile = File(...)):
+def receive_file(file: UploadFile, db: Session):
     """Empfängt eine Datei, prüft Endung (.dcm/.zip),
     speichert sie temporär, 
     übergibt zur Verarbeitung und räumt auf."""
@@ -94,7 +94,7 @@ def receive_file(file: UploadFile = File(...)):
 
         # Verarbeiten der Datei -> Übergabe an nächste Funktion
         if filename.endswith(".dcm"):
-            result = upload_dicom(tmp_filepath)
+            result = upload_dicom(tmp_filepath, db)
             return UploadDICOMResponseModel(
                 message="DICOM-Datei erfolgreich verarbeitet",
                 data=[result]
@@ -108,7 +108,7 @@ def receive_file(file: UploadFile = File(...)):
         if os.path.exists(tmp_filepath):
             os.remove(tmp_filepath)
 
-def upload_dicom(tmp_filepath:str, db: Session = Depends(get_db)) -> UploadResultItem:
+def upload_dicom(tmp_filepath:str, db: Session) -> UploadResultItem:
     """Führt den vollständigen Upload-Workflow für eine DICOM-Datei durch:
     - Validierung
     - Extraktion von Pixeldaten und dessen Speicherung in einem Verzeichnis
@@ -119,10 +119,10 @@ def upload_dicom(tmp_filepath:str, db: Session = Depends(get_db)) -> UploadResul
     validate_dicom(ds)
     #ds = anonymize_dicom(ds) -> Funktion wird erstmal nicht angewendet
     pixel_array = extract_pixel_array(ds)
-    metadata = extract_metadata(ds)
+    #metadata = extract_metadata(ds)
     #Weiterleitung an einer Funktion aus crud_dicom.py
-    store_dicom_metadata(db ,metadata)
-    return store_dicom_and_pixelarray(ds, pixel_array)
+    #store_dicom_metadata(db, metadata["metadata"])
+    return store_dicom_and_pixelarray(ds, pixel_array, db)
     
 def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
     #Schaue nach, ob die Datei DICOM konform ist
@@ -206,13 +206,14 @@ def extract_pixel_array(ds: pydicom.Dataset):
     
     return pixel_array
 
-def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array) -> UploadResultItem:
+def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array, db:Session) -> UploadResultItem:
     """Speicherung der DICOM-Datei und die extrahierte Pixelarray."""
 
     sop_uid = ds.SOPInstanceUID
     anon_path = os.path.join(UPLOAD_DIR, f"{sop_uid}_anon.dcm")
     npy_path = os.path.join(PROCESSED_DIR, f"{sop_uid}_anon.npy")
 
+    # Speichern der DICOM-Datei
     try:
         ds.save_as(anon_path)
         logging.info(f"[Datei] Anonymisierte Datei gespeichert: {anon_path}")
@@ -220,6 +221,7 @@ def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array) -> UploadResult
         logging.error(f"[Datei] Fehler beim Speichern der anonymisierten Datei: {anon_path} → {str(e)}")
         raise DICOMProcessingError(f"Fehler beim Speichern der anonymisierten Datei: {str(e)}")
 
+    # Speichern des Pixel-Arrays
     try:
         np.save(npy_path, pixel_array)
         logging.info(f"[PixelData] Pixel-Array gespeichert unter: {npy_path}")
@@ -227,6 +229,14 @@ def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array) -> UploadResult
         logging.error(f"[PixelData] Fehler beim Speichern des Pixel-Arrays: {str(e)}")
         raise DICOMProcessingError(f"Fehler beim Speichern des Pixel-Arrays: {str(e)}")
     
+    # Extraktion und Speicherung der Metadaten
+    metadata_dict = extract_metadata(ds)["metadata"]
+    try:
+        store_dicom_metadata(db, metadata_dict)
+    except Exception as e:
+        raise DICOMProcessingError(f"Fehler beim Speichern der Metadaten: {str(e)}")
+
+
     return UploadResultItem(
         sop_instance_uid=sop_uid,
         saved_dicom_path=anon_path,
