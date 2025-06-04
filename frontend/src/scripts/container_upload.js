@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const hubForm = document.getElementById("hub-upload-form");
   const localForm = document.getElementById("local-upload-form");
 
-  // ---------- Fehlerbehandlung ----------
+  // Fehlernachricht interpretieren
   function interpretErrorMessage(rawMsg, source = "") {
     if (!rawMsg) return i18n.translations.upload_error_generic;
     const msg = rawMsg.toLowerCase();
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${i18n.translations.upload_error_prefix}${rawMsg}`;
   }
 
-  // ---------- Docker Hub Upload ----------
+  // ========== DockerHub Upload ==========
   if (hubForm) {
     const spinner = document.createElement("div");
     spinner.id = "hub-spinner";
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ---------- Lokaler Upload ----------
+  // ========== Lokaler Upload ==========
   if (localForm) {
     const progress = document.createElement("progress");
     progress.id = "local-progress";
@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // 🔁 Sprachwechsel
+    // ========== Sprachumschaltung ==========
     document.addEventListener("languageChanged", () => {
       i18n.applyTranslations();
 
@@ -246,7 +246,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         dropLabel.textContent = i18n.translations.container_upload_drag_drop_local;
       }
 
-      spinner.querySelector("span").textContent = i18n.translations.upload_processing;
+      const localSpinnerText = document.querySelector("#local-spinner span");
+      if (localSpinnerText) {
+        localSpinnerText.textContent = i18n.translations.upload_processing;
+      }
+
+      const hubSpinnerText = document.querySelector("#hub-spinner span");
+      if (hubSpinnerText) {
+        hubSpinnerText.textContent = i18n.translations.upload_processing;
+      }
+
+      const hubInput = document.querySelector('#hub-upload-form input[type="text"]');
+      if (hubInput && i18n.translations.hub_placeholder) {
+        hubInput.placeholder = i18n.translations.hub_placeholder;
+      }
     });
   }
 });
