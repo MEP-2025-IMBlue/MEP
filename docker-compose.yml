@@ -91,7 +91,7 @@ services:
       - ./backend:/app
       - ./storage/uploads:/tmp/uploads
       - ./storage/processed:/tmp/processed
-      - ./storage//logs:/tmp/logs
+      - ./storage/logs:/tmp/logs
       - /var/run/docker.sock:/var/run/docker.sock  # Ermöglicht Docker-Kommandos innerhalb des Containers
     env_file:
       - ./backend/.env
