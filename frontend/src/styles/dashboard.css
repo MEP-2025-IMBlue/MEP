@@ -211,3 +211,48 @@ button.btn-test:hover { background-color: #0099ff55; }
   flex: 1;
   min-width: 200px;
 }
+
+.log-box {
+  background-color: #1a1a1a;
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+  margin-top: 1rem;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.btn-clear {
+  background-color: transparent;
+  border: none;
+  color: #ffd700;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+.btn-clear:hover {
+  color: #ff4d4d;
+}
+
+.log-output {
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #ccc;
+  white-space: pre-wrap;
+}

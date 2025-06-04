@@ -125,6 +125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${berlinDate.toLocaleDateString("de-DE")}, ${timeStr} Uhr`;
   }
 
+  /*
   // Systemlogs anzeigen (nach Tail Count)
   async function fetchAndDisplaySystemLogs(count = 5) {
     if (!logOutput) return;
@@ -159,6 +160,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       fetchAndDisplaySystemLogs(count);
     });
   }
+*/
+function clearLogs() {
+  const logOutput = document.getElementById("log-output");
+  logOutput.textContent = "\uD83D\uDDD9 Logs wurden gel\u00f6scht.";
+}
+
+// Beispiel-Logs setzen
+document.addEventListener("DOMContentLoaded", () => {
+  const logOutput = document.getElementById("log-output");
+  const exampleLogs = [
+    "[2025-06-04 12:15:23] \u2705 Container gestartet: ai-model-v2:latest (ID: 9c2f1b8d3a)",
+    "[2025-06-04 12:15:27] \uD83D\uDCC5 Neue DICOM-Datei empfangen: CT_Thorax_001.dcm",
+    "[2025-06-04 12:15:28] \uD83D\uDD0D Validierung gestartet...",
+    "[2025-06-04 12:15:29] \u2705 DICOM-Validierung erfolgreich",
+    "[2025-06-04 12:15:30] \uD83E\uDDFC Anonymisierung abgeschlossen",
+    "[2025-06-04 12:15:31] \uD83E\uDD16 KI-Inferenz gestartet",
+    "[2025-06-04 12:15:36] \u2705 Inferenz erfolgreich abgeschlossen",
+    "[2025-06-04 12:15:37] \uD83D\uDCC4 Ergebnis gespeichert: /output/pred_001.png",
+    "[2025-06-04 12:15:39] \uD83D\uDED1 Container gestoppt (Laufzeit: 16s)"
+  ];
+  logOutput.textContent = exampleLogs.join('\n');
+});
 
   // Filterfunktion für Suchleiste
   searchInput.addEventListener("input", () => {
