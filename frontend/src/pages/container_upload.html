@@ -1,44 +1,47 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
   <meta charset="UTF-8" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Container hochladen – mRay AIR</title>
   <!-- Keycloak + Auth Schutz -->
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@24.0.1/dist/keycloak.min.js"></script>
   <script src="../scripts/auth.js" defer></script>
+
+  <script src="https://unpkg.com/i18next@23.6.16/i18next.min.js"></script>
+  <script src="https://unpkg.com/i18next-browser-languagedetector/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="https://unpkg.com/i18next-http-backend/i18nextHttpBackend.min.js"></script>
+
   <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/container_upload.css" />
-
 </head>
-
 <body>
   <div id="navbar"></div>
 
   <main>
-    <h1 class="section-title">Wie möchten Sie Ihren Container bereitstellen?</h1>
+    <h1 class="section-title" data-i18n-key="container_upload_title">Wie möchten Sie Ihren Container bereitstellen?</h1>
+
     <div class="card-container">
       <div class="upload-card" onclick="showUploadOption('local')">
         <div class="icon">&#x1F4C1;</div>
-        <h3>Lokal hochladen</h3>
-        <p>Datei direkt vom Computer auswählen und hochladen.</p>
+        <h3 data-i18n-key="container_upload_local">Lokal hochladen</h3>
+        <p data-i18n-key="container_upload_local_desc">Datei direkt vom Computer auswählen und hochladen.</p>
       </div>
       <div class="upload-card" onclick="showUploadOption('hub')">
         <div class="icon">&#x1F40B;</div>
-        <h3>Docker Hub Referenz</h3>
-        <p>Einfach Image Name:Tag eingeben, z.&#8201;B. <code>nginx:latest</code>.</p>
+        <h3 data-i18n-key="container_upload_hub">Docker Hub Referenz</h3>
+        <p data-i18n-key="container_upload_hub_desc">Einfach Image Name:Tag eingeben, z. B. <code>nginx:latest</code>.</p>
       </div>
     </div>
 
     <div id="upload-local" class="upload-section">
       <form id="local-upload-form">
         <div class="drop-zone" id="drop-local">
-          <span>&#x1F4C1; Container (.tar) hierher ziehen oder klicken</span>
+          <span id="drop-zone-label" data-i18n-key="container_upload_drag_drop_local">&#x1F4C1; Container (.tar) hierher ziehen oder klicken</span>
           <input type="file" name="file" id="fileInput-local" accept=".tar" hidden />
         </div>
-
-        <button type="submit">Hochladen</button>
+        <button type="submit" data-i18n-key="upload_button">Hochladen</button>
         <div id="local-status" class="upload-status"></div>
         <progress id="local-progress" value="0" max="100" style="width: 100%; display: none;"></progress>
       </form>
@@ -46,14 +49,18 @@
 
     <div id="upload-hub" class="upload-section">
       <form id="hub-upload-form">
-        <input type="text" name="image_reference" placeholder="Image Name:Tag (z. B. nginx:latest)" required />
-        <button type="submit">Referenzieren</button>
+        <input type="text" name="image_reference" placeholder="Image Name:Tag (z. B. nginx:latest)" data-i18n-key-placeholder="hub_placeholder" required />
+        <button type="submit" data-i18n-key="reference_button">Referenzieren</button>
         <div id="hub-status" class="upload-status"></div>
       </form>
     </div>
   </main>
 
   <footer>&copy; mRay AIR</footer>
+  
+  <script src="../scripts/i18n.js"></script>
+  <script src="../scripts/global_script.js"></script>
+  <script src="../scripts/container_upload.js"></script>
 
   <script>
     function showUploadOption(type) {
@@ -61,8 +68,5 @@
       document.getElementById("upload-hub").style.display = type === "hub" ? "flex" : "none";
     }
   </script>
-  <script src="../scripts/container_upload.js"></script>
-
 </body>
-
 </html>

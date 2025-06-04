@@ -1,41 +1,39 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await i18n.loadTranslations(i18n.currentLang);
+  i18n.applyTranslations();
+
   const hubForm = document.getElementById("hub-upload-form");
   const localForm = document.getElementById("local-upload-form");
 
-  // Fehlermeldung interpretieren
+  // Fehlernachricht interpretieren
   function interpretErrorMessage(rawMsg, source = "") {
-    if (!rawMsg) return "\u{1F4C4} Ein unbekannter Fehler ist aufgetreten.";
-
+    if (!rawMsg) return i18n.translations.upload_error_generic;
     const msg = rawMsg.toLowerCase();
 
     if (source === "local" && msg.includes("file") && msg.includes("invalid")) {
-      return "\u{1F4C4} Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
+      return i18n.translations.upload_error_invalid_tar;
+    }
+    if (source === "hub" && (msg.includes("invalid") || msg.includes("format") || msg.includes("reference"))) {
+      return i18n.translations.upload_error_invalid_hub;
+    }
+    if (msg.includes("missing") || msg.includes("required") || msg.includes("feld fehlt")) {
+      return i18n.translations.fill_required;
+    }
+    if (msg.includes("already exists") || msg.includes("existiert bereits")) {
+      return i18n.translations.already_exists;
+    }
+    if (msg.includes("not found") || msg.includes("nicht gefunden")) {
+      return i18n.translations.not_found;
     }
 
-    if (source === "hub" && (msg.includes("invalid") || msg.includes("format"))) {
-      return "\u{1F4C4} Ungültiges Format. Bitte geben Sie z. B. ein Image im Format `nginx:latest` ein.";
-    }
-
-    if (msg.includes("missing") || msg.includes("required")) {
-      return "\u{1F4C4} Bitte füllen Sie alle Pflichtfelder aus.";
-    }
-
-    if (msg.includes("already exists")) {
-      return "\u{1F4C4} Dieses Image wurde bereits hochgeladen.";
-    }
-
-    if (msg.includes("not found")) {
-      return "\u{1F4C4} Das angegebene Image konnte nicht gefunden werden.";
-    }
-
-    return `\u{1F4C4} Fehler: ${rawMsg}`;
+    return `${i18n.translations.upload_error_prefix}${rawMsg}`;
   }
 
-  // DockerHub Upload
+  // ========== DockerHub Upload ==========
   if (hubForm) {
     const spinner = document.createElement("div");
     spinner.id = "hub-spinner";
-    spinner.innerHTML = `<div class="spinner"></div><span>Verarbeitung läuft...</span>`;
+    spinner.innerHTML = `<div class="spinner"></div><span>${i18n.translations.upload_processing}</span>`;
     spinner.style.display = "none";
     spinner.style.marginTop = "10px";
     hubForm.appendChild(spinner);
@@ -57,14 +55,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         spinner.style.display = "none";
+        let errText = "";
 
         if (res.ok) {
           const result = await res.json();
-          statusDiv.textContent = `\u2705 Hochgeladen: ${result.image_name || result.id}`;
+          statusDiv.textContent = `${i18n.translations.upload_success}${result.image_name || result.id}`;
           statusDiv.className = "upload-status success";
           hubForm.reset();
         } else {
-          const errText = await res.text();
+          try {
+            const errJson = await res.json();
+            errText = errJson.detail || JSON.stringify(errJson);
+          } catch {
+            errText = await res.text();
+          }
           statusDiv.textContent = interpretErrorMessage(errText, "hub");
           statusDiv.className = "upload-status error";
         }
@@ -76,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  //  Lokaler Upload mit Drag-and-Drop + Vorschau + Fortschritt
+  // ========== Lokaler Upload ==========
   if (localForm) {
     const progress = document.createElement("progress");
     progress.id = "local-progress";
@@ -97,14 +101,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const spinner = document.createElement("div");
     spinner.id = "local-spinner";
-    spinner.innerHTML = `<div class="spinner"></div><span>Verarbeitung läuft...</span>`;
+    spinner.innerHTML = `<div class="spinner"></div><span>${i18n.translations.upload_processing}</span>`;
     spinner.style.display = "none";
     spinner.style.marginTop = "10px";
     localForm.appendChild(spinner);
 
-    // Drag-and-Drop Vorschau
     const dropZone = document.getElementById("drop-local");
     const fileInput = document.getElementById("fileInput-local");
+    const dropLabel = document.querySelector("#drop-local span");
+    const statusDiv = document.getElementById("local-status");
+
     const previewText = document.createElement("div");
     previewText.className = "preview-text";
     dropZone.appendChild(previewText);
@@ -124,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.dataTransfer.files.length) {
         const file = e.dataTransfer.files[0];
         fileInput.files = e.dataTransfer.files;
-        previewText.textContent = `\u{1F4C4} ${file.name}`;
+        previewText.textContent = `📄 ${file.name}`;
       }
     });
 
@@ -132,24 +138,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fileInput.addEventListener("change", () => {
       if (fileInput.files.length) {
-        previewText.textContent = `\u{1F4C4} ${fileInput.files[0].name}`;
+        previewText.textContent = `📄 ${fileInput.files[0].name}`;
       } else {
         previewText.textContent = "";
       }
     });
 
-    //  Upload
     localForm.addEventListener("submit", (e) => {
       e.preventDefault();
-
       const file = fileInput.files[0];
-      const statusDiv = document.getElementById("local-status");
-
       statusDiv.textContent = "";
       statusDiv.className = "upload-status";
 
       if (!file || !file.name.toLowerCase().endsWith(".tar")) {
-        statusDiv.textContent = "\u{1F4C4} Ungültiges Dateiformat. Bitte laden Sie eine `.tar`-Datei hoch.";
+        statusDiv.textContent = i18n.translations.upload_error_invalid_tar;
         statusDiv.className = "upload-status error";
         return;
       }
@@ -170,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
         xhr.upload.addEventListener("progress", (event) => {
           if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
-
             if (percent < 95) {
               progress.value = percent;
               percentLabel.textContent = `${percent}%`;
@@ -200,13 +201,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
           setTimeout(() => {
             spinner.style.display = "none";
-
             if (xhr.status >= 200 && xhr.status < 300) {
               const result = JSON.parse(xhr.responseText);
-              statusDiv.textContent = `\u2705 Hochgeladen: ${result.image_name || result.id}`;
+              statusDiv.textContent = `${i18n.translations.upload_success}${result.image_name || result.id}`;
               statusDiv.className = "upload-status success";
               localForm.reset();
               previewText.textContent = "";
+              dropLabel.textContent = i18n.translations.container_upload_drag_drop_local;
             } else {
               statusDiv.textContent = interpretErrorMessage(xhr.responseText, "local");
               statusDiv.className = "upload-status error";
@@ -219,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
           progress.style.display = "none";
           percentLabel.style.display = "none";
           spinner.style.display = "none";
-          statusDiv.textContent = "\u{1F4C4} Upload-Fehler";
+          statusDiv.textContent = i18n.translations.upload_error_network;
           statusDiv.className = "upload-status error";
         };
 
@@ -233,6 +234,31 @@ document.addEventListener("DOMContentLoaded", () => {
         spinner.style.display = "none";
         statusDiv.textContent = interpretErrorMessage(err.message, "local");
         statusDiv.className = "upload-status error";
+      }
+    });
+
+    // ========== Sprachumschaltung ==========
+    document.addEventListener("languageChanged", () => {
+      i18n.applyTranslations();
+
+      const dropLabel = document.querySelector("#drop-local span");
+      if (dropLabel) {
+        dropLabel.textContent = i18n.translations.container_upload_drag_drop_local;
+      }
+
+      const localSpinnerText = document.querySelector("#local-spinner span");
+      if (localSpinnerText) {
+        localSpinnerText.textContent = i18n.translations.upload_processing;
+      }
+
+      const hubSpinnerText = document.querySelector("#hub-spinner span");
+      if (hubSpinnerText) {
+        hubSpinnerText.textContent = i18n.translations.upload_processing;
+      }
+
+      const hubInput = document.querySelector('#hub-upload-form input[type="text"]');
+      if (hubInput && i18n.translations.hub_placeholder) {
+        hubInput.placeholder = i18n.translations.hub_placeholder;
       }
     });
   }

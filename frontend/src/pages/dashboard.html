@@ -3,46 +3,60 @@
 
 <head>
   <meta charset="UTF-8" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mRay Dashboard</title>
+  <title data-i18n-key="navbar_dashboard">mRay Dashboard</title>
   <!-- Keycloak + Auth Schutz -->
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@24.0.1/dist/keycloak.min.js"></script>
   <script src="../scripts/auth.js" defer></script>
+
+  <!-- i18next + Plugins einbinden -->
+  <script src="https://unpkg.com/i18next@23.6.16/i18next.min.js"></script>
+  <script src="https://unpkg.com/i18next-browser-languagedetector/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="https://unpkg.com/i18next-http-backend/i18nextHttpBackend.min.js"></script>
+
+
   <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
 </head>
 
 <body>
   <div id="navbar"></div>
-  
+
   <main>
-    <h1 class="section-title">KI-Images</h1>
+    <h1 class="section-title" data-i18n-key="dashboard_title">KI-Images</h1>
 
     <div class="dashboard-container vertical-layout">
       <div class="filter-controls">
         <select id="filterSelect">
-          <option value>&#x2B07; Filtern nach...</option>
-          <option value="image_name"> Name</option>
-          <option value="image_tag"> Tag</option>
-          <option value="created_at"> Hochgeladen am</option>
+          <option value="" data-i18n-key="dashboard_filter_option">🔽 Filtern nach...</option>
+          <option value="image_name" data-i18n-key="dashboard_filter_name">Name</option>
+          <option value="image_tag" data-i18n-key="dashboard_filter_tag">Tag</option>
+          <option value="created_at" data-i18n-key="dashboard_filter_created">Hochgeladen am</option>
         </select>
-
-        <input type="text" id="searchInput" placeholder="&#x1F50E; Suchbegriff eingeben..." />
+        <input type="text" id="searchInput" placeholder="" data-i18n-key="dashboard_filter_placeholder" />
       </div>
+
+      <div id="dashboard-info" class="details-card">
+        <!-- wird dynamisch per JavaScript befüllt -->
+      </div>
+
       <div class="table-wrapper" id="ki-image-list">
-        <p>Lade KI-Images...</p>
+        <p data-i18n-key="loading_ki_images">Lade KI-Images...</p>
       </div>
 
       <div class="details-card">
-        <h2>Info</h2>
-        <p>Hier erscheinen alle hochgeladenen KI-Images.</p>
+        <h2 data-i18n-key="info_title">Info</h2>
+        <p data-i18n-key="info_text">Hier erscheinen alle Logs der KI-Images.</p>
       </div>
-    </div>
 
+    </div>
   </main>
 
   <footer>© mRay</footer>
 
+
+  <script src="../scripts/i18n.js"></script>
   <script src="../scripts/dashboard.js?v=20250517"></script>
 
 </body>
