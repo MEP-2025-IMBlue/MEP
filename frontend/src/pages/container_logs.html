@@ -16,6 +16,7 @@
   <main>
     <h1 class="section-title" data-i18n-key="logviewer_title">Log-Viewer</h1>
 
+    <!-- Abschnitt: Container-Loganzeige -->
     <div class="details-card">
       <p data-i18n-key="logviewer_text">Hier kannst du Logs eines bestimmten Containers anzeigen.</p>
 
@@ -39,23 +40,57 @@
         <button onclick="loadLogs()" data-i18n-key="logviewer_load_button">Logs laden</button>
       </div>
 
-      <!-- Log-Ausgabe -->
+      <!-- Bereich: Log-Ausgabe -->
       <pre id="log-output"
         style="max-height: 300px; overflow-y: auto; background-color: #1c1c1c; color: #00ffcc;
                padding: 1rem; font-size: 0.85rem; border: 1px solid #444; border-radius: 6px;">
       </pre>
 
-      <!-- Mehr Anzeigen Button (wird dynamisch aktiviert) -->
+      <!-- Button: Mehr Logs anzeigen -->
       <button id="load-more-logs"
               style="display:none; margin-top:10px;"
               data-i18n-key="log_button_more">🔁 Mehr anzeigen</button>
     </div>
 
-    <!-- 📋 System Events Log Section -->
+    <!-- Abschnitt: Systemereignis-Logs (Frontend/Backend Logs in Tabelle) -->
     <div class="details-card">
       <h2 data-i18n-key="logs.title">📋 Logs</h2>
-      <div id="log-container" class="log-display">
-        <p data-i18n-key="logs.loading">Loading logs...</p>
+
+      <!-- Filterleiste -->
+      <div class="filter-controls">
+        <label for="level-select" data-i18n-key="filter.level">Level:</label>
+        <select id="level-select">
+          <option value="">Alle</option>
+          <option value="INFO">INFO</option>
+          <option value="WARNING">WARNING</option>
+          <option value="ERROR">ERROR</option>
+        </select>
+
+        <label for="source-select" data-i18n-key="filter.source">Quelle:</label>
+        <select id="source-select">
+          <option value="">Alle</option>
+          <option value="frontend">Frontend</option>
+          <option value="backend">Backend</option>
+        </select>
+
+        <label for="action-input" data-i18n-key="filter.action">Aktion:</label>
+        <input type="text" id="action-input" placeholder="Aktion z. B. start_container" />
+      </div>
+
+      <!-- Tabelle zur Anzeige der Logs -->
+      <div id="log-container">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Zeitstempel</th>
+              <th>Level</th>
+              <th>Nachricht</th>
+            </tr>
+          </thead>
+          <tbody id="log-table-body">
+            <!-- Logzeilen werden dynamisch per JavaScript eingefügt -->
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
@@ -64,7 +99,7 @@
 
   <script src="../scripts/i18n.js"></script>
   <script src="../scripts/dashboard.js?v=20250602"></script>
-  <script src="../scripts/event_logs.js"></script>
+  <script src="../scripts/event_logs.js?v=20250604"></script>
 </body>
 
 </html>

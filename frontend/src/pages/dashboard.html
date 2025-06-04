@@ -5,19 +5,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mRay Dashboard</title>
+
+  <!-- Keycloak für Authentifizierung -->
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@24.0.1/dist/keycloak.min.js"></script>
   <script src="../scripts/auth.js" defer></script>
+
+  <!-- Globale und Dashboard-spezifische CSS -->
   <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
 </head>
 
 <body>
+  <!-- Navigationsleiste wird dynamisch geladen -->
   <div id="navbar"></div>
 
   <main>
     <h1 class="section-title" data-i18n-key="dashboard_title">KI-Images</h1>
 
     <div class="dashboard-container vertical-layout">
+      <!--  Filter und Suchleiste für KI-Images -->
       <div class="filter-controls">
         <select id="filterSelect">
           <option value="" data-i18n-key="dashboard_filter_option">🔽 Filtern nach...</option>
@@ -26,50 +32,56 @@
           <option value="created_at" data-i18n-key="dashboard_filter_created">Hochgeladen am</option>
         </select>
         <input type="text" id="searchInput" placeholder="🔎 Suchbegriff eingeben..."
-          data-i18n-key-placeholder="dashboard_search_placeholder" />
+               data-i18n-key-placeholder="dashboard_search_placeholder" />
       </div>
 
+      <!--  KI-Image Übersichtskarte -->
       <div id="dashboard-info" class="details-card">
-        <!-- wird dynamisch per JavaScript befüllt -->
+        <!-- Wird dynamisch durch JavaScript befüllt -->
       </div>
 
+      <!--  Liste aller hochgeladenen KI-Images -->
       <div class="table-wrapper" id="ki-image-list">
         <p data-i18n-key="loading_ki_images">Lade KI-Images...</p>
       </div>
 
+      <!--  Info-Bereich mit Loganzeige -->
       <div class="details-card">
         <h2 data-i18n-key="info_title">Info</h2>
         <p data-i18n-key="info_text">Hier erscheinen alle Logs der KI-Images.</p>
 
-        <!-- 🆕 Log ayarları -->
+        <!-- Log-Optionen -->
         <div style="margin-bottom: 0.5rem;">
           <label for="log-count" data-i18n-key="log_count_label">Log-Zeilen:</label>
           <input type="number" id="log-count" value="20" min="1" max="500" style="width: 60px;" />
           <button id="refresh-logs" data-i18n-key="refresh_button">🔄 Aktualisieren</button>
         </div>
 
-        <!-- Log alanı -->
+        <!-- Log-Ausgabe -->
         <pre id="system-log-output"
               style="max-height: 200px; overflow-y: auto; background-color: #1c1c1c; color: #00ffcc;
                      padding: 1rem; font-size: 0.85rem; border: 1px solid #444; border-radius: 6px;">
         </pre>
       </div>
 
-      <!-- ⬇️ YENİ EKLENEN LOG VIEWER BLOĞU -->
+      <!--  Container-Loganzeige (Log-Viewer) -->
       <div class="details-card">
         <h2 data-i18n-key="logviewer_title">Log-Viewer</h2>
         <p data-i18n-key="logviewer_text">Hier kannst du Logs eines bestimmten Containers anzeigen.</p>
 
+        <!-- Container-Auswahl -->
         <div style="margin-bottom: 1rem;">
           <label for="container-select">Container auswählen:</label>
           <select id="container-select"></select>
         </div>
 
+        <!-- Status- & Health-Anzeige -->
         <div style="margin-bottom: 1rem;">
           <strong>Status:</strong> <span id="container-status">-</span> |
           <strong>Health:</strong> <span id="container-health">-</span>
         </div>
 
+        <!-- Optionen für Log-Anzeige -->
         <div style="margin-bottom: 1rem;">
           <label><input type="checkbox" id="chk-stdout" checked> STDOUT</label>
           <label><input type="checkbox" id="chk-stderr" checked> STDERR</label>
@@ -80,18 +92,19 @@
           <button onclick="loadLogs()">Logs laden</button>
         </div>
 
-        <!-- Log-Ausgabe -->
+        <!-- Container-Log-Ausgabe -->
         <pre id="log-output"
               style="max-height: 300px; overflow-y: auto; background-color: #1c1c1c; color: #00ffcc;
                      padding: 1rem; font-size: 0.85rem; border: 1px solid #444; border-radius: 6px;">
         </pre>
       </div>
-      <!-- ⬆️ SON -->
     </div>
   </main>
 
+  <!-- Footer -->
   <footer>© mRay</footer>
 
+  <!-- JavaScript: Mehrsprachigkeit, Dashboard-Logik, Log-Abfrage -->
   <script src="../scripts/i18n.js"></script>
   <script src="../scripts/dashboard.js?v=20250602"></script>
   <script src="../scripts/container_logs.js"></script>

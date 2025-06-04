@@ -1,36 +1,34 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import JSONResponse 
 from pydantic import BaseModel
 from typing import List, Optional
 from docker.errors import NotFound, APIError
 from src.services.container_management.service_container import ContainerService
 from src.utils.event_logger import log_event  # JSON-basiertes Logging
-from fastapi import Request 
 import os
-import re
 
-
-# Pydantic-Modelle für API-Antworten
+# Pydantic-Modell für die Rückgabe von Container-Logs
 class LogResponse(BaseModel):
     logs: List[str]
 
+# Pydantic-Modell für den Container-Status und Health-Check
 class StatusResponse(BaseModel):
     status: str
     health: str
 
-# Router-Konfiguration
+# Router-Konfiguration mit Prefix für alle Container-bezogenen Endpunkte
 router = APIRouter(prefix="/containers", tags=["Container Logs"])
 container_service = ContainerService()
 
-# Route: Gibt die Logs eines Containers zurück
+# Route: Gibt die Logs eines bestimmten Containers zurück
 @router.get("/{container_id_or_name}/logs", response_model=LogResponse)
 async def get_container_logs(
     container_id_or_name: str,
-    tail: int = Query(100, ge=1, le=1000),
-    stdout: bool = Query(True),
-    stderr: bool = Query(True),
-    timestamps: bool = Query(True),
-    user_id: Optional[int] = Query(None)  # <<< EKLENDİ
+    tail: int = Query(100, ge=1, le=1000),          # Anzahl der letzten Zeilen
+    stdout: bool = Query(True),                    # stdout ein-/ausschalten
+    stderr: bool = Query(True),                    # stderr ein-/ausschalten
+    timestamps: bool = Query(True),                # Zeitstempel ein-/ausschalten
+    user_id: Optional[int] = Query(None)           # Optional: ID des aufrufenden Benutzers
 ):
     try:
         logs = container_service.get_container_logs(
@@ -54,7 +52,7 @@ async def get_container_logs(
 
 # Route: Gibt Status- und Gesundheitsinformationen eines Containers zurück
 @router.get("/{container_id_or_name}/status", response_model=StatusResponse)
-async def get_status_and_health(container_id_or_name: str, user_id: Optional[int] = Query(None)):  # <<< EKLENDİ
+async def get_status_and_health(container_id_or_name: str, user_id: Optional[int] = Query(None)):
     try:
         result = container_service.get_container_status_and_health(container_id_or_name)
         log_event("CONTAINER", "get_status_and_health", f"Status für {container_id_or_name} erfolgreich abgefragt", level="INFO", container_id=container_id_or_name, user_id=user_id)
@@ -63,9 +61,9 @@ async def get_status_and_health(container_id_or_name: str, user_id: Optional[int
         log_event("ERROR", "get_status_and_health", f"Fehler beim Statusabruf: {str(e)}", level="ERROR", container_id=container_id_or_name, user_id=user_id)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Route: Gibt nur laufende Container zurück
+# Route: Gibt nur laufende (aktive) Container zurück
 @router.get("/list", response_model=List[str])
-async def list_containers(user_id: Optional[int] = Query(None)):  # <<< EKLENDİ
+async def list_containers(user_id: Optional[int] = Query(None)):
     try:
         result = container_service.list_running_containers()
         log_event("CONTAINER", "list_containers", "Laufende Container erfolgreich abgerufen", level="INFO", user_id=user_id)
@@ -76,7 +74,7 @@ async def list_containers(user_id: Optional[int] = Query(None)):  # <<< EKLENDİ
 
 # Route: Stoppt einen laufenden Container
 @router.post("/{container_id_or_name}/stop")
-async def stop_container_route(container_id_or_name: str, user_id: Optional[int] = Query(None)):  # <<< EKLENDİ
+async def stop_container_route(container_id_or_name: str, user_id: Optional[int] = Query(None)):
     try:
         result = container_service.stop_container(container_id_or_name)
         log_event("CONTAINER", "stop_container_route", f"Container {container_id_or_name} erfolgreich gestoppt", level="INFO", container_id=container_id_or_name, user_id=user_id)
@@ -85,9 +83,9 @@ async def stop_container_route(container_id_or_name: str, user_id: Optional[int]
         log_event("ERROR", "stop_container_route", f"Fehler beim Stoppen des Containers {container_id_or_name}: {str(e)}", level="ERROR", container_id=container_id_or_name, user_id=user_id)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Route: Gibt Ressourceninformationen (CPU, RAM) eines Containers zurück
+# Route: Gibt aktuelle Ressourceninformationen eines Containers zurück (CPU, RAM)
 @router.get("/{container_id_or_name}/resources")
-async def get_container_resources(container_id_or_name: str, user_id: Optional[int] = Query(None)):  # <<< EKLENDİ
+async def get_container_resources(container_id_or_name: str, user_id: Optional[int] = Query(None)):
     try:
         result = container_service.get_container_resource_usage(container_id_or_name)
         log_event("CONTAINER", "get_container_resources", f"Ressourcen für Container {container_id_or_name} erfolgreich abgerufen", level="INFO", container_id=container_id_or_name, user_id=user_id)
@@ -96,9 +94,9 @@ async def get_container_resources(container_id_or_name: str, user_id: Optional[i
         log_event("ERROR", "get_container_resources", f"Fehler beim Abrufen der Ressourcen: {str(e)}", level="ERROR", container_id=container_id_or_name, user_id=user_id)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Route: Gibt alle Container (laufend und gestoppt) zurück
+# Route: Gibt alle Container zurück (laufende + gestoppte)
 @router.get("/all")
-async def list_all_containers(user_id: Optional[int] = Query(None)):  # <<< EKLENDİ
+async def list_all_containers(user_id: Optional[int] = Query(None)):
     try:
         result = container_service.list_containers()
         log_event("CONTAINER", "list_all_containers", "Alle Container erfolgreich abgerufen", level="INFO", user_id=user_id)
@@ -106,54 +104,3 @@ async def list_all_containers(user_id: Optional[int] = Query(None)):  # <<< EKLE
     except Exception as e:
         log_event("ERROR", "list_all_containers", f"Fehler beim Abrufen aller Container: {str(e)}", level="ERROR", user_id=user_id)
         raise HTTPException(status_code=500, detail="Fehler beim Abrufen aller Container")
-
-# Route: Zeigt strukturierte JSON-Logs an (z. B. für UI-Anzeige)
-@router.get("/logs/events")
-async def get_logs(limit: int = 5):
-    log_path = "logs/events.log"
-    if not os.path.exists(log_path):
-        return JSONResponse(status_code=404, content={"detail": "Logdatei nicht gefunden."})
-    
-    with open(log_path, "r", encoding="utf-8") as file:
-        lines = file.readlines()
-
-    # Letzte Zeilen abrufen (neuste zuerst)
-    last_lines = lines[-limit:] if len(lines) > limit else lines
-    last_lines = last_lines[::-1]  # Neuste zuerst
-
-    log_entries = []
-    log_pattern = re.compile(r"\[(.*?)\]\s+\[(.*?)\]\s+(.*)")
-
-    for line in last_lines:
-        match = log_pattern.match(line)
-        if match:
-            timestamp, stream, message = match.groups()
-            log_entries.append({
-                "timestamp": timestamp.strip(),
-                "stream": stream.strip().lower(),
-                "message": message.strip()
-            })
-        else:
-            # fallback: ungeparste Zeile zurückgeben
-            log_entries.append({
-                "timestamp": "Unbekannt",
-                "stream": "unknown",
-                "message": line.strip()
-            })
-
-    return {"logs": log_entries}
-
-@router.post("/frontend-log")
-async def receive_frontend_log(request: Request):
-    try:
-        data = await request.json()
-        log_event(
-            source="FRONTEND",
-            action=data.get("action", "Unknown"),
-            message=data.get("message", ""),
-            level=data.get("level", "INFO")
-        )
-        return {"message": "Frontend-Log received"}
-    except Exception as e:
-        log_event("ERROR", "receive_frontend_log", f"Fehler beim Empfangen des Frontend-Logs: {str(e)}", level="ERROR")
-        raise HTTPException(status_code=500, detail="Fehler beim Verarbeiten des Frontend-Logs")
