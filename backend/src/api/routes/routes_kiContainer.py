@@ -19,6 +19,9 @@ import logging
 # Typisierung
 from typing import List, Optional
 
+# Strukturierter Logger (JSON)
+from src.utils.event_logger import log_event
+
 router = APIRouter(tags=["Container"])
 logger = logging.getLogger(__name__)
 docker_client = docker.from_env()
@@ -41,15 +44,17 @@ async def start_user_container(
             user_id=user_id,
             image_id=image_id,
         )
+        log_event("CONTAINER", "start_user_container", f"Containerstart angefordert für Image {image_id}", level="INFO", user_id=user_id)
         return container_response
     except docker.errors.ImageNotFound:
+        log_event("CONTAINER", "start_user_container", f"Image {image_id} nicht gefunden", level="ERROR", user_id=user_id)
         raise HTTPException(status_code=404, detail="Image not found in Docker daemon.")
     except DatabaseError as e:
+        log_event("CONTAINER", "start_user_container", f"DB-Fehler beim Start: {str(e)}", level="ERROR", user_id=user_id)
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        logger.exception("Unexpected error during container start")
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
-    
+        log_event("CONTAINER", "start_user_container", f"Unerwarteter Fehler: {str(e)}", level="ERROR", user_id=user_id)
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")  
 # ========================================
 # Liste aller Container (optional filterbar nach user_id)
 # ========================================
@@ -66,16 +71,16 @@ async def list_containers(user_id: Optional[int] = None):
 # Container stoppen (per Name oder ID)
 # ========================================
 @router.post("/containers/{container_id_or_name}/stop", response_model=ContainerResponse)
-async def stop_container(container_id_or_name: str):
+async def stop_container(container_id_or_name: str, user_id: Optional[int] = Form(None)):
     try:
-        result = container_service.stop_container(container_id_or_name)
+        result = container_service.stop_container(container_id_or_name, user_id=user_id)
+        log_event("CONTAINER", "stop_container", f"Container {container_id_or_name} wurde gestoppt", level="INFO", user_id=user_id)
         return ContainerResponse(**result)
     except Exception as e:
+        log_event("CONTAINER", "stop_container", f"Fehler beim Stoppen: {str(e)}", level="ERROR", user_id=user_id)
         if "not found" in str(e).lower():
             raise HTTPException(status_code=404, detail="Container not found")
-        logger.exception("Unexpected error during stop_container")
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
-    
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")   
 # ========================================
 # Container löschen (per Name oder ID)
 # ========================================
@@ -89,3 +94,23 @@ async def delete_container(container_id_or_name: str):
             raise HTTPException(status_code=404, detail="Container not found")
         logger.exception("Unexpected error during delete_container")
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+# ========================================
+# CPU- und Speicherinformationen eines Containers abrufen
+# ========================================
+@router.get("/containers/{container_id}/stats")
+async def get_container_stats(container_id: str):
+    """
+    Gibt CPU- und Speicherinformationen eines Containers zurück.
+    """
+    try:
+        return container_service.get_container_resource_usage(container_id)
+    except Exception as e:
+        # Loggt strukturierten Fehler im JSON-Format (event_logger.py)
+        from src.utils.event_logger import log_event
+        log_event(
+            event_type="ContainerStatsError",
+            source="get_container_stats",
+            message=f"Fehler beim Abrufen der Stats für Container {container_id}: {str(e)}"
+        )
+        logger.exception("Fehler bei get_container_stats")
+        raise HTTPException(status_code=500, detail="Container-Ressourcen konnten nicht abgerufen werden.")

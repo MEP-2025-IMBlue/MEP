@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Container Logs</title>
+  <script src="https://cdn.jsdelivr.net/npm/keycloak-js@24.0.1/dist/keycloak.min.js"></script>
+  <script src="../scripts/auth.js" defer></script>
+  <link rel="stylesheet" href="../styles/global_style.css" />
+</head>
+
+<body>
+  <div id="navbar"></div>
+
+  <main>
+    <h1 class="section-title" data-i18n-key="logviewer_title">Log-Viewer</h1>
+
+    <!-- Abschnitt: Container-Loganzeige -->
+    <div class="details-card">
+      <p data-i18n-key="logviewer_text">Hier kannst du Logs eines bestimmten Containers anzeigen.</p>
+
+      <div style="margin-bottom: 1rem;">
+        <label for="container-select" data-i18n-key="logviewer_select">Container auswählen:</label>
+        <select id="container-select"></select>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <strong>Status:</strong> <span id="container-status">-</span> |
+        <strong>Health:</strong> <span id="container-health">-</span>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label><input type="checkbox" id="chk-stdout" checked> STDOUT</label>
+        <label><input type="checkbox" id="chk-stderr" checked> STDERR</label>
+        <label><input type="checkbox" id="chk-timestamps"> Zeitstempel</label>
+        <label data-i18n-key="log_tail_label">Zeilen:
+          <input type="number" id="log-tail" value="100" min="10" max="1000" step="10" style="width: 80px;">
+        </label>
+        <button onclick="loadLogs()" data-i18n-key="logviewer_load_button">Logs laden</button>
+      </div>
+
+      <!-- Bereich: Log-Ausgabe -->
+      <pre id="log-output"
+        style="max-height: 300px; overflow-y: auto; background-color: #1c1c1c; color: #00ffcc;
+               padding: 1rem; font-size: 0.85rem; border: 1px solid #444; border-radius: 6px;">
+      </pre>
+
+      <!-- Button: Mehr Logs anzeigen -->
+      <button id="load-more-logs"
+              style="display:none; margin-top:10px;"
+              data-i18n-key="log_button_more">🔁 Mehr anzeigen</button>
+    </div>
+
+    <!-- Abschnitt: Systemereignis-Logs (Frontend/Backend Logs in Tabelle) -->
+    <div class="details-card">
+      <h2 data-i18n-key="logs.title">📋 Logs</h2>
+
+      <!-- Filterleiste -->
+      <div class="filter-controls">
+        <label for="level-select" data-i18n-key="filter.level">Level:</label>
+        <select id="level-select">
+          <option value="">Alle</option>
+          <option value="INFO">INFO</option>
+          <option value="WARNING">WARNING</option>
+          <option value="ERROR">ERROR</option>
+        </select>
+
+        <label for="source-select" data-i18n-key="filter.source">Quelle:</label>
+        <select id="source-select">
+          <option value="">Alle</option>
+          <option value="frontend">Frontend</option>
+          <option value="backend">Backend</option>
+        </select>
+
+        <label for="action-input" data-i18n-key="filter.action">Aktion:</label>
+        <input type="text" id="action-input" placeholder="Aktion z. B. start_container" />
+      </div>
+
+      <!-- Tabelle zur Anzeige der Logs -->
+      <div id="log-container">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Zeitstempel</th>
+              <th>Level</th>
+              <th>Nachricht</th>
+            </tr>
+          </thead>
+          <tbody id="log-table-body">
+            <!-- Logzeilen werden dynamisch per JavaScript eingefügt -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>© mRay</footer>
+
+  <script src="../scripts/i18n.js"></script>
+  <script src="../scripts/dashboard.js?v=20250602"></script>
+  <script src="../scripts/event_logs.js?v=20250604"></script>
+</body>
+
+</html>

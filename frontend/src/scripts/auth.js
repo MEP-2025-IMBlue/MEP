@@ -25,6 +25,8 @@ if (!window.location.pathname.endsWith('/index.html')) {
       return;
     }
 
+    sessionStorage.setItem("kc_token", keycloak.token);
+    
     // Bereinige URL von überflüssigen Keycloak-Parametern
     window.history.replaceState({}, document.title, window.location.pathname);
 

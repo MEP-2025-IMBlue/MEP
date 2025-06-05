@@ -71,6 +71,7 @@ services:
       - ./backend:/app
       - ./storage/uploads:/tmp/uploads
       - ./storage/processed:/tmp/processed
+      - ./storage/logs:/tmp/logs
       - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
     env_file:
       - ./backend/.env
