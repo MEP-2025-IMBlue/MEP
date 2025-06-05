@@ -2,39 +2,31 @@
 // frontend/src/scripts/auth.js
 // =========================
 
-// Initialisiere Keycloak erneut – diesmal auf allen Seiten außer index.html.
-// Ziel: Rollen auslesen, Navbar laden und Zugriffsschutz einrichten.
 const keycloak = new Keycloak({
   url: 'http://localhost:8090',
   realm: 'imblue-realm',
   clientId: 'mep-frontend'
 });
 
-// Verhindere doppelte Authentifizierung:
-// auth.js wird nur auf Unterseiten ausgeführt – NICHT auf /index.html
+// Nicht auf index.html ausführen
 if (!window.location.pathname.endsWith('/index.html')) {
-  // Initialisiere nur Single-Sign-On Prüfung (kein Redirect bei fehlender Session!)
   keycloak.init({
-    onLoad: 'check-sso',  // Prüft nur, ob Benutzer eingeloggt ist
+    onLoad: 'check-sso',
     pkceMethod: 'S256',
-    redirectUri: window.location.origin + window.location.pathname // Bleibt auf aktueller Seite
+    redirectUri: window.location.origin + window.location.pathname
   }).then(authenticated => {
-    // Wenn Benutzer nicht eingeloggt ist → Login erzwingen
     if (!authenticated) {
       keycloak.login();
       return;
     }
 
-    // Bereinige URL von überflüssigen Keycloak-Parametern
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    // Extrahiere die Rollen aus dem Access Token
     const roles = keycloak.tokenParsed?.realm_access?.roles || [];
 
-    // Lade Navbar dynamisch und schütze die aktuelle Seite
     setupNavbar(roles);
     enforceAccessControl(roles);
-  }).catch(console.error); // Fehlerbehandlung bei Token-Validierung
+  }).catch(console.error);
 }
 
 // =========================
@@ -44,35 +36,60 @@ function setupNavbar(roles) {
   const navbarContainer = document.getElementById("navbar");
   if (!navbarContainer) return;
 
-  // Lade HTML-Template für die Navbar
   fetch("/layouts/navbar.html")
     .then(res => res.text())
     .then(html => {
       navbarContainer.innerHTML = html;
 
-      // Finde das Element, in das die Link-Liste geschrieben wird
+      // === Rollenbasierte Links ===
       const linksDiv = document.getElementById("nav-links");
       if (!linksDiv) return;
 
       let links = [];
 
-      // Dashboard & Container-Upload: nur für admin + provider
       if (roles.includes("admin") || roles.includes("provider")) {
-        links.push(`<a href="/pages/dashboard.html">Dashboard</a>`);
-        links.push(`<a href="/pages/container_upload.html">Container hochladen</a>`);
+        links.push(`<a href="/pages/dashboard.html" data-i18n-key="dashboard">Dashboard</a>`);
+        links.push(`<a href="/pages/container_upload.html" data-i18n-key="upload_container">Container hochladen</a>`);
       }
 
-      // DICOM-Upload: nur für admin + user
       if (roles.includes("admin") || roles.includes("user")) {
-        links.push(`<a href="/pages/dicom_upload.html">DICOM hochladen</a>`);
+        links.push(`<a href="/pages/dicom_upload.html" data-i18n-key="upload_dicom">DICOM hochladen</a>`);
       }
 
-      // Profil-Link ist für alle Rollen sichtbar
-      links.push(`<a href="http://localhost:8090/realms/imblue-realm/account" target="_blank">Profil bearbeiten</a>`);
+      links.push(`<a href="http://localhost:8090/realms/imblue-realm/account" target="_blank" data-i18n-key="edit_profile">Profil bearbeiten</a>`);
 
-      // Schreibe alle Links final in die Navbar
       linksDiv.innerHTML = links.join(" ");
-    });
+
+      // === Aktive Seite markieren ===
+      const currentPage = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.nav-links a').forEach(link => {
+        if (link.getAttribute('href').split('/').pop() === currentPage) {
+          link.classList.add('active');
+        }
+      });
+
+      // === Sprachumschalter aktivieren ===
+      if (typeof i18n !== "undefined") {
+        i18n.applyTranslations();
+
+        const langBtn = document.getElementById("lang-toggle");
+        if (langBtn) {
+          langBtn.textContent = i18n.currentLang === "de" ? "EN" : "DE";
+          langBtn.addEventListener("click", () => {
+            i18n.toggleLang();
+          });
+        }
+      }
+
+      // === Logout-Link setzen ===
+      const logoutLink = document.getElementById("logout-link");
+      if (logoutLink) {
+        logoutLink.href = keycloak.createLogoutUrl({
+          redirectUri: 'http://localhost:8080/index.html'
+        });
+      }
+    })
+    .catch(error => console.error("Navbar konnte nicht geladen werden:", error));
 }
 
 // =========================
@@ -81,17 +98,14 @@ function setupNavbar(roles) {
 function enforceAccessControl(roles) {
   const path = window.location.pathname;
 
-  // Zugriffsmatrix: definiert, welche Rollen welche Seiten sehen dürfen
   const accessMatrix = {
     "/pages/dashboard.html": ["admin", "provider"],
     "/pages/container_upload.html": ["admin", "provider"],
     "/pages/dicom_upload.html": ["admin", "user"]
   };
 
-  // Liste der erlaubten Rollen für die aktuelle Seite
   const allowed = accessMatrix[path];
 
-  // Falls Rolle nicht erlaubt → Logout und zurück zur Startseite
   if (allowed && !roles.some(r => allowed.includes(r))) {
     alert("Zugriff verweigert. Sie werden ausgeloggt.");
     logout();
@@ -99,11 +113,19 @@ function enforceAccessControl(roles) {
 }
 
 // =========================
-// Logout-Logik (Keycloak + Weiterleitung)
+// Logout-Fallback (optional)
 // =========================
 function logout() {
-  // Erzeugt die vollständige Logout-URL mit Rückleitung zu index.html
   window.location.href = keycloak.createLogoutUrl({
     redirectUri: 'http://localhost:8080/index.html'
   });
 }
+
+// =========================
+// Initiale Übersetzung laden
+// =========================
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof i18n !== "undefined") {
+    i18n.loadTranslations(i18n.currentLang);
+  }
+});
