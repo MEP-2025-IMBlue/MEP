@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
 
@@ -17,6 +18,7 @@
   <link rel="stylesheet" href="../styles/global_style.css" />
   <link rel="stylesheet" href="../styles/dicom_upload.css" />
 </head>
+
 <body>
   <div id="navbar"></div>
 
@@ -27,15 +29,17 @@
       <form id="dicom-form">
         <label for="dicom_file" data-i18n-key="dicom_select_file">DICOM Datei auswählen</label>
         <div class="drop-zone" id="drop-dicom">
-          <div id="drop-dicom" class="drop-area"></div>
-          <input type="file" id="dicom_file" name="dicom_file" accept=".dcm" hidden/>
+          <span class="drop-text" data-i18n-key="dicom_drag_drop_text">📄 DICOM-Datei hierher ziehen oder klicken</span>
+          <div class="preview-text"></div>
+          <input type="file" id="dicom_file" name="dicom_file" accept=".dcm,.zip" hidden />
         </div>
         <button type="submit" data-i18n-key="dicom_upload_button">Hochladen</button>
         <div id="dicom-status" class="upload-status"></div>
       </form>
     </div>
 
-    <h2 class="section-subtitle hidden" id="ki-title" data-i18n-key="dicom_ki_systems_title">Vorgeschlagene KI-Systeme</h2>
+    <h2 class="section-subtitle hidden" id="ki-title" data-i18n-key="dicom_ki_systems_title">Vorgeschlagene KI-Systeme
+    </h2>
     <div class="ki-list hidden" id="ki-list"></div>
 
     <div id="ai-result" class="ai-result hidden">
@@ -45,9 +49,10 @@
   </main>
 
   <footer>© mRay</footer>
-  
+
   <script src="../scripts/i18n.js"></script>
   <script src="../scripts/dicom_upload.js"></script>
 
 </body>
+
 </html>
