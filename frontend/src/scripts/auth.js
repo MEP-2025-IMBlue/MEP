@@ -81,11 +81,11 @@ function setupNavbar(roles) {
         }
       }
 
-      // === Logout-Link setzen ===
+      // === Logout-Button setzen ===
       const logoutLink = document.getElementById("logout-link");
       if (logoutLink) {
-        logoutLink.href = keycloak.createLogoutUrl({
-          redirectUri: 'http://localhost:8080/index.html'
+        logoutLink.addEventListener("click", () => {
+          logout(); // führt den Logout korrekt aus
         });
       }
     })
