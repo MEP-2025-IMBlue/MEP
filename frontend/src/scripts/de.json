@@ -14,7 +14,7 @@
   "container_upload_drag_drop_local": "📁 Container (.tar) hierher ziehen oder klicken",
 
   "upload_button": "Hochladen",
-  "reference_button": "Referenzieren",
+  "reference_button": "Hochladen",
   "upload_processing": "Verarbeitung läuft...",
   "upload_success": "✅ Hochgeladen: ",
   "upload_error_prefix": "Fehler: ",

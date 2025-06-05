@@ -2,17 +2,19 @@
   <div class="logo">
     <a href="#" style="text-decoration: none; color: inherit;">mRay AIR</a>
   </div>
+  <link rel="stylesheet" href="../styles/global_style.css">
 
   <!-- Dynamisch durch auth.js gefüllt -->
   <div class="nav-links" id="nav-links"></div>
-
-  <div class="logout">
-    <button onclick="logout()" data-i18n-key="logout">Logout</button>
-  </div>
-
+  
   <div class="lang-toggle">
     <button id="lang-toggle">EN</button>
   </div>
+
+  <div class="logout">
+    <a id="logout-link" data-i18n-key="logout">Logout</a>
+  </div>
+
 </nav>
 
 <!-- Sprachsteuerung und Authentifizierung -->

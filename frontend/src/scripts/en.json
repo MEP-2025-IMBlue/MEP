@@ -14,7 +14,7 @@
   "container_upload_drag_drop_local": "📁 Drag & drop container (.tar) here or click",
 
   "upload_button": "Upload",
-  "reference_button": "Reference",
+  "reference_button": "Upload",
   "upload_processing": "Processing...",
   "upload_success": "✅ Uploaded: ",
   "upload_error_prefix": "Error: ",

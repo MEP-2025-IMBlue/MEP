@@ -48,15 +48,15 @@ function setupNavbar(roles) {
       let links = [];
 
       if (roles.includes("admin") || roles.includes("provider")) {
-        links.push(`<a href="/pages/dashboard.html">Dashboard</a>`);
-        links.push(`<a href="/pages/container_upload.html">Container hochladen</a>`);
+        links.push(`<a href="/pages/dashboard.html" data-i18n-key="dashboard">Dashboard</a>`);
+        links.push(`<a href="/pages/container_upload.html" data-i18n-key="upload_container">Container hochladen</a>`);
       }
 
       if (roles.includes("admin") || roles.includes("user")) {
-        links.push(`<a href="/pages/dicom_upload.html">DICOM hochladen</a>`);
+        links.push(`<a href="/pages/dicom_upload.html" data-i18n-key="upload_dicom">DICOM hochladen</a>`);
       }
 
-      links.push(`<a href="http://localhost:8090/realms/imblue-realm/account" target="_blank">Profil bearbeiten</a>`);
+      links.push(`<a href="http://localhost:8090/realms/imblue-realm/account" target="_blank" data-i18n-key="edit_profile">Profil bearbeiten</a>`);
 
       linksDiv.innerHTML = links.join(" ");
 
@@ -79,6 +79,14 @@ function setupNavbar(roles) {
             i18n.toggleLang();
           });
         }
+      }
+
+      // === Logout-Link setzen ===
+      const logoutLink = document.getElementById("logout-link");
+      if (logoutLink) {
+        logoutLink.href = keycloak.createLogoutUrl({
+          redirectUri: 'http://localhost:8080/index.html'
+        });
       }
     })
     .catch(error => console.error("Navbar konnte nicht geladen werden:", error));
@@ -105,7 +113,7 @@ function enforceAccessControl(roles) {
 }
 
 // =========================
-// Logout-Funktion
+// Logout-Fallback (optional)
 // =========================
 function logout() {
   window.location.href = keycloak.createLogoutUrl({
@@ -114,7 +122,7 @@ function logout() {
 }
 
 // =========================
-// Initiale Übersetzung laden (z. B. nach Seitenreload)
+// Initiale Übersetzung laden
 // =========================
 document.addEventListener("DOMContentLoaded", () => {
   if (typeof i18n !== "undefined") {
