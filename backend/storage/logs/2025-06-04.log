@@ -1,0 +1,4 @@
+{"timestamp": "2025-06-04T11:39:16.358727", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-06-04T11:39:16.358727", "level": "INFO", "source": "System", "action": "startup", "message": "Upload-, Verarbeitungs- und Log-Verzeichnisse wurden erstellt"}
+{"timestamp": "2025-06-04T11:39:16.361118", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}
+{"timestamp": "2025-06-04T11:39:16.361118", "level": "INFO", "source": "System", "action": "startup", "message": "mRay AIR Backend wurde erfolgreich gestartet"}

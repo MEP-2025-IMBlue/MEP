@@ -37,14 +37,20 @@ body {
   padding-bottom: 2px;
 }
 
-.logout a {
-  color: #ffd700;
-  text-decoration: none;
+.logout button#logout-link {
+  background-color: #ffd700;
+  color: #000;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
   font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
 }
 
-.logout a:hover {
-  color: #ffcc00;
+.logout button#logout-link:hover {
+  background-color: #ffcc00;
 }
 
 .section-title {
@@ -202,23 +208,4 @@ footer {
   cursor: pointer;
   transition: background-color 0.3s ease;
   font-size: 0.9rem;
-}
-
-/* Logout-Link wie ein Button aussehen lassen */
-.logout a {
-  display: inline-block;
-  background-color: #ffd700;
-  color: #000;
-  text-decoration: none;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-left: 1rem;
-}
-
-.logout a:hover {
-  background-color: #ffcc00;
 }
