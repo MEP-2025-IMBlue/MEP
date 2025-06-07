@@ -6,3 +6,4 @@ __pycache__/
 
 #Sensible Daten wie Passwort & Benutzername -> Es werden alle .env-Dateien ignoriert
 #*.env
+storage/
