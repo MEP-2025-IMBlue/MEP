@@ -29,6 +29,7 @@ from db.database.database import engine  #
 from api.routes import routes_kiImage
 from api.routes import routes_kiContainer
 from api.routes import routes_dicom
+from api.routes import routes_kiConfigs
 
 # FastAPI-App instanzieren
 app = FastAPI(
@@ -48,8 +49,8 @@ db_models.Base.metadata.create_all(bind=engine)
 # Routen einbinden
 app.include_router(routes_kiImage.router)
 app.include_router(routes_kiContainer.router)
-
 app.include_router(routes_dicom.router)
+app.include_router(routes_kiConfigs.router)
 
 # Erstelle bei Anwendungstart temporäre Upload-Verzeichnisse
 @app.on_event("startup")

@@ -1,14 +1,18 @@
 # Externe Libraries
 import logging
 import docker
+import uuid
 from docker.errors import DockerException, NotFound, ImageNotFound
 
 # API Models (Pydantic)
 from src.api.py_models.py_models import ContainerResponse
 
 # Datenbank (SQLAlchemy)
-from src.db.crud import crud_kiImage
+from src.db.crud import crud_kiImage, crud_container_config
 from sqlalchemy.orm import Session
+
+# Services
+from src.services.container_management.service_configuration import *
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +45,16 @@ class ContainerService:
             except NotFound:
                 # Neuer Container erstellen
                 logger.info(f"Creating new container {container_name}")
+
+                container_config = crud_container_config.get_container_config_by_id(db, image_id)
+                params = db_model_to_run_params(container_config)
+                
                 container = self.client.containers.run(
                     image=image_reference,
                     name=container_name,
-                    command="tail -f /dev/null", # eventuell nochmal relevant
-                    detach=True
+                    #command="tail -f /dev/null", # eventuell nochmal relevant
+                    detach=True,
+                    **params
                 )
                 #container.start()
                 container.reload()

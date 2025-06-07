@@ -10,7 +10,29 @@ CREATE TABLE IF NOT EXISTS ki_image_metadata (
     image_description VARCHAR(500),
     image_reference VARCHAR(255),
     image_provider_id INTEGER NOT NULL,
-    image_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    image_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    image_modality VARCHAR(128),
+    image_bodypart VARCHAR(128),
+    image_purpose VARCHAR(128)
+);
+
+-- =========================
+-- Tabelle: container_configuration
+-- =========================
+CREATE TABLE IF NOT EXISTS container_configuration (
+    config_id SERIAL PRIMARY KEY,
+    ki_image_id INTEGER NOT NULL REFERENCES ki_image_metadata(image_id) ON DELETE CASCADE,
+
+    input_format VARCHAR(50) NOT NULL,
+    input_dir VARCHAR(255) NOT NULL,
+    output_dir VARCHAR(255) NOT NULL,
+    output_format VARCHAR(50),
+    environment JSON,
+    run_command VARCHAR(255),
+    working_dir VARCHAR(255),
+    volumes JSON,
+    entrypoint VARCHAR(255),
+    gpu_required BOOLEAN
 );
 
 -- =========================

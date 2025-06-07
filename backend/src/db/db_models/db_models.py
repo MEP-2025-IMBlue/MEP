@@ -1,5 +1,6 @@
 import datetime
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, JSON
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -16,18 +17,54 @@ class KIImage(Base):
     image_id = Column(Integer, primary_key=True, autoincrement=True)
     image_name = Column(String(255), nullable=False)
     image_tag = Column(String(128), nullable=False)
-    image_description = Column(String(500), nullable=True)
     image_reference = Column(String(255), nullable=True)
     image_provider_id = Column(Integer, nullable=False)
     image_created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
+    image_modality = Column(String(128), nullable=True) #TODO Datentyp entscheiden
+    image_bodypart = Column(String(128), nullable=True) #TODO Datentyp entscheiden
+    image_purpose = Column(String(128), nullable=True) #TODO Datentyp entscheiden
+    image_description = Column(String(500), nullable=True)
+
+    # Beziehung zur ContainerConfiguration-Tabelle (optional, für JOIN-Zugriffe)
+    container_configs = relationship("ContainerConfiguration", back_populates="ki_image")
+
 
     def __repr__(self):
         return f"<KIImage(id={self.image_id}, name='{self.image_name}', tag='{self.image_tag}')>"
+    
+# -----------------------------
+# Modell: ContainerConfiguration 
+# -----------------------------
+class ContainerConfiguration(Base):
+    """
+    Tabelle 'container_configs' zur Speicherung der Container-Konfigurationen eines KI-Images.
+    """
+    __tablename__ = "container_configuration"
+
+    config_id = Column(Integer, primary_key=True, index=True)
+    ki_image_id = Column(Integer, ForeignKey("ki_image_metadata.image_id"), nullable=False)
+
+    input_format = Column(String(50), nullable=False)
+    input_dir = Column(String(255), nullable=False)
+    output_dir = Column(String(255), nullable=False)
+    output_format = Column(String(50), nullable=True)
+    environment = Column(JSON, nullable=True) #TODO: Datentyp validieren
+    run_command = Column(String(255), nullable=True)
+    working_dir = Column(String(255), nullable=True)
+    volumes = Column(JSON, nullable=True)
+    entrypoint = Column(String(255), nullable=True)
+    gpu_required = Column(Boolean, nullable=True)
+
+    # Beziehung zur KIImage-Tabelle (optional, für JOIN-Zugriffe)
+    ki_image = relationship("KIImage", back_populates="container_configs")
+
+
+    def __repr__(self):
+        return f"<ContainerConfiguration(id={self.id}, ki_image_id='{self.ki_image_id}')>"
 
 # -----------------------------
 # Modell: DICOMMetadata (DICOM-Metadaten)
 # -----------------------------
-#TO DO: dieses Model an py_model Variante anpassen
 class DICOMMetadata(Base):
     """
     Tabelle 'dicom_metadata' für DSGVO-konforme DICOM-Metadaten zur Statistik.
@@ -50,3 +87,5 @@ class DICOMMetadata(Base):
     def __repr__(self):
         return (f"<DICOMMetadata(id={self.dicom_id}, modality='{self.dicom_modality}', "
                 f"sop_class_uid='{self.dicom_sop_class_uid}')>")
+    
+
