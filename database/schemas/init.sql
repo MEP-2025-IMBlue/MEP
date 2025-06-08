@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS ki_image_metadata (
     image_tag VARCHAR(128) NOT NULL,
     image_description VARCHAR(500),
     image_reference VARCHAR(255),
-    image_provider_id INTEGER NOT NULL,
+    image_provider_id VARCHAR(36) NOT NULL,  -- speichert die UUID des Providers als String (Keycloak user_id)
     image_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -29,3 +29,8 @@ CREATE TABLE IF NOT EXISTS dicom_metadata (
     dicom_file_path VARCHAR(255),
     dicom_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Hinweis:
+-- Das Feld image_provider_id speichert NICHT einen Integer,
+-- sondern die vom Auth-System (Keycloak) generierte UUID des Providers.
+-- Owner-Prüfung und Berechtigung im Backend erfolgen stets mit diesem Wert.

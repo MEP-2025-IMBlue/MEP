@@ -10,10 +10,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.db.db_models.db_models import KIImage
 from src.db.core.exceptions import NoKIImagesInTheList, DatabaseError, KIImageNotFound
 
-
 def create_ki_image(db: Session, image_data: dict):
     """
     Erstellt einen neuen KIImage-Eintrag in der Datenbank.
+    Die image_provider_id muss vorher im image_data übergeben werden (aus dem aktuellen JWT-User, also current_user.id).
     """
     try:
         db_ki_image = KIImage(**image_data)
@@ -23,7 +23,6 @@ def create_ki_image(db: Session, image_data: dict):
         return db_ki_image
     except SQLAlchemyError as e:
         raise DatabaseError("Fehler beim Erstellen eines KI-Images.") from e
-
 
 def get_ki_image_by_id(db: Session, image_id: int):
     """
@@ -39,7 +38,6 @@ def get_ki_image_by_id(db: Session, image_id: int):
     except SQLAlchemyError as e:
         raise DatabaseError("Fehler beim Abrufen eines KI-Images.") from e
 
-
 def get_all_ki_images(db: Session, skip: int = 0, limit: int = 100):
     """
     Gibt eine Liste aller KI-Bilder zurück.
@@ -53,7 +51,6 @@ def get_all_ki_images(db: Session, skip: int = 0, limit: int = 100):
         return images
     except SQLAlchemyError as e:
         raise DatabaseError("Fehler beim Lesen der Datenbank.") from e
-
 
 def update_ki_image(db: Session, image_id: int, update_data: dict):
     """
@@ -73,7 +70,6 @@ def update_ki_image(db: Session, image_id: int, update_data: dict):
         return image
     except SQLAlchemyError as e:
         raise DatabaseError("Fehler beim Aktualisieren eines KI-Images.") from e
-
 
 def delete_ki_image(db: Session, image_id: int):
     """

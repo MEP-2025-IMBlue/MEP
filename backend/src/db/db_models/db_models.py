@@ -3,7 +3,6 @@ from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
-
 # -----------------------------
 # Modell: KIImage (KI-Image-Metadaten)
 # -----------------------------
@@ -18,16 +17,19 @@ class KIImage(Base):
     image_tag = Column(String(128), nullable=False)
     image_description = Column(String(500), nullable=True)
     image_reference = Column(String(255), nullable=True)
-    image_provider_id = Column(Integer, nullable=False)
+    image_provider_id = Column(String(36), nullable=False)  # speichert die UUID des Providers als String (Keycloak user_id)
     image_created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+    # image_provider_id ist der Fremdschlüssel für den Provider.
+    # Die UUID kommt direkt aus dem Keycloak-JWT und ist ein String.
 
     def __repr__(self):
         return f"<KIImage(id={self.image_id}, name='{self.image_name}', tag='{self.image_tag}')>"
-
 # -----------------------------
 # Modell: DICOMMetadata (DICOM-Metadaten)
 # -----------------------------
 #TO DO: dieses Model an py_model Variante anpassen
+
 class DICOMMetadata(Base):
     """
     Tabelle 'dicom_metadata' für DSGVO-konforme DICOM-Metadaten zur Statistik.
