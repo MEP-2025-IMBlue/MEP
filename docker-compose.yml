@@ -39,8 +39,6 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: mep-keycloak
-    # Startet Keycloak im Entwickler-Modus (kein HTTPS, schnelleres Setup) & Importiert einmalig beim ersten Start den Realm aus der Datei im Volume
-    # Wichtig: Der Import passiert nur, wenn dieser Realm im Keycloak noch nicht existiert. Wenn du z. B. den Container löschst oder das Volume entfernst, wird er beim nächsten Start erneut importiert.
     command: start-dev --import-realm
     env_file:
       - ./keycloak/.env
@@ -50,12 +48,12 @@ services:
     ports:
       - "8090:8080"
     volumes:
+      # Importiert beim ersten Start automatisch die Realm-Konfiguration
       - ./keycloak/keycloak-export:/opt/keycloak/data/import
     networks:
       - mep-network
 
   backend:
-    #image: maimuna03/mep-backend:latest   
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -66,22 +64,32 @@ services:
       keycloak:
         condition: service_started
     ports:
-      - "8000:8000"
+      - "8001:8000" # Uvicorn HTTP (FastAPI) → Außenwelt-Zugriff + Prometheus /metrics
     volumes:
-      - ./backend:/app
-      - ./storage/uploads:/tmp/uploads
-      - ./storage/processed:/tmp/processed
-      - ./storage/logs:/tmp/logs
-      - /var/run/docker.sock:/var/run/docker.sock  # Docker-Socket hinzugefügt
+      # Mountet Backend-Quellcode und relevante Verzeichnisse ins Container-Dateisystem
+      - ./backend:/app                         # Quellcode ins Container-Dateisystem mounten
+      - ./storage/uploads:/tmp/uploads         # Uploads persistieren
+      - ./storage/processed:/tmp/processed     # Verarbeitete Dateien persistieren
+      - ./storage/logs:/tmp/logs               # Logs persistieren
+      # Ermöglicht dem Backend den Zugriff auf Docker-Events (für Container-Management)
+      - /var/run/docker.sock:/var/run/docker.sock # Für Containerverwaltung von innen
     env_file:
       - ./backend/.env
     environment:
-      - PYTHONPATH=/app/src
+      - PYTHONPATH=/app/src                 # Damit src/... korrekt erkannt wird
+
+    # Healthcheck: Prüft, ob FastAPI erreichbar ist (root endpoint `/`)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
     networks:
       - mep-network
 
   frontend:
-    #image: maimuna03/mep-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -94,6 +102,54 @@ services:
     networks:
       - mep-network
 
+  loki:
+    image: grafana/loki:2.9.6
+    container_name: mep-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      # Bindet die lokale Konfigurationsdatei für Loki
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - mep-network
+
+  promtail:
+    image: grafana/promtail:2.9.6
+    container_name: mep-promtail
+    depends_on:
+      - loki
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - ./test.log:/var/log/test.log
+      - /etc/machine-id:/etc/machine-id:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml -log.level=debug
+    networks:
+      - mep-network
+
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: mep-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      # Automatische Datenquellen-Provisionierung
+      - ./config/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - loki
+    networks:
+      - mep-network
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mep-prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - mep-network
+      
 volumes:
   imblue_data:
   kc_imblue_data:

@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS dicom_metadata (
     dicom_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Hinweis:
+-- Hinweis für DIMI:
 -- Das Feld image_provider_id speichert NICHT einen Integer,
 -- sondern die vom Auth-System (Keycloak) generierte UUID des Providers.
 -- Owner-Prüfung und Berechtigung im Backend erfolgen stets mit diesem Wert.

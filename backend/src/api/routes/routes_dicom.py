@@ -8,9 +8,8 @@ from db.crud.crud_dicom import store_dicom_metadata, delete_dicom_metadata, list
 from db.core.exceptions import *
 from services.dicom import service_dicom
 from services.dicom.service_dicom import *
+from utils.metrics import REQUEST_TIME  
 import os, logging
-import logging
-
 
 # Logging konfigurieren
 logger = logging.getLogger(__name__)
@@ -23,6 +22,7 @@ router = APIRouter(tags=["DICOM"])
 # TODO: HIER DIE SACHEN von maimuna rein wegen Metadaten Extraktion
 # ========================================
 @router.post("/dicoms/uploads", response_model=UploadDICOMResponseModel)
+@REQUEST_TIME.time()
 async def post_upload_dicom(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
         return service_dicom.receive_file(file, db)
@@ -38,6 +38,7 @@ async def post_upload_dicom(file: UploadFile = File(...), db: Session = Depends(
 # ========================================
 #TODO: DICOM-Dateien löschen, wenn sie vor X Tagen hochgeladen wurden
 @router.delete("/dicoms/uploads/{sop_uid}")
+@REQUEST_TIME.time()
 async def delete_upload_dicom(sop_uid):
     try:
         service_dicom.delete_upload_dicom(sop_uid)
@@ -49,6 +50,7 @@ async def delete_upload_dicom(sop_uid):
 # Upload: Holt eine hochgeladene DICOM-Datei aus dem temporären Verzeichnis
 # ========================================
 @router.get("/dicoms/uploads")
+@REQUEST_TIME.time()
 async def get_all_stored_dicom():
     result = service_dicom.get_all_stored_dicom()
     if not result:
@@ -122,6 +124,7 @@ async def get_all_stored_dicom():
 # Listet DICOM-Metadaten in der Datenbank
 # ========================================
 @router.get("/dicoms/database", response_model=List[py_models.DICOMMetadata])
+@REQUEST_TIME.time()
 async def list_dicoms(db: Session = Depends(get_db)):
     """
     Listet alle DICOM-Metadatensätze aus der Datenbank.
@@ -172,6 +175,7 @@ async def list_dicoms(db: Session = Depends(get_db)):
 # Löscht DICOM-Metadaten in der Datenbank
 # ========================================
 @router.delete("/dicoms/database/{dicom_id}", response_model=dict)
+@REQUEST_TIME.time()
 async def delete_dicom(dicom_id: int, db: Session = Depends(get_db)):
     """
     Löscht einen DICOM-Metadatensatz anhand der dicom_id.
@@ -198,5 +202,4 @@ async def delete_dicom(dicom_id: int, db: Session = Depends(get_db)):
         logging.error(f"[API] Fehler beim Löschen: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
-
 

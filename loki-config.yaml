@@ -1,0 +1,47 @@
+auth_enabled: false                        # Authentifizierung deaktiviert (für einfache lokale Nutzung)
+
+server:
+  http_listen_port: 3100                  # Loki API-Port (wird in Promtail und Grafana verwendet)
+  grpc_listen_port: 9096                  # Intern für Kommunikation zwischen Komponenten (nicht extern nötig)
+
+ingester:                                  # Konfiguration für das Schreiben von Logs
+  lifecycler:
+    address: 127.0.0.1                    # Nur lokale Kommunikation
+    ring:
+      kvstore:
+        store: inmemory                  # Keine externe Datenbank – in-memory Ring-Daten
+      replication_factor: 1             # Nur eine Replikation (für Single-Node-Betrieb)
+    final_sleep: 0s
+  chunk_idle_period: 1h                  # Wenn ein Chunk 1h lang nicht geschrieben wird → schließen
+  max_chunk_age: 1h                      # Spätestens nach 1h wird ein Chunk abgeschlossen
+  chunk_target_size: 1048576             # Zielgröße eines Chunks (1MB)
+  chunk_retain_period: 30s               # Chunk nach dem Schreiben noch 30s behalten
+  max_transfer_retries: 0                # Kein Retry – weil keine verteilte Architektur
+
+schema_config:                            # Zeitbasierte Indexierung
+  configs:
+    - from: 2023-01-01
+      store: boltdb-shipper              # Nutzt boltdb + file-basierte Speicherung
+      object_store: filesystem
+      schema: v12
+      index:
+        prefix: index_                   # Präfix für Indexdateien
+        period: 24h                      # Tägliche Indexrotation
+
+storage_config:                           # Speichert Chunks und Indizes im lokalen Dateisystem
+  boltdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/cache
+    shared_store: filesystem
+  filesystem:
+    directory: /loki/chunks
+
+limits_config:
+  retention_period: 7d                   # Logs werden nach 7 Tagen automatisch gelöscht (30d/720h für 30 TAGE)
+
+chunk_store_config:
+  max_look_back_period: 168h             # Maximale Rückblickzeit (7 Tage) in Abfragen
+
+table_manager:
+  retention_deletes_enabled: true        # Alte Daten dürfen gelöscht werden
+  retention_period: 168h                 # 7 Tage Aufbewahrungszeit (720h für 30 TAGE )

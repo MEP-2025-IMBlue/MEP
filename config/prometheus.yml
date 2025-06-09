@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['mep-loki:3100']
+
+  - job_name: 'promtail'
+    static_configs:
+      - targets: ['mep-promtail:9080']
+
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['mep-grafana:3000']
+
+  - job_name: 'fastapi-backend'
+    static_configs:
+      - targets: ['mep-backend:8001']
+
