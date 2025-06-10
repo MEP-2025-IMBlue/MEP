@@ -1,4 +1,5 @@
 # FastAPI & Dependency Injection
+from datetime import timezone
 from fastapi import APIRouter, HTTPException, Form, Depends
 
 # Datenbank (SQLAlchemy)
@@ -15,6 +16,10 @@ from src.services.container_management.service_container import ContainerService
 # Externe Libraries
 import docker
 import logging
+import time
+
+# Prometheus Metrik
+from src.utils.metrics import REQUEST_TIME
 
 # Typisierung
 from typing import List, Optional
@@ -38,6 +43,7 @@ async def start_user_container(
     image_id: int = Form(...),
     db: Session = Depends(get_db)
 ):
+    start = time.time()
     try:
         container_response = container_service.start_user_container(
             db=db,
@@ -55,23 +61,32 @@ async def start_user_container(
     except Exception as e:
         log_event("CONTAINER", "start_user_container", f"Unerwarteter Fehler: {str(e)}", level="ERROR", user_id=user_id)
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")  
+    finally:
+        duration = time.time() - start
+        REQUEST_TIME.observe(duration)
+
 # ========================================
 # Liste aller Container (optional filterbar nach user_id)
 # ========================================
 @router.get("/containers/", response_model=List[ContainerResponse])
 async def list_containers(user_id: Optional[int] = None):
+    start = time.time()
     try:
         containers = container_service.list_containers(user_id=user_id)
         return [ContainerResponse(**c) for c in containers]
     except Exception as e:
         logger.exception("Unexpected error during list_containers")
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+    finally:
+        duration = time.time() - start
+        REQUEST_TIME.observe(duration)
 
 # ========================================
 # Container stoppen (per Name oder ID)
 # ========================================
 @router.post("/containers/{container_id_or_name}/stop", response_model=ContainerResponse)
 async def stop_container(container_id_or_name: str, user_id: Optional[int] = Form(None)):
+    start = time.time()
     try:
         result = container_service.stop_container(container_id_or_name, user_id=user_id)
         log_event("CONTAINER", "stop_container", f"Container {container_id_or_name} wurde gestoppt", level="INFO", user_id=user_id)
@@ -81,11 +96,16 @@ async def stop_container(container_id_or_name: str, user_id: Optional[int] = For
         if "not found" in str(e).lower():
             raise HTTPException(status_code=404, detail="Container not found")
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")   
+    finally:
+        duration = time.time() - start
+        REQUEST_TIME.observe(duration)
+
 # ========================================
 # Container löschen (per Name oder ID)
 # ========================================
 @router.delete("/containers/{container_id_or_name}", response_model=ContainerResponse)
 async def delete_container(container_id_or_name: str):
+    start = time.time()
     try:
         result = container_service.remove_container(container_id_or_name)
         return ContainerResponse(**result)
@@ -94,18 +114,19 @@ async def delete_container(container_id_or_name: str):
             raise HTTPException(status_code=404, detail="Container not found")
         logger.exception("Unexpected error during delete_container")
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+    finally:
+        duration = time.time() - start
+        REQUEST_TIME.observe(duration)
+
 # ========================================
 # CPU- und Speicherinformationen eines Containers abrufen
 # ========================================
 @router.get("/containers/{container_id}/stats")
 async def get_container_stats(container_id: str):
-    """
-    Gibt CPU- und Speicherinformationen eines Containers zurück.
-    """
+    start = time.time()
     try:
         return container_service.get_container_resource_usage(container_id)
     except Exception as e:
-        # Loggt strukturierten Fehler im JSON-Format (event_logger.py)
         from src.utils.event_logger import log_event
         log_event(
             event_type="ContainerStatsError",
@@ -114,3 +135,27 @@ async def get_container_stats(container_id: str):
         )
         logger.exception("Fehler bei get_container_stats")
         raise HTTPException(status_code=500, detail="Container-Ressourcen konnten nicht abgerufen werden.")
+    finally:
+        duration = time.time() - start
+        REQUEST_TIME.observe(duration)
+
+# ========================================
+# Container-Metriken für Prometheus aktualisieren
+# ========================================
+@router.get("/container-metrics")
+async def update_container_metrics():
+    try:
+        # Container CPU & RAM usage metriklerini güncelle
+        containers = docker_client.containers.list()
+        for container in containers:
+            try:
+                container_service.get_container_resource_usage(container.id)
+            except Exception as e:
+                logger.warning(f"Fehler bei get_container_resource_usage({container.id}): {e}")
+
+        # Prometheus formatında yanıt dön
+        return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    except Exception as e:
+        logger.error(f"Fehler beim Aktualisieren der Container-Metriken: {str(e)}")
+        raise HTTPException(status_code=500, detail="Container-Metriken konnten nicht aktualisiert werden.")

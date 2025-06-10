@@ -73,11 +73,12 @@ services:
       - ./storage/logs:/tmp/logs               # Logs persistieren
       # Ermöglicht dem Backend den Zugriff auf Docker-Events (für Container-Management)
       - /var/run/docker.sock:/var/run/docker.sock # Für Containerverwaltung von innen
+      - ./backend/logs:/app/logs
     env_file:
       - ./backend/.env
     environment:
       - PYTHONPATH=/app/src                 # Damit src/... korrekt erkannt wird
-
+      - LOG_DIR=/app/logs 
     # Healthcheck: Prüft, ob FastAPI erreichbar ist (root endpoint `/`)
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
@@ -109,11 +110,15 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      # Bindet die lokale Konfigurationsdatei für Loki
       - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - ./storage/loki/index:/loki/index
+      - ./storage/loki/cache:/loki/cache
+      - ./storage/loki/chunks:/loki/chunks
+      - ./storage/loki/wal:/wal 
+      - ./storage/loki/compactor:/loki/compactor
     networks:
       - mep-network
-
+  
   promtail:
     image: grafana/promtail:2.9.6
     container_name: mep-promtail
@@ -121,6 +126,8 @@ services:
       - loki
     volumes:
       - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro    
+      - ./backend/logs:/app/logs                                   
       - ./test.log:/var/log/test.log
       - /etc/machine-id:/etc/machine-id:ro
     command: -config.file=/etc/promtail/promtail-config.yaml -log.level=debug
@@ -147,6 +154,8 @@ services:
     container_name: mep-prometheus
     ports:
       - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml  
     networks:
       - mep-network
       

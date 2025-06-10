@@ -1,7 +1,7 @@
 import logging
 import docker
 from docker.errors import DockerException, NotFound, ImageNotFound
-
+from src.utils.metrics import CONTAINER_CPU_USAGE, CONTAINER_MEMORY_USAGE
 from src.api.py_models.py_models import ContainerResponse
 from src.db.crud import crud_kiImage
 from sqlalchemy.orm import Session
@@ -9,6 +9,7 @@ from src.utils.auth import User    # User Pydantic Modell
 from src.utils.event_logger import log_event  # Eigenes Logging-Tool
 
 logger = logging.getLogger(__name__)
+
 
 class ContainerService:
     def __init__(self):
@@ -95,8 +96,6 @@ class ContainerService:
         Stoppt einen Container anhand ID oder Name (nur für berechtigte User).
         """
         try:
-            # Owner-Prüfung: (optional, falls benötigt)
-            # Hier könntest du DB/Name prüfen, ob der aktuelle User Besitzer ist
             log_event("CONTAINER", "stop_container",
                 f"Versuche Container zu stoppen: {container_id_or_name}", "DEBUG",
                 user_id=current_user.id, container_id=container_id_or_name
@@ -250,7 +249,6 @@ class ContainerService:
                 f"Rufe Logs ab für Container: {container_id_or_name} | tail={tail}, stdout={stdout}, stderr={stderr}, timestamps={timestamps}",
                 level="DEBUG", user_id=current_user.id
             )
-            # Owner-Check: Hier kannst du wie oben per Name prüfen
             container = self.client.containers.get(container_id_or_name)
             if current_user.role != "admin" and not container.name.startswith(f"user_{current_user.id}_"):
                 raise Exception("Keine Berechtigung für diese Logs.")
@@ -300,21 +298,42 @@ class ContainerService:
             container = self.client.containers.get(container_id_or_name)
             if current_user.role != "admin" and not container.name.startswith(f"user_{current_user.id}_"):
                 raise Exception("Keine Berechtigung für diesen Container.")
+
             container.reload()
             if container.status != "running":
                 log_event("WARNING", "get_container_resource_usage",
                     f"Container is not running: {container_id_or_name}", level="WARNING", user_id=current_user.id)
                 return {"cpu_usage": None, "memory_usage": None}
+
             stats = container.stats(stream=False)
-            cpu_percent = stats.get('cpu_stats', {}).get('cpu_usage', {}).get('total_usage')
-            mem_usage = stats.get('memory_stats', {}).get('usage')
+
+            # CPU-Auslastung berechnen
+            cpu_delta = stats["cpu_stats"]["cpu_usage"]["total_usage"] - stats["precpu_stats"]["cpu_usage"]["total_usage"]
+            system_delta = stats["cpu_stats"]["system_cpu_usage"] - stats["precpu_stats"]["system_cpu_usage"]
+            cpu_percent = 0.0
+            if system_delta > 0.0:
+                cpu_percent = (cpu_delta / system_delta) * len(stats["cpu_stats"]["cpu_usage"]["percpu_usage"]) * 100.0
+
+            # Speicherverbrauch berechnen
+            mem_usage = stats["memory_stats"].get("usage", 0)
+
+            # 📊 Werte an Prometheus übergeben
+            CONTAINER_CPU_USAGE.labels(container_id=container_id_or_name).set(cpu_percent)
+            CONTAINER_MEMORY_USAGE.labels(container_id=container_id_or_name).set(mem_usage)
+
             log_event("CONTAINER", "get_container_resource_usage",
-                f"Container: {container_id_or_name} | CPU: {cpu_percent}, RAM: {mem_usage}",
+                f"Container: {container_id_or_name} | CPU: {cpu_percent:.2f}%, RAM: {mem_usage} bytes",
                 level="INFO", user_id=current_user.id, container_id=container_id_or_name,
                 cpu=cpu_percent, ram=mem_usage
             )
-            return {"cpu_usage": cpu_percent, "memory_usage": mem_usage}
+
+            return {
+                "container_id": container_id_or_name,
+                "cpu_percent": round(cpu_percent, 2),
+                "memory_usage": mem_usage
+            }
+
         except Exception as e:
             log_event("ERROR", "get_container_resource_usage",
                 f"Error while fetching resource usage: {str(e)}", level="ERROR", user_id=current_user.id, container_id=container_id_or_name)
-            raise
+            raise Exception(f"Fehler beim Abrufen der Container-Ressourcennutzung: {str(e)}")
