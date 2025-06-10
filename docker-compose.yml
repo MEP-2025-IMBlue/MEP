@@ -121,7 +121,7 @@ services:
       - loki
     volumes:
       - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
-      - ./test.log:/var/log/test.log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /etc/machine-id:/etc/machine-id:ro
     command: -config.file=/etc/promtail/promtail-config.yaml -log.level=debug
     networks:
@@ -147,6 +147,8 @@ services:
     container_name: mep-prometheus
     ports:
       - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - mep-network
       

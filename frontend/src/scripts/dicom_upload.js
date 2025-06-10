@@ -121,13 +121,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         card.innerHTML = `
           <div class="ki-card-icon">🧠</div>
           <h3>${container.image_name}:${container.image_tag}</h3>
-          <p>${i18n.translations.id}: ${container.image_id}</p>
+          <p>${i18n.translations.description || "Beschreibung"}: ${container.repository || "-"}</p>
           <button class="select-btn" onclick='displayDiagnosis("${i18n.translations.dicom_ki_response_title}: ${container.image_name}:${container.image_tag}")'>
             ${i18n.translations.select || "Auswählen"}
           </button>
         `;
         kiContainer.appendChild(card);
       });
+      
 
       kiContainer.classList.remove("hidden");
       updateTranslationTexts();

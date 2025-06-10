@@ -15,7 +15,7 @@ scrape_configs:
           - localhost
         labels:
           job: fastapi-logs
-          __path__: /var/log/test.log
+          __path__: /var/lib/docker/containers/*/*.log
     pipeline_stages:
       - static_labels:
           source: testfile
