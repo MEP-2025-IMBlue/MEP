@@ -7,10 +7,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const dropZone = document.getElementById("drop-dicom");
   const statusDiv = document.getElementById("dicom-status");
 
-  // Drop-Zone-Text hinzufügen (wird später dynamisch ersetzt)
   const dropText = document.createElement("p");
   dropText.className = "drop-text";
-  dropText.textContent = i18n.translations.dicom_drag_drop_text;
+  dropText.textContent = i18n.translations.dicom_drag_drop_text || "📁 Datei hierher ziehen oder klicken";
   dropZone.appendChild(dropText);
 
   const previewText = document.createElement("div");
@@ -19,16 +18,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();
-    dropZone.style.borderColor = "#00cc66";
+    dropZone.classList.add("dragover");
   });
 
   dropZone.addEventListener("dragleave", () => {
-    dropZone.style.borderColor = "#ffd700";
+    dropZone.classList.remove("dragover");
   });
 
   dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
-    dropZone.style.borderColor = "#ffd700";
+    dropZone.classList.remove("dragover");
     const file = e.dataTransfer.files[0];
     handleFileSelection(file);
   });
@@ -44,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       fileInput.value = "";
       previewText.textContent = "";
-      statusDiv.textContent = `❌ ${i18n.translations.dicom_only_dcm_allowed}`;
+      statusDiv.textContent = `❌ ${i18n.translations.dicom_only_dcm_allowed || "Nur .dcm-Dateien erlaubt!"}`;
       statusDiv.style.color = "#ff4d4d";
     }
   }
@@ -52,19 +51,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   dicomForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const file = fileInput.files[0];
-
-    statusDiv.className = "upload-status";
-    statusDiv.style.color = "#ffd700";
     statusDiv.textContent = "";
+    statusDiv.style.color = "#ffd700";
 
     if (!file) {
-      statusDiv.textContent = `❌ ${i18n.translations.dicom_status_no_file}`;
-      statusDiv.style.color = "#ff4d4d";
-      return;
-    }
-
-    if (!file.name.toLowerCase().endsWith(".dcm") && !file.name.toLowerCase().endsWith(".zip")) {
-      statusDiv.textContent = `❌ ${i18n.translations.dicom_status_invalid_format}`;
+      statusDiv.textContent = `❌ ${i18n.translations.dicom_status_no_file || "Keine Datei ausgewählt."}`;
       statusDiv.style.color = "#ff4d4d";
       return;
     }
@@ -72,46 +63,130 @@ document.addEventListener("DOMContentLoaded", async () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    statusDiv.textContent = `⏳ ${i18n.translations.dicom_upload_running}`;
+    statusDiv.textContent = `⏳ ${i18n.translations.dicom_upload_running || "Upload läuft..."}`;
 
     try {
-      const res = await fetch("http://localhost:8000/dicom", { method: "POST", body: formData });
+      const res = await fetch("http://localhost:8000/dicoms/uploads", {
+        method: "POST",
+        body: formData
+      });
+
       const result = await res.json();
+      if (!res.ok) throw new Error(result.detail || "Fehler beim Upload");
 
-      if (!res.ok) throw new Error(result.detail || `HTTP ${res.status}: ${res.statusText}`);
-
-      statusDiv.textContent = `✅ ${i18n.translations.dicom_upload_success}`;
+      statusDiv.textContent = `✅ ${i18n.translations.dicom_upload_success || "Upload erfolgreich."}`;
       statusDiv.style.color = "#00cc66";
+
       dicomForm.reset();
       previewText.textContent = "";
+      renderDicomTableFromBackend();
       displayKiImages();
     } catch (err) {
-      statusDiv.textContent = `❌ ${i18n.translations.dicom_upload_error} ${err.message}`;
+      statusDiv.textContent = `❌ ${i18n.translations.dicom_upload_error || "Fehler beim Hochladen"}: ${err.message}`;
       statusDiv.style.color = "#ff4d4d";
     }
   });
+
+  async function renderDicomTableFromBackend() {
+    const table = document.getElementById("dicom-table-body");
+    table.innerHTML = "";
+
+    try {
+      const res = await fetch("http://localhost:8000/dicoms/uploads");
+      const dicoms = await res.json();
+      if (!res.ok) throw new Error(dicoms.detail || "Fehler beim Laden");
+
+      if (!Array.isArray(dicoms) || dicoms.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="3" style="text-align:center; color:#888;">${i18n.translations.dicom_table_empty || "Noch keine DICOM-Dateien hochgeladen."}</td>`;
+        table.appendChild(row);
+        return;
+      }
+
+      dicoms.forEach(filename => {
+        const sop_uid = filename.replace("_anon.dcm", "");
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${filename}</td>
+          <td>-</td>
+          <td>
+            <button class="btn-reuse" onclick="reuseDicomFromBackend('${sop_uid}')">${i18n.translations.reuse_button || "🔁 Wiederverwenden"}</button>
+            <button class="btn-delete" onclick="deleteDicomFromBackend('${sop_uid}')">${i18n.translations.delete_button || "🗑 Löschen"}</button>
+          </td>
+        `;
+        table.appendChild(row);
+      });
+    } catch (err) {
+      console.error("Fehler beim Laden der Tabelle:", err);
+      const row = document.createElement("tr");
+      row.innerHTML = `<td colspan="3" style="text-align:center; color:#f44;">❌ Fehler beim Laden</td>`;
+      table.appendChild(row);
+    }
+  }
+
+  window.deleteDicomFromBackend = async function (sop_uid) {
+    try {
+      const res = await fetch(`http://localhost:8000/dicoms/uploads/${sop_uid}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) throw new Error("Löschen fehlgeschlagen");
+
+      statusDiv.textContent = `✅ ${i18n.translations.delete_success || "Gelöscht"}`;
+      statusDiv.style.color = "#00cc66";
+      renderDicomTableFromBackend();
+    } catch (err) {
+      statusDiv.textContent = `❌ ${i18n.translations.delete_failed || "Löschen fehlgeschlagen"}: ${err.message}`;
+      statusDiv.style.color = "#ff4d4d";
+    }
+  };
+
+  window.reuseDicomFromBackend = async function (sop_uid) {
+    try {
+      const res = await fetch(`http://localhost:8000/dicoms/uploads/${sop_uid}_anon.dcm`);
+      const blob = await res.blob();
+      const file = new File([blob], `${sop_uid}_anon.dcm`, { type: "application/dicom" });
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      statusDiv.textContent = `⏳ ${i18n.translations.reuse_uploading || "Wiederverwenden..."}`;
+      statusDiv.style.color = "#ffd700";
+
+      const response = await fetch("http://localhost:8000/dicoms/uploads", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Erneuter Upload fehlgeschlagen");
+
+      statusDiv.textContent = `✅ ${i18n.translations.reuse_success || "Erneut hochgeladen."}`;
+      statusDiv.style.color = "#00cc66";
+
+      renderDicomTableFromBackend();
+      displayKiImages();
+    } catch (err) {
+      statusDiv.textContent = `❌ ${i18n.translations.reuse_error || "Fehler"}: ${err.message}`;
+      statusDiv.style.color = "#ff4d4d";
+    }
+  };
 
   async function displayKiImages() {
     const kiContainer = document.getElementById("ki-list");
     const kiTitle = document.getElementById("ki-title");
 
-    if (!kiContainer || !kiTitle) {
-      statusDiv.textContent = `❌ ${i18n.translations.dicom_error_ki_list_missing}`;
-      statusDiv.style.color = "#ff4d4d";
-      return;
-    }
+    if (!kiContainer || !kiTitle) return;
 
     try {
       const response = await fetch("http://localhost:8000/ki-images");
       const containers = await response.json();
-      if (!response.ok) throw new Error(containers.detail || `HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) throw new Error(containers.detail || "Fehler beim Laden");
 
       kiContainer.innerHTML = "";
       kiTitle.classList.remove("hidden");
 
       if (containers.length === 0) {
-        kiContainer.textContent = i18n.translations.no_ki_images;
-        kiContainer.classList.remove("hidden");
+        kiContainer.textContent = i18n.translations.no_ki_images || "⚠️ Keine KI-Images verfügbar.";
         return;
       }
 
@@ -121,8 +196,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         card.innerHTML = `
           <div class="ki-card-icon">🧠</div>
           <h3>${container.image_name}:${container.image_tag}</h3>
-          <p>${i18n.translations.id}: ${container.image_id}</p>
-          <button class="select-btn" onclick='displayDiagnosis("${i18n.translations.dicom_ki_response_title}: ${container.image_name}:${container.image_tag}")'>
+          <p>ID: ${container.image_id}</p>
+          <button class="select-btn" onclick='displayDiagnosis("${i18n.translations.dicom_ki_response_title || "Diagnose"}: ${container.image_name}:${container.image_tag}")'>
             ${i18n.translations.select || "Auswählen"}
           </button>
         `;
@@ -130,9 +205,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       kiContainer.classList.remove("hidden");
-      updateTranslationTexts();
     } catch (err) {
-      statusDiv.textContent = `❌ ${i18n.translations.dicom_error_loading_ki} ${err.message}`;
+      statusDiv.textContent = `❌ ${i18n.translations.dicom_error_loading_ki || "Fehler beim Laden der KI-Systeme"}: ${err.message}`;
       statusDiv.style.color = "#ff4d4d";
     }
   }
@@ -145,18 +219,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     resultBox.classList.remove("hidden");
   };
 
-  function updateTranslationTexts() {
-    dropText.textContent = i18n.translations.dicom_drag_drop_text;
-    document.querySelectorAll(".select-btn").forEach(btn => {
-      btn.textContent = i18n.translations.select || "Auswählen";
-    });
-  }
+  renderDicomTableFromBackend();
 
   document.addEventListener("languageChanged", () => {
     i18n.applyTranslations();
-    updateTranslationTexts();
-    if (fileInput.files.length > 0) {
-      handleFileSelection(fileInput.files[0]);
-    }
+    renderDicomTableFromBackend();
   });
 });

@@ -2,14 +2,11 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title data-i18n-key="navbar_dicom_upload">DICOM Upload – mRay AIR</title>
-  <!-- Keycloak + Auth Schutz -->
+  <title>DICOM Upload – mRay AIR</title>
+
   <script src="https://cdn.jsdelivr.net/npm/keycloak-js@24.0.1/dist/keycloak.min.js"></script>
   <script src="../scripts/auth.js" defer></script>
-
-  <!-- i18next + Plugins einbinden -->
   <script src="https://unpkg.com/i18next@23.6.16/i18next.min.js"></script>
   <script src="https://unpkg.com/i18next-browser-languagedetector/i18nextBrowserLanguageDetector.min.js"></script>
   <script src="https://unpkg.com/i18next-http-backend/i18nextHttpBackend.min.js"></script>
@@ -23,21 +20,43 @@
   <main>
     <h1 class="section-title" data-i18n-key="dicom_upload_title">DICOM-Datei hochladen</h1>
 
-    <div class="form-container">
-      <form id="dicom-form">
-        <label for="dicom_file" data-i18n-key="dicom_select_file">DICOM Datei auswählen</label>
-        <div class="drop-zone" id="drop-dicom">
-          <div id="drop-dicom" class="drop-area"></div>
-          <input type="file" id="dicom_file" name="dicom_file" accept=".dcm" hidden/>
+    <div class="upload-table-wrapper">
+      <!-- Upload-Karte -->
+      <div class="form-container">
+        <div class="form-card">
+          <form id="dicom-form">
+            <label for="dicom_file" data-i18n-key="dicom_select_file">DICOM Datei auswählen</label>
+            <div class="drop-zone" id="drop-dicom">
+              <input type="file" id="dicom_file" name="dicom_file" accept=".dcm" hidden />
+            </div>
+            <button type="submit" class="upload-btn" data-i18n-key="dicom_upload_button">Hochladen</button>
+            <div id="dicom-status" class="upload-status"></div>
+          </form>
         </div>
-        <button type="submit" data-i18n-key="dicom_upload_button">Hochladen</button>
-        <div id="dicom-status" class="upload-status"></div>
-      </form>
+      </div>
+
+      <!-- Tabelle -->
+      <div class="dicom-table-container">
+        <table class="dicom-table">
+          <thead>
+            <tr>
+              <th data-i18n-key="name">Dateiname</th>
+              <th data-i18n-key="uploaded_at">Hochgeladen am</th>
+              <th data-i18n-key="actions">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="dicom-table-body">
+            <!-- Wird dynamisch gefüllt -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
+    <!-- KI-Systeme -->
     <h2 class="section-subtitle hidden" id="ki-title" data-i18n-key="dicom_ki_systems_title">Vorgeschlagene KI-Systeme</h2>
     <div class="ki-list hidden" id="ki-list"></div>
 
+    <!-- Diagnose -->
     <div id="ai-result" class="ai-result hidden">
       <h2 data-i18n-key="dicom_ki_response_title">Antwort der KI</h2>
       <pre id="result-content">{"diagnose": "Keine Auffälligkeiten festgestellt."}</pre>
@@ -45,9 +64,8 @@
   </main>
 
   <footer>© mRay</footer>
-  
+
   <script src="../scripts/i18n.js"></script>
   <script src="../scripts/dicom_upload.js"></script>
-
 </body>
 </html>

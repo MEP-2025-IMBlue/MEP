@@ -1,48 +1,69 @@
-/* frontend/src/styles/dicom_upload.css */
-.section-subtitle {
+/* === Allgemeine Struktur === */
+.section-title {
+  text-align: center;
   margin: 2rem;
-  font-size: 2rem;
+}
+
+.upload-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 0 2rem;
+}
+
+@media screen and (min-width: 768px) {
+  .upload-table-wrapper {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: flex-start;
+  }
+
+  .form-container,
+  .dicom-table-container {
+    width: 45%;
+  }
 }
 
 .form-container {
   display: flex;
   justify-content: center;
-  padding: 0 2rem;
+}
+
+/* === Upload-Formular === */
+.form-card {
+  background-color: #111;
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.1);
 }
 
 form {
-  background-color: #111;
-  padding: 2rem;
-  border-radius: 10px;
-  border-left: 4px solid #ffd700;
-  max-width: 600px;
-  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-form input[type="file"] {
+.drop-zone {
+  border: 2px dashed #ffd700;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
   background-color: #1a1a1a;
   color: #fff;
-  border: 1px solid #444;
-  padding: 0.5rem;
-  border-radius: 5px;
-}
-
-form button {
-  background-color: #ffd700;
-  color: #000;
-  font-weight: bold;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 5px;
-  cursor: pointer;
+  border-radius: 10px;
 }
 
 .drop-zone.dragover {
   border-color: #00cc66;
   background-color: #222;
+}
+
+.preview-text {
+  margin-top: 0.5rem;
+  color: #ccc;
 }
 
 .upload-status {
@@ -51,6 +72,96 @@ form button {
   color: #ffd700;
 }
 
+.upload-btn {
+  background-color: #ffd700;
+  color: #000;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.upload-btn:hover {
+  background-color: #e6c200;
+}
+
+/* === Tabelle (DICOM-Dateien) === */
+.dicom-table-container {
+  width: 100%;
+  background-color: #111;
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.1);
+}
+
+.dicom-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.05);
+}
+
+.dicom-table th {
+  background-color: #000;
+  color: #ffd700;
+  text-transform: uppercase;
+  padding: 12px;
+  border-bottom: 2px solid #ffd700;
+  text-align: left;
+  font-weight: bold;
+}
+
+.dicom-table td {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+  color: white;
+}
+
+.dicom-table tr:hover td {
+  background-color: #222;
+}
+
+.dicom-table td[colspan="3"] {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+}
+
+/* === Buttons in der Tabelle === */
+.btn-reuse {
+  background-color: #222;
+  color: #ffd700;
+  font-weight: bold;
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.btn-reuse:hover {
+  background-color: #333;
+}
+
+.btn-delete {
+  background-color: #660000;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background-color: #990000;
+}
+
+/* === KI-Systemkarten === */
 .ki-list {
   display: flex;
   justify-content: center;
@@ -84,6 +195,7 @@ form button {
   cursor: pointer;
 }
 
+/* === KI-Antwortfeld === */
 .ai-result {
   margin: 2rem;
   padding: 1rem;

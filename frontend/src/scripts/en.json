@@ -14,7 +14,7 @@
   "container_upload_drag_drop_local": "📁 Drag & drop container (.tar) here or click",
 
   "upload_button": "Upload",
-  "reference_button": "Reference",
+  "reference_button": "Upload",
   "upload_processing": "Processing...",
   "upload_success": "✅ Uploaded: ",
   "upload_error_prefix": "Error: ",
@@ -44,6 +44,12 @@
   "dicom_error_ki_list_missing": "Error: AI list not found.",
   "dicom_error_loading_ki": "Error loading AI images:",
   "select": "select",
+  "dicom_table_empty": "No DICOM files uploaded yet.",
+  "reuse_button": "Reuse",
+  "delete_button": "Delete",
+  "reuse_uploading": "Uploading again...",
+  "reuse_success": "Successfully re-uploaded.",
+  "reuse_error": "Re-upload failed",
 
   "dashboard_title": "AI Images",
   "dashboard_filter_placeholder": "Enter search term...",
