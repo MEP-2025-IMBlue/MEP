@@ -6,6 +6,10 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+  - job_name: "mray-backend"
+    static_configs:
+      - targets: ["backend:8000"]  # Container-interner Zugriff über Servicenamen
+      
   - job_name: 'loki'
     static_configs:
       - targets: ['mep-loki:3100']
@@ -17,8 +21,10 @@ scrape_configs:
   - job_name: 'grafana'
     static_configs:
       - targets: ['mep-grafana:3000']
-
-  - job_name: 'fastapi-backend'
+  
+  - job_name: 'container-metrics'
+    scrape_interval: 15s  # Container-Ressourcen wie CPU und RAM alle 15 Sekunden aktualisieren
+    metrics_path: /container-metrics  # Spezieller Endpunkt zur Aktualisierung von Prometheus-Gauges
     static_configs:
-      - targets: ['mep-backend:8001']
+      - targets: ['backend:8000']  # Backend-Instanz, die den Endpunkt bereitstellt    
 

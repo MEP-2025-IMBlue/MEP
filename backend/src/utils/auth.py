@@ -1,12 +1,10 @@
 from fastapi import Request, HTTPException, Depends
 from pydantic import BaseModel
 from jose import jwt
+import os
 
-PUBLIC_KEY = """
------BEGIN PUBLIC KEY-----
-...BURAYA KENDİ KEYİNİ KOY...
------END PUBLIC KEY-----
-"""
+# Lese den Public Key aus der .env-Datei (mit Zeilenumbruch-Ersatz)
+PUBLIC_KEY = os.getenv("KEYCLOAK_PUBLIC_KEY", "").replace("\\n", "\n")
 
 class User(BaseModel):
     id: str
@@ -18,13 +16,21 @@ def get_current_user(request: Request) -> User:
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Kein gültiger Auth-Token.")
     token = auth_header.split(" ")[1]
-    # JWT-Token mit dem Keycloak Public Key verifizieren und dekodieren
-    decoded = jwt.decode(token, "PUBLIC_KEY", algorithms=["RS256"], options={"verify_aud": False})
-    user_id = decoded["sub"]
-    # Hier wird die erste Rolle des Benutzers übernommen (bei Bedarf anpassen)
-    role = decoded["realm_access"]["roles"][0]
-    return User(
-        id=decoded["sub"],
-        role=decoded["realm_access"]["roles"][0]  # [0]Bei mehreren Rollen ggf. verbessern!
-    )
-#current_user: User = Depends(get_current_user)
+
+    try:
+        # JWT-Token mit dem Keycloak Public Key verifizieren und dekodieren
+        decoded = jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"], options={"verify_aud": False})
+        roles = decoded.get("realm_access", {}).get("roles", [])
+
+        if not roles:
+            raise HTTPException(status_code=403, detail="Keine Rolle im Token gefunden.")
+
+        # Erste Rolle übernehmen (so wie ursprünglich gewünscht)
+        return User(
+            id=decoded["sub"],
+            role=roles[0]
+        )
+    except Exception:
+        raise HTTPException(status_code=401, detail="Ungültiger oder abgelaufener Token.")
+
+# current_user: User = Depends(get_current_user)

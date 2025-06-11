@@ -69,7 +69,6 @@ async def get_status_and_health(
     Gibt Status- und Gesundheitsinformationen eines Containers zurück.
     Zugriff nur für berechtigte User.
     """
-    # Owner-Check möglich wie im Log-Endpoint (optional je nach Policy)
     try:
         result = container_service.get_container_status_and_health(container_id_or_name)
         log_event("CONTAINER", "get_status_and_health", f"Status für {container_id_or_name} erfolgreich abgefragt", level="INFO", container_id=container_id_or_name, user_id=current_user.id)
@@ -102,7 +101,6 @@ async def stop_container_route(
     Stoppt einen laufenden Container.
     Zugriff nur für berechtigte User.
     """
-    # Owner-Check möglich wie im Log-Endpoint (optional je nach Policy)
     try:
         result = container_service.stop_container(container_id_or_name)
         log_event("CONTAINER", "stop_container_route", f"Container {container_id_or_name} erfolgreich gestoppt", level="INFO", container_id=container_id_or_name, user_id=current_user.id)
