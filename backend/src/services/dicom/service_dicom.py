@@ -282,31 +282,45 @@ def upload_dicom_zip(zip_path: str) -> UploadDICOMResponseModel:
         data=results
     )
 
-def delete_upload_dicom(sop_uid:str) -> None:
-    """Löscht die DICOM-Upload Files, also: die .dcm und .npy anhand der SOPInstanceUID"""
+def delete_upload_dicom(sop_uid: str) -> None:
+    """
+    Löscht die DICOM-Upload-Dateien: anonymisierte .dcm, .npy und Reupload-Kopie.
+    Wird vom Frontend über den Lösch-Button aufgerufen.
+    """
 
     filename_dcm = f"{sop_uid}_anon.dcm"
     filepath_dcm = os.path.join(UPLOAD_DIR, filename_dcm)
+
     filename_npy = f"{sop_uid}_anon.npy"
     filepath_npy = os.path.join(PROCESSED_DIR, filename_npy)
 
-    if os.path.exists(filepath_dcm) and os.path.exists(filepath_npy):
-        os.remove(filepath_dcm)
-        os.remove(filepath_npy)
-    else:
-        raise FileNotFoundError(f"Datei {filepath_dcm} nicht gefunden")
+    filename_reupload = f"{sop_uid}_reupload.dcm"
+    filepath_reupload = os.path.join(UPLOAD_DIR, filename_reupload)
+
+    files_deleted = False
+
+    for path in [filepath_dcm, filepath_npy, filepath_reupload]:
+        if os.path.exists(path):
+            os.remove(path)
+            logging.info(f"[Löschen] Datei gelöscht: {path}")
+            files_deleted = True
+
+    if not files_deleted:
+        raise FileNotFoundError(f"Keine Dateien zu {sop_uid} gefunden.")
+
     
 def get_all_stored_dicom() -> list:
-    """Listet alle DICOM-Bilder, die gerade gespeichert sind."""
-
+    """
+    Listet nur Reupload-DICOM-Dateien, die im Upload-Ordner vorhanden sind.
+    Diese werden im Frontend angezeigt.
+    """
     result = []
 
     for file in os.listdir(UPLOAD_DIR):
-        filename = os.path.basename(file)
-        result.append(filename)
-    return result    
-    
-    
+        if file.endswith("_reupload.dcm"):
+            result.append(file)
+
+    return result
 
 
 

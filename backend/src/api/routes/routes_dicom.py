@@ -37,12 +37,17 @@ async def post_upload_dicom(file: UploadFile = File(...), db: Session = Depends(
 # ========================================
 # Upload: Löscht eine bereits hochgeladene DICOM-Datei aus dem temporären Verzeichnis
 # ========================================
+# Löscht DICOM-Dateien: anonymisierte Datei, Pixel-Array und Reupload-Kopie
+# Wird vom Frontend aufgerufen, z. B. über den Button 🗑 im DICOM-Upload-Tabellenfeld
+# Nach erfolgreicher Löschung wird die Tabelle automatisch neu geladen
+# ========================================
 #TODO: DICOM-Dateien löschen, wenn sie vor X Tagen hochgeladen wurden
+# ========================================
 @router.delete("/dicoms/uploads/{sop_uid}")
-async def delete_upload_dicom(sop_uid):
+async def delete_upload_dicom(sop_uid: str):
     try:
         service_dicom.delete_upload_dicom(sop_uid)
-        return {"message": f"{sop_uid}_anon.dcm wurde gelöscht"}
+        return {"message": f"Alle zu {sop_uid} gehörenden Dateien wurden gelöscht."}
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -74,7 +79,13 @@ async def get_all_stored_dicom():
         })
 
     return result
-
+# ========================================
+# Download: Gibt die Original-Reupload-Datei im DICOM-Format zurück
+# Diese Datei wurde beim ersten Upload zusätzlich als Kopie gespeichert,
+# um eine erneute Verwendung (Reupload) zu ermöglichen.
+# Sie ist nicht anonymisiert und wird ausschließlich für technische Zwecke genutzt,
+# z. B. um die Datei erneut hochzuladen oder in der Oberfläche anzuzeigen.
+# ========================================
 @router.get("/dicoms/uploads/{sop_uid}")
 async def get_reupload_dicom(sop_uid: str):
     """
