@@ -149,7 +149,7 @@ async def get_container_stats(container_id: str):
 @router.get("/container-metrics")
 async def update_container_metrics():
     try:
-        # Container CPU & RAM usage metriklerini güncelle
+        # Container-Metriken zur CPU- und RAM-Nutzung aktualisieren und im Prometheus-Format ausgeben
         containers = docker_client.containers.list()
         for container in containers:
             try:
@@ -157,7 +157,7 @@ async def update_container_metrics():
             except Exception as e:
                 logger.warning(f"Fehler bei get_container_resource_usage({container.short_id}): {e}")
 
-        # Prometheus formatında yanıt dön
+        # Prometheus-Format ausgeben
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     except Exception as e:

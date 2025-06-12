@@ -10,6 +10,9 @@ class User(BaseModel):
     id: str
     role: str
 
+# Systeminterne Aufrufe wie Prometheus oder Hintergrundtasks
+SYSTEM_USER = User(id="system", role="system")
+
 def get_current_user(request: Request) -> User:
     """Extrahiert User-ID und Rolle aus dem JWT-Token im Authorization Header."""
     auth_header = request.headers.get("authorization")

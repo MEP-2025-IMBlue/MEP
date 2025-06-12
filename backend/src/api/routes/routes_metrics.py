@@ -14,5 +14,5 @@ async def metrics_test():
     start = time.time()
     time.sleep(0.5)
     duration = time.time() - start
-    REQUEST_TIME.observe(duration)  # 🔧 METRİK kaydı burada
+    REQUEST_TIME.observe(duration)  #METRİK speicherung
     return {"status": "ok"}

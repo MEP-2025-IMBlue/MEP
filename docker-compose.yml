@@ -64,7 +64,7 @@ services:
       keycloak:
         condition: service_started
     ports:
-      - "8001:8000" # Uvicorn HTTP (FastAPI) → Außenwelt-Zugriff + Prometheus /metrics
+      - "8000:8000" # Uvicorn HTTP (FastAPI) → Außenwelt-Zugriff + Prometheus /metrics
     volumes:
       # Mountet Backend-Quellcode und relevante Verzeichnisse ins Container-Dateisystem
       - ./backend:/app                         # Quellcode ins Container-Dateisystem mounten
