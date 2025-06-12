@@ -14,44 +14,6 @@
   <div id="navbar"></div>
 
   <main>
-    <h1 class="section-title" data-i18n-key="logviewer_title">Log-Viewer</h1>
-
-    <!-- Abschnitt: Container-Loganzeige -->
-    <div class="details-card">
-      <p data-i18n-key="logviewer_text">Hier kannst du Logs eines bestimmten Containers anzeigen.</p>
-
-      <div style="margin-bottom: 1rem;">
-        <label for="container-select" data-i18n-key="logviewer_select">Container auswählen:</label>
-        <select id="container-select"></select>
-      </div>
-
-      <div style="margin-bottom: 1rem;">
-        <strong>Status:</strong> <span id="container-status">-</span> |
-        <strong>Health:</strong> <span id="container-health">-</span>
-      </div>
-
-      <div style="margin-bottom: 1rem;">
-        <label><input type="checkbox" id="chk-stdout" checked> STDOUT</label>
-        <label><input type="checkbox" id="chk-stderr" checked> STDERR</label>
-        <label><input type="checkbox" id="chk-timestamps"> Zeitstempel</label>
-        <label data-i18n-key="log_tail_label">Zeilen:
-          <input type="number" id="log-tail" value="100" min="10" max="1000" step="10" style="width: 80px;">
-        </label>
-        <button onclick="loadLogs()" data-i18n-key="logviewer_load_button">Logs laden</button>
-      </div>
-
-      <!-- Bereich: Log-Ausgabe -->
-      <pre id="log-output"
-        style="max-height: 300px; overflow-y: auto; background-color: #1c1c1c; color: #00ffcc;
-               padding: 1rem; font-size: 0.85rem; border: 1px solid #444; border-radius: 6px;">
-      </pre>
-
-      <!-- Button: Mehr Logs anzeigen -->
-      <button id="load-more-logs"
-              style="display:none; margin-top:10px;"
-              data-i18n-key="log_button_more">🔁 Mehr anzeigen</button>
-    </div>
-
     <!-- Abschnitt: Systemereignis-Logs (Frontend/Backend Logs in Tabelle) -->
     <div class="details-card">
       <h2 data-i18n-key="logs.title">📋 Logs</h2>

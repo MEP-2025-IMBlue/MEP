@@ -1,6 +1,7 @@
 # FastAPI & Dependency Injection
 from datetime import timezone
 from fastapi import APIRouter, HTTPException, Form, Depends
+from fastapi.responses import Response
 
 # Datenbank (SQLAlchemy)
 from sqlalchemy.orm import Session
@@ -17,6 +18,9 @@ from src.services.container_management.service_container import ContainerService
 import docker
 import logging
 import time
+from prometheus_client import generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST
+
 
 # Prometheus Metrik
 from src.utils.metrics import REQUEST_TIME
@@ -149,9 +153,9 @@ async def update_container_metrics():
         containers = docker_client.containers.list()
         for container in containers:
             try:
-                container_service.get_container_resource_usage(container.id)
+                container_service.get_container_resource_usage(container.id, current_user={"role": "system"})
             except Exception as e:
-                logger.warning(f"Fehler bei get_container_resource_usage({container.id}): {e}")
+                logger.warning(f"Fehler bei get_container_resource_usage({container.short_id}): {e}")
 
         # Prometheus formatında yanıt dön
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
