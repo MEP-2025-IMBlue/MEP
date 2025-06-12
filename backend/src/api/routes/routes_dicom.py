@@ -75,7 +75,8 @@ async def get_all_stored_dicom():
         result.append({
             "filename": filename,
             "sop_uid": sop_uid,
-            "uploaded_at": iso_time
+            "uploaded_at": iso_time,
+            "original_filename": filename.replace("_reupload.dcm", ".dcm")
         })
 
     return result

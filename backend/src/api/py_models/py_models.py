@@ -91,6 +91,7 @@ class UploadResultItem(BaseModel):
     sop_instance_uid: str
     saved_dicom_path: str
     saved_pixel_array_path: str
+    original_filename: Optional[str] = None
 
 
 class UploadDICOMResponseModel(BaseModel):

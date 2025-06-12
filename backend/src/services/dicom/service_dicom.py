@@ -94,7 +94,8 @@ def receive_file(file: UploadFile, db: Session):
 
         # Verarbeiten der Datei -> Übergabe an nächste Funktion
         if filename.endswith(".dcm"):
-            result = upload_dicom(tmp_filepath, db)
+            original_filename = file.filename
+            result = upload_dicom(tmp_filepath, db, original_filename)
             return UploadDICOMResponseModel(
                 message="DICOM-Datei erfolgreich verarbeitet",
                 data=[result]
@@ -108,7 +109,7 @@ def receive_file(file: UploadFile, db: Session):
         if os.path.exists(tmp_filepath):
             os.remove(tmp_filepath)
 
-def upload_dicom(tmp_filepath:str, db: Session) -> UploadResultItem:
+def upload_dicom(tmp_filepath: str, db: Session, original_filename: str) -> UploadResultItem:
     """Führt den vollständigen Upload-Workflow für eine DICOM-Datei durch:
     - Validierung
     - Extraktion von Pixeldaten und dessen Speicherung in einem Verzeichnis
@@ -122,7 +123,7 @@ def upload_dicom(tmp_filepath:str, db: Session) -> UploadResultItem:
     #metadata = extract_metadata(ds)
     #Weiterleitung an einer Funktion aus crud_dicom.py
     #store_dicom_metadata(db, metadata["metadata"])
-    return store_dicom_and_pixelarray(ds, pixel_array, db)
+    return store_dicom_and_pixelarray(ds, pixel_array, db, original_filename)
     
 def load_dicom_file(tmp_filepath:str) -> pydicom.Dataset:
     #Schaue nach, ob die Datei DICOM konform ist
@@ -206,7 +207,7 @@ def extract_pixel_array(ds: pydicom.Dataset):
     
     return pixel_array
 
-def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array, db:Session) -> UploadResultItem:
+def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array, db: Session, original_filename: str) -> UploadResultItem:
     """Speicherung der DICOM-Datei und die extrahierte Pixelarray."""
 
     sop_uid = ds.SOPInstanceUID
@@ -247,7 +248,8 @@ def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array, db:Session) -> 
     return UploadResultItem(
         sop_instance_uid=sop_uid,
         saved_dicom_path=anon_path,
-        saved_pixel_array_path=npy_path
+        saved_pixel_array_path=npy_path,
+        original_filename=original_filename
     )
 
 def upload_dicom_zip(zip_path: str) -> UploadDICOMResponseModel:

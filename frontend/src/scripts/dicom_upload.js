@@ -95,6 +95,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const timeStr = berlinDate.toLocaleTimeString(i18n.currentLang === "de" ? "de-DE" : "en-GB", { hour: "2-digit", minute: "2-digit" });
     const dateStr = berlinDate.toLocaleDateString(i18n.currentLang === "de" ? "de-DE" : "en-GB");
 
+    const now = new Date();
+    const nowBerlin = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Berlin" }));
+    const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate();
+
+    const yesterdayBerlin = new Date(nowBerlin);
+    yesterdayBerlin.setDate(nowBerlin.getDate() - 1);
+
+    if (isSameDay(berlinDate, nowBerlin)) return `${i18n.translations.today || "heute"}, ${timeStr} ${i18n.translations.clock || "Uhr"}`;
+    if (isSameDay(berlinDate, yesterdayBerlin)) return `${i18n.translations.yesterday || "gestern"}, ${timeStr} ${i18n.translations.clock || "Uhr"}`;
+
     return `${dateStr}, ${timeStr} ${i18n.translations.clock || "Uhr"}`;
   }
 
@@ -118,7 +130,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const timestamp = formatDateTime(entry.uploaded_at);
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${entry.filename}</td>
+          <td>${entry.original_filename || entry.filename}</td>
           <td>${timestamp}</td>
           <td>
             <button class="btn-reuse" onclick="reuseDicomFromBackend('${sop_uid}')">${i18n.translations.reuse_button || "🔁 Wiederverwenden"}</button>

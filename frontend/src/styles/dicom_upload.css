@@ -3,6 +3,11 @@
   text-align: center;
   margin: 2rem;
 }
+.section-subtitle {
+  display: block;
+  text-align: center;
+  width: 100%;
+}
 
 .upload-table-wrapper {
   display: flex;
@@ -162,6 +167,14 @@ form {
 }
 
 /* === KI-Systemkarten === */
+#ki-title {
+  text-align: center;
+  margin-top: 3rem;
+  font-size: 1.6rem;
+  font-weight: bold;
+  width: 100%;
+}
+
 .ki-list {
   display: flex;
   justify-content: center;
