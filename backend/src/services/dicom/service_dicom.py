@@ -211,7 +211,15 @@ def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array, db:Session) -> 
 
     sop_uid = ds.SOPInstanceUID
     anon_path = os.path.join(UPLOAD_DIR, f"{sop_uid}_anon.dcm")
+    reupload_path = os.path.join(UPLOAD_DIR, f"{sop_uid}_reupload.dcm")
     npy_path = os.path.join(PROCESSED_DIR, f"{sop_uid}_anon.npy")
+    
+    # Reupload-Datei separat sichern (Original – nicht anonymisiert)
+    try:
+        ds.save_as(reupload_path)
+        logging.info(f"[Reupload] Originaldatei separat gespeichert für Reuse: {reupload_path}")
+    except Exception as e:
+        logging.warning(f"[Reupload] Konnte Originaldatei nicht separat speichern: {str(e)}")
 
     # Speichern der DICOM-Datei
     try:
@@ -220,7 +228,6 @@ def store_dicom_and_pixelarray(ds: pydicom.Dataset, pixel_array, db:Session) -> 
     except Exception as e:
         logging.error(f"[Datei] Fehler beim Speichern der anonymisierten Datei: {anon_path} → {str(e)}")
         raise DICOMProcessingError(f"Fehler beim Speichern der anonymisierten Datei: {str(e)}")
-
     # Speichern des Pixel-Arrays
     try:
         np.save(npy_path, pixel_array)
@@ -297,7 +304,8 @@ def get_all_stored_dicom() -> list:
     for file in os.listdir(UPLOAD_DIR):
         filename = os.path.basename(file)
         result.append(filename)
-    return result        
+    return result    
+    
     
 
 

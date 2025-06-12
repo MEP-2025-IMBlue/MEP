@@ -1,6 +1,7 @@
-from datetime import timezone
+from datetime import datetime, timezone
 from typing import List
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from api.py_models import py_models
 from db.database.database import get_db
@@ -48,12 +49,42 @@ async def delete_upload_dicom(sop_uid):
 # ========================================
 # Upload: Holt eine hochgeladene DICOM-Datei aus dem temporären Verzeichnis
 # ========================================
+
 @router.get("/dicoms/uploads")
 async def get_all_stored_dicom():
-    result = service_dicom.get_all_stored_dicom()
-    if not result:
-        return {"message": "Es wurden noch keine DICOM-Dateien hochgeladen."}
+    files = service_dicom.get_all_stored_dicom()
+    result = []
+
+    for filename in files:
+        if not filename.endswith("_reupload.dcm"):
+            continue
+
+        sop_uid = filename.replace("_reupload.dcm", "")
+        path = os.path.join(UPLOAD_DIR, filename)
+        try:
+            modified = os.path.getmtime(path)
+            iso_time = datetime.utcfromtimestamp(modified).replace(tzinfo=timezone.utc).isoformat()
+        except Exception:
+            iso_time = None
+
+        result.append({
+            "filename": filename,
+            "sop_uid": sop_uid,
+            "uploaded_at": iso_time
+        })
+
     return result
+
+@router.get("/dicoms/uploads/{sop_uid}")
+async def get_reupload_dicom(sop_uid: str):
+    """
+    Gibt die gespeicherte Original-Reupload-Datei zurück.
+    """
+    path = os.path.join(UPLOAD_DIR, f"{sop_uid}_reupload.dcm")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Reupload-Datei nicht gefunden.")
+    
+    return FileResponse(path, media_type="application/dicom", filename=f"{sop_uid}_reupload.dcm")
 
 # # ========================================
 # # TODO: Diese Funktion löschen, nach dem Extraktion der Metadaten in post1 eingegliedert wurde

@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const fileInput = document.getElementById("dicom_file");
   const dropZone = document.getElementById("drop-dicom");
   const statusDiv = document.getElementById("dicom-status");
+  const tableBody = document.getElementById("dicom-table-body");
 
   const dropText = document.createElement("p");
   dropText.className = "drop-text";
@@ -62,7 +63,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const formData = new FormData();
     formData.append("file", file);
-
     statusDiv.textContent = `⏳ ${i18n.translations.dicom_upload_running || "Upload läuft..."}`;
 
     try {
@@ -79,62 +79,69 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       dicomForm.reset();
       previewText.textContent = "";
-      renderDicomTableFromBackend();
-      displayKiImages();
+      await renderDicomTableFromBackend();
+      await displayKiImages();
     } catch (err) {
       statusDiv.textContent = `❌ ${i18n.translations.dicom_upload_error || "Fehler beim Hochladen"}: ${err.message}`;
       statusDiv.style.color = "#ff4d4d";
     }
   });
 
+  function formatDateTime(dateTimeStr) {
+    if (!dateTimeStr) return "-";
+    const utcDate = new Date(dateTimeStr.endsWith("Z") ? dateTimeStr : `${dateTimeStr}Z`);
+    if (isNaN(utcDate)) return "-";
+    const berlinDate = new Date(utcDate.toLocaleString("en-US", { timeZone: "Europe/Berlin" }));
+    const timeStr = berlinDate.toLocaleTimeString(i18n.currentLang === "de" ? "de-DE" : "en-GB", { hour: "2-digit", minute: "2-digit" });
+    const dateStr = berlinDate.toLocaleDateString(i18n.currentLang === "de" ? "de-DE" : "en-GB");
+
+    return `${dateStr}, ${timeStr} ${i18n.translations.clock || "Uhr"}`;
+  }
+
   async function renderDicomTableFromBackend() {
-    const table = document.getElementById("dicom-table-body");
-    table.innerHTML = "";
+    tableBody.innerHTML = "";
 
     try {
       const res = await fetch("http://localhost:8000/dicoms/uploads");
       const dicoms = await res.json();
-      if (!res.ok) throw new Error(dicoms.detail || "Fehler beim Laden");
+      if (!res.ok || !Array.isArray(dicoms)) throw new Error("Fehler beim Laden");
 
-      if (!Array.isArray(dicoms) || dicoms.length === 0) {
+      if (dicoms.length === 0) {
         const row = document.createElement("tr");
         row.innerHTML = `<td colspan="3" style="text-align:center; color:#888;">${i18n.translations.dicom_table_empty || "Noch keine DICOM-Dateien hochgeladen."}</td>`;
-        table.appendChild(row);
+        tableBody.appendChild(row);
         return;
       }
 
-      dicoms.forEach(filename => {
-        const sop_uid = filename.replace("_anon.dcm", "");
+      dicoms.forEach((entry) => {
+        const sop_uid = entry.sop_uid || entry.filename?.replace("_reupload.dcm", "") || "???";
+        const timestamp = formatDateTime(entry.uploaded_at);
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${filename}</td>
-          <td>-</td>
+          <td>${entry.filename}</td>
+          <td>${timestamp}</td>
           <td>
             <button class="btn-reuse" onclick="reuseDicomFromBackend('${sop_uid}')">${i18n.translations.reuse_button || "🔁 Wiederverwenden"}</button>
             <button class="btn-delete" onclick="deleteDicomFromBackend('${sop_uid}')">${i18n.translations.delete_button || "🗑 Löschen"}</button>
           </td>
         `;
-        table.appendChild(row);
+        tableBody.appendChild(row);
       });
     } catch (err) {
-      console.error("Fehler beim Laden der Tabelle:", err);
       const row = document.createElement("tr");
-      row.innerHTML = `<td colspan="3" style="text-align:center; color:#f44;">❌ Fehler beim Laden</td>`;
-      table.appendChild(row);
+      row.innerHTML = `<td colspan="3" style="text-align:center; color:#f44;">❌ ${i18n.translations.load_error || "Fehler beim Laden"}</td>`;
+      tableBody.appendChild(row);
     }
   }
 
   window.deleteDicomFromBackend = async function (sop_uid) {
     try {
-      const res = await fetch(`http://localhost:8000/dicoms/uploads/${sop_uid}`, {
-        method: "DELETE"
-      });
-
+      const res = await fetch(`http://localhost:8000/dicoms/uploads/${sop_uid}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Löschen fehlgeschlagen");
 
       statusDiv.textContent = `✅ ${i18n.translations.delete_success || "Gelöscht"}`;
       statusDiv.style.color = "#00cc66";
-      renderDicomTableFromBackend();
+      await renderDicomTableFromBackend();
     } catch (err) {
       statusDiv.textContent = `❌ ${i18n.translations.delete_failed || "Löschen fehlgeschlagen"}: ${err.message}`;
       statusDiv.style.color = "#ff4d4d";
@@ -143,9 +150,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   window.reuseDicomFromBackend = async function (sop_uid) {
     try {
-      const res = await fetch(`http://localhost:8000/dicoms/uploads/${sop_uid}_anon.dcm`);
+      const res = await fetch(`http://localhost:8000/dicoms/uploads/${sop_uid}`);
       const blob = await res.blob();
-      const file = new File([blob], `${sop_uid}_anon.dcm`, { type: "application/dicom" });
+      const file = new File([blob], `${sop_uid}_reupload.dcm`, { type: "application/dicom" });
 
       const formData = new FormData();
       formData.append("file", file);
@@ -153,18 +160,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       statusDiv.textContent = `⏳ ${i18n.translations.reuse_uploading || "Wiederverwenden..."}`;
       statusDiv.style.color = "#ffd700";
 
-      const response = await fetch("http://localhost:8000/dicoms/uploads", {
+      const uploadRes = await fetch("http://localhost:8000/dicoms/uploads", {
         method: "POST",
         body: formData
       });
 
-      if (!response.ok) throw new Error("Erneuter Upload fehlgeschlagen");
+      const result = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(result.detail || "Upload fehlgeschlagen");
 
       statusDiv.textContent = `✅ ${i18n.translations.reuse_success || "Erneut hochgeladen."}`;
       statusDiv.style.color = "#00cc66";
 
-      renderDicomTableFromBackend();
-      displayKiImages();
+      await renderDicomTableFromBackend();
+      await displayKiImages();
     } catch (err) {
       statusDiv.textContent = `❌ ${i18n.translations.reuse_error || "Fehler"}: ${err.message}`;
       statusDiv.style.color = "#ff4d4d";
@@ -174,13 +182,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function displayKiImages() {
     const kiContainer = document.getElementById("ki-list");
     const kiTitle = document.getElementById("ki-title");
-
     if (!kiContainer || !kiTitle) return;
 
     try {
-      const response = await fetch("http://localhost:8000/ki-images");
-      const containers = await response.json();
-      if (!response.ok) throw new Error(containers.detail || "Fehler beim Laden");
+      const res = await fetch("http://localhost:8000/ki-images");
+      const containers = await res.json();
+      if (!res.ok) throw new Error("Fehler beim Laden der KI");
 
       kiContainer.innerHTML = "";
       kiTitle.classList.remove("hidden");
@@ -219,10 +226,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     resultBox.classList.remove("hidden");
   };
 
-  renderDicomTableFromBackend();
+  await renderDicomTableFromBackend();
 
-  document.addEventListener("languageChanged", () => {
+  document.addEventListener("languageChanged", async () => {
     i18n.applyTranslations();
-    renderDicomTableFromBackend();
+    await renderDicomTableFromBackend();
   });
 });
