@@ -1,5 +1,4 @@
 # FastAPI & Dependency Injection
-from datetime import timezone
 from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import Response
 
@@ -68,19 +67,24 @@ async def start_user_container(
 # ========================================
 @router.get("/containers/", response_model=List[ContainerResponse])
 async def list_containers(
+    include_stopped: bool = Query(False, description="Auch gestoppte Container anzeigen"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     start = time.time()
     try:
-        containers = container_service.list_containers(db=db, current_user=current_user)
-        return [ContainerResponse(**c) for c in containers]
+        result = container_service.list_containers(
+            db=db,
+            current_user=current_user,
+            include_stopped=include_stopped
+        )
+        log_event("CONTAINER", "list_containers", f"Containerliste abgerufen (include_stopped={include_stopped})", "INFO", user_id=current_user.id)
+        return [ContainerResponse(**c) for c in result]
     except Exception as e:
-        logger.exception("Fehler bei list_containers")
-        raise HTTPException(status_code=500, detail=str(e))
+        log_event("CONTAINER", "list_containers", f"Fehler beim Abrufen der Containerliste: {str(e)}", level="ERROR", user_id=current_user.id)
+        raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Containerliste")
     finally:
         REQUEST_TIME.observe(time.time() - start)
-
 # ========================================
 # Container stoppen
 # ========================================
