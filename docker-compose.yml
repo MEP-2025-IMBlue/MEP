@@ -126,9 +126,9 @@ services:
       - loki
     volumes:
       - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - ./positions-new.yaml:/tmp/positions.yaml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro    
-      - ./backend/logs:/app/logs                                   
-      - ./test.log:/var/log/test.log
+      - ./backend/logs/event.log:/app/logs/event.log:ro  #
       - /etc/machine-id:/etc/machine-id:ro
     command: -config.file=/etc/promtail/promtail-config.yaml -log.level=debug
     networks:

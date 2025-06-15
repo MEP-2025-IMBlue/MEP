@@ -6,6 +6,7 @@ WORKDIR /app
 #PYTHONPATH setzen, damit 'services', 'api' gibi modüller tanınsın,
 ENV PYTHONPATH=/app
 
+
 # requirements installieren
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

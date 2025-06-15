@@ -120,7 +120,7 @@ async def get_container_resources(
     Zugriff nur für berechtigte User.
     """
     try:
-        result = container_service.get_container_resource_usage(container_id_or_name)
+        result = container_service.get_container_resource_usage(container_id_or_name,current_user=current_user)
         log_event("CONTAINER", "get_container_resources", f"Ressourcen für Container {container_id_or_name} erfolgreich abgerufen", level="INFO", container_id=container_id_or_name, user_id=current_user.id)
         return JSONResponse(content=result)
     except Exception as e:

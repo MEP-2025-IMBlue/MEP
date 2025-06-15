@@ -87,3 +87,12 @@ def delete_ki_image(db: Session, image_id: int):
         return image
     except SQLAlchemyError as e:
         raise DatabaseError("Fehler beim Löschen eines KI-Images.") from e
+def get_ki_image_by_name_and_tag(db: Session, name: str, tag: str):
+    """
+    Gibt ein KI-Image anhand von image_name und image_tag zurück.
+    """
+    try:
+        return db.query(KIImage).filter(KIImage.image_name == name, KIImage.image_tag == tag).first()
+    except Exception as e:
+        raise DatabaseError("Fehler beim Abrufen eines KI-Images nach Name und Tag.") from e
+    

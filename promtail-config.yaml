@@ -22,7 +22,7 @@ scrape_configs:
       - targets: ['localhost']
         labels:
           job: fastapi-logs
-          __path__: /var/log/test.log
+          __path__: /app/logs/event.log  # ✅ HIER aktualisiert (nur event.log, keine Wildcard mehr)
     pipeline_stages:
       - json:
           expressions:
@@ -31,4 +31,11 @@ scrape_configs:
             message: message
             source: source
             action: action
-            user_id: user_id  # Diese Felder werden für die strukturierte Darstellung in Grafana extrahiert
+            user_id: user_id
+            container_id: container_id
+            container_name: container_name
+            image_id: image_id
+            cpu: cpu
+            ram: ram
+      - drop:
+          expression: '.*("start_existing"|"already_running"|"CPU 0.00%"|"RAM 0.00%").*'

@@ -8,7 +8,7 @@ import sys  # für stdout
 #  Log-Verzeichnis (über Umgebungsvariable oder Standardpfad)
 LOG_DIR = os.getenv("LOG_DIR", "logs")
 today_str = datetime.now().strftime("%Y-%m-%d")
-LOG_FILE = os.path.join(LOG_DIR, f"{today_str}.log")
+LOG_FILE = os.path.join(LOG_DIR,"event.log")
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # 🛠 Logger-Instanz
@@ -38,7 +38,7 @@ class JSONLogFormatter(logging.Formatter):
         return json_formatter(record)
 
 #  File-Handler (schreibt Logs in Datei)
-file_handler = logging.FileHandler(LOG_FILE)
+file_handler = logging.FileHandler(LOG_FILE, mode='a')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(JSONLogFormatter())
 logger.addHandler(file_handler)
