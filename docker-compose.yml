@@ -70,7 +70,6 @@ services:
       - ./backend:/app                         # Quellcode ins Container-Dateisystem mounten
       - ./storage/uploads:/tmp/uploads         # Uploads persistieren
       - ./storage/processed:/tmp/processed     # Verarbeitete Dateien persistieren
-      - ./storage/logs:/tmp/logs               # Logs persistieren
       # Ermöglicht dem Backend den Zugriff auf Docker-Events (für Container-Management)
       - /var/run/docker.sock:/var/run/docker.sock # Für Containerverwaltung von innen
       - ./backend/logs:/app/logs
@@ -120,20 +119,18 @@ services:
       - mep-network
   
   promtail:
-    image: grafana/promtail:2.9.6
+    image: grafana/promtail:2.9.2
     container_name: mep-promtail
-    depends_on:
-      - loki
     volumes:
+      - ./storage/promtail:/app/storage/promtail
       - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
-      - ./positions-new.yaml:/tmp/positions.yaml
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro    
-      - ./backend/logs/event.log:/app/logs/event.log:ro  #
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./backend/logs/event.log:/app/logs/event.log:ro
       - /etc/machine-id:/etc/machine-id:ro
     command: -config.file=/etc/promtail/promtail-config.yaml -log.level=debug
+    restart: unless-stopped
     networks:
       - mep-network
-
 
   grafana:
     image: grafana/grafana:10.4.2

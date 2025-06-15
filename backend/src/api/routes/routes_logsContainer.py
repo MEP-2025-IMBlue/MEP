@@ -5,6 +5,8 @@ from docker.errors import NotFound, APIError
 from src.services.container_management.service_container import ContainerService
 from src.utils.event_logger import log_event  # JSON-basiertes Logging
 from src.utils.auth import get_current_user, User
+from sqlalchemy.orm import Session
+from src.db.database.database import get_db
 
 # Pydantic-Modell für die Rückgabe von Container-Logs
 class LogResponse(BaseModel):
@@ -27,13 +29,14 @@ async def get_container_logs(
     stdout: bool = Query(True),
     stderr: bool = Query(True),
     timestamps: bool = Query(True),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Gibt die Logs eines Containers zurück, aber nur für berechtigte User.
     """
     # Hole Container-Metadaten (z.B. image_provider_id als Owner-ID)
-    container_meta = container_service. container_service. get_container_metadata_by_id_or_name(db, current_user, container_id_or_name)
+    container_meta = container_service.get_container_metadata_by_id_or_name(db, current_user, container_id_or_name)
     # Owner-Check: Admin darf alles, Provider nur eigene Container
     if current_user.role != "admin" and container_meta["image_provider_id"] != current_user.id:
         raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Logs.")
@@ -61,6 +64,7 @@ async def get_container_logs(
 @router.get("/{container_id_or_name}/status", response_model=StatusResponse)
 async def get_status_and_health(
     container_id_or_name: str,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """

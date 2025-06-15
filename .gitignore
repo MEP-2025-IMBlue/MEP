@@ -3,7 +3,12 @@
 # Python Bytecode
 __pycache__/
 *.py[cod]
-storage/loki/ # Arbeitsverzeichnisse von Loki (Log-Dateien, Chunks, Indexe etc.)
 
-#Sensible Daten wie Passwort & Benutzername -> Es werden alle .env-Dateien ignoriert
+# Arbeitsverzeichnisse von Loki (Log-Dateien, Chunks, Indexe etc.)
+storage/loki/
+
+# Promtail-Positionsdatei (Laufzeitdaten – sollte nicht versioniert werden)
+positions-new.yaml
+
+# Sensible Daten wie Passwort & Benutzername → Es werden alle .env-Dateien ignoriert
 #*.env

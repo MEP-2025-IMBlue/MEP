@@ -1,28 +1,28 @@
 server:
-  http_listen_port: 9080  # Port, unter dem Promtail HTTP-Anfragen entgegennimmt (z. B. für Metrics)
-  grpc_listen_port: 0     # gRPC nicht verwendet
+  http_listen_port: 9080
+  grpc_listen_port: 0
 
 positions:
-  filename: /tmp/positions.yaml  # Pfad zur Datei, in der Promtail den Fortschritt beim Lesen speichert
+  filename: /app/storage/promtail/positions.yaml
 
 clients:
-  - url: http://loki:3100/loki/api/v1/push  # Loki-Endpunkt, an den Logs gesendet werden
+  - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: docker  # Logs aus stdout/stderr von Docker-Containern
+  - job_name: docker
     static_configs:
       - targets: ['localhost']
         labels:
           job: docker
-          __path__: /var/lib/docker/containers/*/*.log  # Pfad zu Docker-Logs
+          __path__: /var/lib/docker/containers/*/*.log
           __docker__: true
 
-  - job_name: event_logger  # Strukturierte JSON-Logs aus event_logger.py
+  - job_name: fastapi-logs
     static_configs:
       - targets: ['localhost']
         labels:
           job: fastapi-logs
-          __path__: /app/logs/event.log  # ✅ HIER aktualisiert (nur event.log, keine Wildcard mehr)
+          __path__: /app/logs/event.log
     pipeline_stages:
       - json:
           expressions:

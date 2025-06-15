@@ -1,5 +1,5 @@
 # FastAPI & Dependency Injection
-from fastapi import APIRouter, HTTPException, Form, Depends
+from fastapi import APIRouter, HTTPException, Form, Depends, Query
 from fastapi.responses import Response
 
 # Datenbank (SQLAlchemy)

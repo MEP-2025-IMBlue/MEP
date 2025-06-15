@@ -406,45 +406,6 @@ class ContainerService:
             log_event("CONTAINER", "resource_usage_error", str(e), "ERROR", user_id=current_user.id, container_id=container_id)
             raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Ressourcen.")
 
-    # Extrahiert Container-Metadaten anhand der ID
-    def get_container_metadata(self, db: Session, current_user: User, container_id: str) -> dict:
-        """
-        Extrahiert Metadaten anhand des Containernamens und prüft Berechtigung.
-        """
-        try:
-            container = self.client.containers.get(container_id)
-            container_name = container.name
-            parts = container_name.split("_")
-            if len(parts) < 4 or parts[0] != "user":
-                raise HTTPException(status_code=400, detail="Ungültiges Container-Namensformat.")
-
-            user_id = parts[1]
-            image_tag = parts[-1]
-            image_name = "_".join(parts[2:-1]).replace("_", "/")
-
-            ki_image = crud_kiImage.get_ki_image_by_name_and_tag(db, image_name, image_tag)
-            if not ki_image:
-                raise HTTPException(status_code=404, detail="Kein passendes KI-Image in der Datenbank gefunden.")
-
-            if current_user.role != "admin" and ki_image.image_provider_id != current_user.id:
-                log_event("CONTAINER", "unauthorized_metadata_access", "Unberechtigter Zugriff auf Container-Metadaten", "WARNING", user_id=current_user.id, container_id=container_id)
-                raise HTTPException(status_code=403, detail="Keine Berechtigung für diesen Container.")
-
-            return {
-                "container_id": container_id,
-                "container_name": container_name,
-                "image_name": image_name,
-                "image_tag": image_tag,
-                "image_provider_id": ki_image.image_provider_id,
-                "user_id_from_name": user_id,
-            }
-
-        except NotFound:
-            raise HTTPException(status_code=404, detail="Container nicht gefunden.")
-        except Exception as e:
-            log_event("CONTAINER", "get_container_metadata_error", str(e), "ERROR", container_id=container_id, user_id=current_user.id)
-            raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Container-Metadaten.")
-
     # Berechnet die CPU-Auslastung anhand der Docker-Statistiken
     @staticmethod
     def calculate_cpu_percent(stats: dict) -> float:
@@ -512,145 +473,131 @@ class ContainerService:
             raise HTTPException(status_code=500, detail="Fehler beim Stoppen des Containers.")
 
     # Entfernt einen Container mit Berechtigungsprüfung
-    def remove_container(self, container_id: str, current_user: User, db: Session) -> dict:
-        """
-        Entfernt einen Container bei gültiger Berechtigung.
-        """
+def remove_container(self, container_id: str, current_user: User, db: Session) -> dict:
+    """
+    Entfernt einen Container bei gültiger Berechtigung.
+    """
+    try:
+        container = self.client.containers.get(container_id)
+        meta = self.get_container_metadata_by_id_or_name(db, current_user, container_id)
+
+        if current_user.role != "admin" and meta["image_provider_id"] != current_user.id:
+            log_event("CONTAINER", "unauthorized_remove", "Unberechtigter Löschversuch", "WARNING",
+                      user_id=current_user.id, container_id=container_id)
+            raise HTTPException(status_code=403, detail="Keine Berechtigung für diesen Container.")
+
+        container_name = container.name
+        container.remove(force=True)
+        log_event("CONTAINER", "removed", f"Container gelöscht: {container_name}", "INFO",
+                  user_id=current_user.id, container_id=container_id)
+        return {"container_id": container_id, "name": container.name, "status": "removed"}
+
+    except NotFound:
+        raise HTTPException(status_code=404, detail="Container nicht gefunden.")
+    except Exception as e:
+        log_event("CONTAINER", "remove_error", str(e), "ERROR",
+                  user_id=current_user.id, container_id=container_id)
+        raise HTTPException(status_code=500, detail="Fehler beim Löschen des Containers.")
+
+
+# Gibt Container-Metadaten anhand ID oder Name zurück (inkl. Berechtigungsprüfung)
+def get_container_metadata_by_id_or_name(self, db: Session, current_user: User, container_id_or_name: str) -> dict:
+    try:
+        container = None
         try:
-            container = self.client.containers.get(container_id)
-            meta = self.get_container_metadata(db, current_user, container_id)
-
-            if current_user.role != "admin" and meta["image_provider_id"] != current_user.id:
-                log_event("CONTAINER", "unauthorized_remove", "Unberechtigter Löschversuch", "WARNING", user_id=current_user.id, container_id=container_id)
-                raise HTTPException(status_code=403, detail="Keine Berechtigung für diesen Container.")
-    
-            container_name = container.name
-            container.remove(force=True)
-            log_event("CONTAINER", "removed", f"Container gelöscht: {container_name}", "INFO", user_id=current_user.id, container_id=container_id)
-            return {"container_id": container_id, "name": container.name, "status": "removed"}
-
+            container = self.client.containers.get(container_id_or_name)
         except NotFound:
-            raise HTTPException(status_code=404, detail="Container nicht gefunden.")
-        except Exception as e:
-            log_event("CONTAINER", "remove_error", str(e), "ERROR", user_id=current_user.id, container_id=container_id)
-            raise HTTPException(status_code=500, detail="Fehler beim Löschen des Containers.")
+            containers = self.client.containers.list(all=True)
+            for c in containers:
+                if c.name == container_id_or_name:
+                    container = c
+                    break
+            if container is None:
+                raise HTTPException(status_code=404, detail="Container nicht gefunden.")
 
-    # Gibt Container-Metadaten anhand ID oder Name zurück (inkl. Berechtigungsprüfung)
-    def  get_container_metadata_by_id_or_name(self, db: Session, current_user: User, container_id_or_name: str) -> dict:
-        """
-        Gibt Container-Metadaten zurück, egal ob nach ID oder Name gesucht wird.
-        Führt Autorisierungsprüfung durch.
-        """
-        try:
-            container = None
-            try:
-                container = self.client.containers.get(container_id_or_name)
-            except NotFound:
-                containers = self.client.containers.list(all=True)
-                for c in containers:
-                    if c.name == container_id_or_name:
-                        container = c
-                        break
-                if container is None:
-                    raise HTTPException(status_code=404, detail="Container nicht gefunden.")
+        container_name = container.name
 
-            container_name = container.name
-            parts = container_name.split("_")
-            if len(parts) < 4 or parts[0] != "user":
-                raise HTTPException(status_code=400, detail="Ungültiges Container-Namensformat.")
-
-            user_id = parts[1]
-            image_tag = parts[-1]
-            image_name = "_".join(parts[2:-1]).replace("_", "/")
-
-            ki_image = crud_kiImage.get_ki_image_by_name_and_tag(db, image_name, image_tag)
-            if not ki_image:
-                raise HTTPException(status_code=404, detail="Kein passendes KI-Image in der Datenbank gefunden.")
-
-            if current_user.role != "admin" and ki_image.image_provider_id != current_user.id:
-                log_event("CONTAINER", "unauthorized_metadata_access", "Unberechtigter Zugriff auf Container-Metadaten", "WARNING", user_id=current_user.id, container_id=container.id)
-                raise HTTPException(status_code=403, detail="Keine Berechtigung für diesen Container.")
-
+        # Nur Admin darf systemische Container sehen
+        if not container_name.startswith("user_"):
+            if current_user.role != "admin":
+                raise HTTPException(status_code=403, detail="Keine Berechtigung für diesen Systemcontainer.")
             return {
                 "container_id": container.id,
                 "container_name": container.name,
-                "image_name": image_name,
-                "image_tag": image_tag,
-                "image_provider_id": ki_image.image_provider_id,
-                "user_id_from_name": user_id,
+                "image_name": "system",
+                "image_tag": "system",
+                "image_provider_id": "system",
+                "user_id_from_name": "system",
             }
 
-        except HTTPException:
-            raise
-        except Exception as e:
-            log_event("CONTAINER", "get_container_metadata_by_id_or_name_error", str(e), "ERROR", container_id=container_id_or_name, user_id=current_user.id)
-            raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Container-Metadaten.")
-        
-    def get_container_logs(
-        self,
-        db: Session,
-        current_user: User,
-        container_id_or_name: str,
-        tail: int = 100,
-        stdout: bool = True,
-        stderr: bool = True,
-        timestamps: bool = True
-    ) -> list[str]:
-        """
-        Gibt die letzten Logzeilen eines Containers zurück (stdout/stderr),
-        inklusive Autorisierungsprüfung und Fehler-Logging.
-        """
-        try:
-            # Berechtigungsprüfung über Metadaten
-            self.get_container_metadata_by_id_or_name(db, current_user, container_id_or_name)
+        parts = container_name.split("_")
+        if len(parts) < 4:
+            raise HTTPException(status_code=400, detail="Ungültiges Container-Namensformat.")
 
-            # Containerobjekt laden
-            container = self.client.containers.get(container_id_or_name)
+        user_id = parts[1]
+        image_tag = parts[-1]
+        image_name = "_".join(parts[2:-1]).replace("_", "/")
 
-            # Logdaten abrufen
-            logs = container.logs(
-                stdout=stdout,
-                stderr=stderr,
-                tail=tail,
-                timestamps=timestamps
+        ki_image = crud_kiImage.get_ki_image_by_name_and_tag(db, image_name, image_tag)
+        if not ki_image:
+            raise HTTPException(status_code=404, detail="Kein passendes KI-Image in der Datenbank gefunden.")
+
+        if current_user.role != "admin" and ki_image.image_provider_id != current_user.id:
+            log_event(
+                "CONTAINER", "unauthorized_metadata_access",
+                "Unberechtigter Zugriff auf Container-Metadaten", "WARNING",
+                user_id=current_user.id, container_id=container.id
             )
+            raise HTTPException(status_code=403, detail="Keine Berechtigung für diesen Container.")
 
-            return logs.decode("utf-8").splitlines() if logs else []
+        return {
+            "container_id": container.id,
+            "container_name": container.name,
+            "image_name": image_name,
+            "image_tag": image_tag,
+            "image_provider_id": ki_image.image_provider_id,
+            "user_id_from_name": user_id,
+        }
 
-        except NotFound:
-            raise HTTPException(status_code=404, detail="Container nicht gefunden.")
-        except DockerException as e:
-            log_event("CONTAINER", "get_logs_docker_error", str(e), "ERROR", container_id=container_id_or_name, user_id=current_user.id)
-            raise HTTPException(status_code=500, detail=f"Fehler beim Abrufen der Logs: {str(e)}")
-        except Exception as e:
-            log_event("CONTAINER", "get_logs_unexpected_error", str(e), "ERROR", container_id=container_id_or_name, user_id=current_user.id)
-            raise HTTPException(status_code=500, detail="Unbekannter Fehler beim Abrufen der Logs.")
-    #Gibt Container-Status und Health-Zustand für berechtigte Nutzer zurück    
-    def get_container_status_and_health(self, db: Session, current_user: User, container_id_or_name: str) -> dict:
-            """
-            Gibt den Status und Health-Zustand eines Containers zurück.
-            Zugriff nur für berechtigte Benutzer (Admin oder Eigentümer).
-            """
-            try:
-                meta = self.get_container_metadata_by_id_or_name(db, current_user, container_id_or_name)
-                container = self.client.containers.get(container_id_or_name)
-                container.reload()
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_event(
+            "CONTAINER",
+            "get_container_metadata_by_id_or_name_error",
+            f"Exception: {str(e)}",
+            level="ERROR",
+            container_id=container_id_or_name,
+            user_id=current_user.id
+        )
+        raise HTTPException(status_code=500, detail=f"Fehler beim Abrufen der Container-Metadaten: {str(e)}")
 
-                status = container.status
-                health_info = container.attrs.get("State", {}).get("Health", {}).get("Status", "unbekannt")
+# Gibt Container-Status und Health-Zustand für berechtigte Nutzer zurück
+def get_container_status_and_health(self, db: Session, current_user: User, container_id_or_name: str) -> dict:
+    """
+    Gibt den Status und Health-Zustand eines Containers zurück.
+    Zugriff nur für berechtigte Benutzer (Admin oder Eigentümer).
+    """
+    try:
+        meta = self.get_container_metadata_by_id_or_name(db, current_user, container_id_or_name)
+        container = self.client.containers.get(container_id_or_name)
+        container.reload()
 
-                return {
-                    "status": status,
-                    "health": health_info
-                }
+        status = container.status
+        health_info = container.attrs.get("State", {}).get("Health", {}).get("Status", "unbekannt")
 
-            except NotFound:
-                raise HTTPException(status_code=404, detail="Container nicht gefunden.")
-            except DockerException as e:
-                log_event("CONTAINER", "status_health_docker_error", str(e), "ERROR", container_id=container_id_or_name, user_id=current_user.id)
-                raise HTTPException(status_code=500, detail="Fehler beim Abrufen des Container-Status.")
-            except Exception as e:
-                log_event("CONTAINER", "status_health_unexpected_error", str(e), "ERROR", container_id=container_id_or_name, user_id=current_user.id)
-                raise HTTPException(status_code=500, detail="Unbekannter Fehler beim Abrufen des Container-Status.")
-   
-    
+        return {
+            "status": status,
+            "health": health_info
+        }
+
+    except NotFound:
+        raise HTTPException(status_code=404, detail="Container nicht gefunden.")
+    except DockerException as e:
+        log_event("CONTAINER", "status_health_docker_error", str(e), "ERROR",
+                  container_id=container_id_or_name, user_id=current_user.id)
+        raise HTTPException(status_code=500, detail="Fehler beim Abrufen des Container-Status.")
+    except Exception as e:
+        log_event("CONTAINER", "status_health_unexpected_error", str(e), "ERROR",
+                  container_id=container_id_or_name, user_id=current_user.id)
+        raise HTTPException(status_code=500, detail="Unbekannter Fehler beim Abrufen des Container-Status.")
