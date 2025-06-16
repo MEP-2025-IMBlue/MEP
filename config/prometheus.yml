@@ -1,30 +1,68 @@
-global:
-  scrape_interval: 15s
+# ─────────────────────────────────────────────────────────────────────────────
+# Prometheus Configuration File
+# Purpose: Production-grade service and infrastructure monitoring
+# Author: mRay Engineering Team
+# Environment: Docker Compose – Internal Service Discovery via Container Names
+# ─────────────────────────────────────────────────────────────────────────────
 
+global:
+  scrape_interval: 15s         # Default interval for all targets (can be overridden per job)
+  evaluation_interval: 15s     # Rule evaluation frequency (if alerting is configured)
+  scrape_timeout: 10s          # Timeout per scrape request to any endpoint
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job: Self-monitoring of Prometheus instance
+# Metrics: TSDB performance, scrape durations, memory usage, etc.
+# ─────────────────────────────────────────────────────────────────────────────
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: "mray-backend"
+# ─────────────────────────────────────────────────────────────────────────────
+# Job: mRay Backend API (FastAPI-based)
+# Metrics: Uvicorn request metrics, custom business logic counters, histograms
+# Endpoint: /metrics (via prometheus_client)
+# ─────────────────────────────────────────────────────────────────────────────
+  - job_name: 'mray-backend'
     static_configs:
-      - targets: ["backend:8000"]  # Container-interner Zugriff über Servicenamen
-      
+      - targets: ['backend:8000']  # Docker container name → resolves via Docker DNS
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job: Loki – Log aggregation engine (metrics, not logs)
+# Metrics: Ingester throughput, index compactions, query durations
+# Endpoint: /metrics (enabled by default)
+# ─────────────────────────────────────────────────────────────────────────────
   - job_name: 'loki'
     static_configs:
       - targets: ['mep-loki:3100']
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Job: Promtail – Log shipping agent (Loki client)
+# Metrics: active targets, log line throughput, dropped entries
+# Note: Promtail must be started with `-server.http-listen-port=9080`
+# ─────────────────────────────────────────────────────────────────────────────
   - job_name: 'promtail'
     static_configs:
       - targets: ['mep-promtail:9080']
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Job: Grafana – UI metrics (only if metrics are enabled)
+# Metrics: dashboard rendering, data source usage, alert manager usage
+# Requires: GF_METRICS_ENABLED=true in Grafana container
+# ─────────────────────────────────────────────────────────────────────────────
   - job_name: 'grafana'
     static_configs:
       - targets: ['mep-grafana:3000']
-  
-  - job_name: 'container-metrics'
-    scrape_interval: 15s  # Container-Ressourcen wie CPU und RAM alle 15 Sekunden aktualisieren
-    metrics_path: /container-metrics  # Spezieller Endpunkt zur Aktualisierung von Prometheus-Gauges
-    static_configs:
-      - targets: ['backend:8000']  # Backend-Instanz, die den Endpunkt bereitstellt    
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Job: Custom container metrics from backend (CPU, RAM usage, etc.)
+# Endpoint: /container-metrics – Exposes Prometheus-formatted data from FastAPI
+# Used for: Real-time dashboarding of container resource usage
+# ─────────────────────────────────────────────────────────────────────────────
+  - job_name: 'container-metrics'
+    scrape_interval: 15s          # Independent scrape frequency for resource metrics
+    scrape_timeout: 5s
+    metrics_path: /container-metrics
+    static_configs:
+      - targets: ['backend:8000']

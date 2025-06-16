@@ -103,65 +103,70 @@ services:
       - mep-network
 
   loki:
-    image: grafana/loki:2.9.6
+    image: grafana/loki:2.9.6  # Stable release of Grafana Loki for log aggregation at scale
     container_name: mep-loki
+
     ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+      - "3100:3100"  # Exposes Loki's HTTP API (used by Promtail, Grafana, and monitoring tools)
+
+    command: -config.file=/etc/loki/local-config.yaml  # Load custom configuration (retention, storage, schema, limits)
+
     volumes:
+      # Config: Main Loki configuration file, controls ingestion, storage backend, retention, indexing etc.
       - ./loki-config.yaml:/etc/loki/local-config.yaml
-      - ./storage/loki/index:/loki/index
-      - ./storage/loki/cache:/loki/cache
-      - ./storage/loki/chunks:/loki/chunks
-      - ./storage/loki/wal:/wal 
-      - ./storage/loki/compactor:/loki/compactor
+
+      # Persistent storage: Recommended directory structure for production Loki deployment
+      - ./storage/loki/index:/loki/index                 # Inverted index database (used for fast query lookups)
+      - ./storage/loki/cache:/loki/cache                 # Internal cache used to improve performance
+      - ./storage/loki/chunks:/loki/chunks               # Actual log data stored as compressed time chunks
+      - ./storage/loki/wal:/wal                          # Write-Ahead Log, ensures durability across crashes
+      - ./storage/loki/compactor:/loki/compactor         # Background compaction, required for long-term retention
+
     networks:
-      - mep-network
+      - mep-network  # Shared internal Docker network (for Promtail, Grafana, backend access)
+
   
   promtail:
     image: grafana/promtail:2.9.2
     container_name: mep-promtail
     volumes:
+      # Pfad zur Promtail-Zwischenspeicherung (z. B. Positionen, Status)
       - ./storage/promtail:/app/storage/promtail
+      # Hauptkonfigurationsdatei für Promtail (inkl. Pipelines, Filter etc.)
       - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      # Zugriff auf Docker-Container-Logs (read-only)
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # Zugriff auf FastAPI-Logdatei (read-only)
       - ./backend/logs/event.log:/app/logs/event.log:ro
+      # Maschinen-ID wird benötigt, um eindeutige Client-IDs in Promtail zu generieren
       - /etc/machine-id:/etc/machine-id:ro
     command: -config.file=/etc/promtail/promtail-config.yaml -log.level=debug
-    restart: unless-stopped
+    restart: unless-stopped  # Neustart nur bei manueller Beendigung verhindern
     networks:
-      - mep-network
+      - mep-network  # Einheitliches Netzwerk für Container-Kommunikation
 
   grafana:
     image: grafana/grafana:10.4.2
     container_name: mep-grafana
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Webinterface für Dashboards und Visualisierung
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # Initiales Admin-Passwort (sollte in Produktion ersetzt werden)
     volumes:
-      # Automatische Datenquellen-Provisionierung
+      # Vorkonfigurierte Datenquellen (z. B. Loki, Prometheus) werden hier provisioniert
       - ./config/datasources:/etc/grafana/provisioning/datasources
     depends_on:
-      - loki
+      - loki  # Startet erst, wenn Loki verfügbar ist (Log-Datenquelle)
     networks:
       - mep-network
+
   prometheus:
     image: prom/prometheus:latest
     container_name: mep-prometheus
     ports:
-      - "9090:9090"
+      - "9090:9090"  # Webinterface für Prometheus-Metriken und Abfragen
     volumes:
-
+      # Prometheus-Konfigurationsdatei mit statischen und dynamischen Targets (z. B. FastAPI, Loki etc.)
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml  
-
     networks:
-      - mep-network
-      
-volumes:
-  imblue_data:
-  kc_imblue_data:
-
-networks:
-  mep-network:
-    driver: bridge
+      - mep-network  # Einbindung ins zentrale Kommunikationsnetzwerk

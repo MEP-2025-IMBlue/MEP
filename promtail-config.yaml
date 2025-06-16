@@ -1,41 +1,51 @@
+# Serverkonfiguration für Promtail: HTTP-Port für Status und Metriken
 server:
-  http_listen_port: 9080
-  grpc_listen_port: 0
+  http_listen_port: 9080  # Promtail Web-UI (z. B. für Prometheus Metriken)
+  grpc_listen_port: 0     # gRPC deaktiviert (nicht benötigt in Standard-Setups)
 
+# Pfad zur Datei, in der Promtail die Position der letzten gelesenen Logzeilen speichert
 positions:
   filename: /app/storage/promtail/positions.yaml
 
+# Liste der Ziel-Clients, an die Logs gesendet werden (z. B. Loki)
 clients:
-  - url: http://loki:3100/loki/api/v1/push
+  - url: http://loki:3100/loki/api/v1/push  # URL der Loki-Instanz (Docker-Name in Compose)
 
+# Konfiguration der Log-Quellen (Scrape Jobs)
 scrape_configs:
+  # Erster Job: Standard-Docker-Container-Logs (JSON-Logdateien aus dem Docker-Engine-Verzeichnis)
   - job_name: docker
     static_configs:
-      - targets: ['localhost']
+      - targets: ['localhost']  # Lokales Ziel (technisch erforderlich, obwohl ungenutzt)
         labels:
-          job: docker
-          __path__: /var/lib/docker/containers/*/*.log
-          __docker__: true
+          job: docker  # Log-Label zur Unterscheidung im Loki/Grafana
+          __path__: /var/lib/docker/containers/*/*.log  # Pfad zu allen Docker-Container-Logs
+          __docker__: true  # Custom Label für Filterung oder Visualisierung
 
+  # Zweiter Job: Anwendungsspezifische Logs von FastAPI
   - job_name: fastapi-logs
     static_configs:
-      - targets: ['localhost']
+      - targets: ['localhost']  # Lokaler Endpunkt als Platzhalter
         labels:
-          job: fastapi-logs
-          __path__: /app/logs/event.log
+          job: fastapi-logs  # Label zur Unterscheidung im Logging-System
+          __path__: /app/logs/event.log  # Absoluter Pfad zur Logdatei der FastAPI-Anwendung
+
+    # Pipeline zur Verarbeitung und Strukturierung der Logs
     pipeline_stages:
-      - json:
+      - json:  # Die Logzeilen werden als JSON geparst, um strukturierte Daten zu extrahieren
           expressions:
-            timestamp: timestamp
-            level: level
-            message: message
-            source: source
-            action: action
-            user_id: user_id
-            container_id: container_id
-            container_name: container_name
-            image_id: image_id
-            cpu: cpu
-            ram: ram
+            timestamp: timestamp  # Zeitstempel des Logeintrags
+            level: level          # Log-Level (z. B. INFO, ERROR)
+            message: message      # Hauptnachricht
+            source: source        # Quelle des Events (z. B. Modul oder Service)
+            action: action        # Aktion, die geloggt wurde
+            user_id: user_id      # Benutzer-ID (zur Zuordnung im Monitoring)
+            container_id: container_id  # Docker-Container-ID
+            container_name: container_name  # Name des Containers
+            image_id: image_id            # ID des Docker-Images
+            cpu: cpu                      # CPU-Auslastung
+            ram: ram                      # RAM-Auslastung
+
+      # Unnötige oder irrelevante Logs werden verworfen (z. B. doppelte Starts, leere Auslastung)
       - drop:
-          expression: '.*("start_existing"|"already_running"|"CPU 0.00%"|"RAM 0.00%").*'
+          expression: '.*("start_existing"|"already_running"|"CPU 0.00%"|"RAM 0.00%").*'  # Filter zum Entfernen redundanter Logzeilen
